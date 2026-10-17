@@ -83,8 +83,12 @@ private struct ModuleCard: View {
                     .font(.headline)
                     .lineLimit(1)
                 Spacer(minLength: 0)
-                if !module.isTool, let options = FeatureOptions.count(module) {
-                    OptionsRing(on: Self.isOn(module) ? options.on : 0, total: options.total, tint: module.tint)
+                InfoButton(module.summary)
+                if !module.isTool {
+                    // Always shown, 0/0 included, so every feature card reads the same.
+                    let options = FeatureOptions.count(module) ?? (0, 0)
+                    OptionsRing(on: Self.isOn(module) ? options.on : 0, total: options.total,
+                                tint: Self.isOn(module) ? .green : .red)
                 }
             }
             Text(module.summary)
@@ -118,8 +122,16 @@ private struct ModuleCard: View {
                 .fill(isHovering ? AnyShapeStyle(.quaternary) : AnyShapeStyle(.background.secondary))
         }
         .overlay {
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .strokeBorder(.separator, lineWidth: 0.5)
+            // Features: a steady green glow when on, red when off. No animation.
+            if module.isTool {
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .strokeBorder(.separator, lineWidth: 0.5)
+            } else {
+                let color: Color = Self.isOn(module) ? .green : .red
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .strokeBorder(color.opacity(0.85), lineWidth: 1.5)
+                    .shadow(color: color.opacity(0.55), radius: 8)
+            }
         }
         .onHover { isHovering = $0 }
         .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
@@ -140,17 +152,19 @@ private struct BoltMenuHero: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(alignment: .center, spacing: 16) {
-                Image(systemName: "bolt.fill")
-                    .font(.system(size: 28, weight: .bold))
+                Image("TrayOrb")
+                    .resizable()
+                    .renderingMode(.template)
                     .foregroundStyle(.white)
+                    .padding(13)
                     .frame(width: 58, height: 58)
                     .background(
-                        LinearGradient(colors: [.yellow, .orange, .pink], startPoint: .topLeading, endPoint: .bottomTrailing),
+                        LinearGradient(colors: [.purple, .pink, .indigo], startPoint: .topLeading, endPoint: .bottomTrailing),
                         in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-                    .shadow(color: .orange.opacity(0.45), radius: 12, y: 4)
+                    .shadow(color: .purple.opacity(0.45), radius: 12, y: 4)
                     .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(L("Your ⚡ menu"))
+                    Text(L("Your menu bar menu"))
                         .font(.title2.bold())
                     Text(L("Everything you reach for, one click away in the menu bar. Choose what it shows."))
                         .font(.callout)
@@ -165,30 +179,43 @@ private struct BoltMenuHero: View {
                 }
                 .controlSize(.large)
                 .buttonStyle(.borderedProminent)
-                .tint(.orange)
+                .tint(.purple)
             }
 
-            LazyVGrid(columns: columns, alignment: .leading, spacing: 10) {
-                ForEach(BoltMenuItem.allCases) { item in
-                    BoltItemTile(item: item, isOn: settings.isOn(item),
-                                 available: item.module.map { manager.isRunning($0) } ?? true) {
-                        settings.set(item, !settings.isOn(item))
-                    }
-                }
-            }
+            group(L("Shortcuts"), L("Programs opened with one click from the menu."), BoltMenuItem.shortcuts)
+            group(L("Controllers"), L("Adjusted right there in the menu: sound, microphone, brightness, Cafeína and a peek through the camera."), BoltMenuItem.controls)
         }
         .padding(20)
         .background {
             RoundedRectangle(cornerRadius: 20, style: .continuous)
                 .fill(.background.secondary)
             RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(LinearGradient(colors: [.orange.opacity(0.18), .pink.opacity(0.10), .clear],
+                .fill(LinearGradient(colors: [.purple.opacity(0.18), .pink.opacity(0.10), .clear],
                                      startPoint: .topLeading, endPoint: .bottomTrailing))
         }
         .overlay {
             RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .strokeBorder(LinearGradient(colors: [.orange.opacity(0.5), .pink.opacity(0.2)], startPoint: .topLeading, endPoint: .bottomTrailing),
+                .strokeBorder(LinearGradient(colors: [.purple.opacity(0.5), .pink.opacity(0.2)], startPoint: .topLeading, endPoint: .bottomTrailing),
                               lineWidth: 1)
+        }
+    }
+}
+
+private extension BoltMenuHero {
+    func group(_ title: String, _ info: String, _ items: [BoltMenuItem]) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 6) {
+                Text(title).font(.headline)
+                InfoButton(info)
+            }
+            LazyVGrid(columns: columns, alignment: .leading, spacing: 10) {
+                ForEach(items) { item in
+                    BoltItemTile(item: item, isOn: settings.isOn(item),
+                                 available: item.module.map { manager.isRunning($0) } ?? true) {
+                        settings.set(item, !settings.isOn(item))
+                    }
+                }
+            }
         }
     }
 }
@@ -218,6 +245,7 @@ private struct BoltItemTile: View {
                     .lineLimit(1)
             }
             Spacer(minLength: 4)
+            InfoButton(item.detail)
             Toggle("", isOn: Binding(get: { isOn }, set: { _ in toggle() }))
                 .toggleStyle(.switch)
                 .controlSize(.small)

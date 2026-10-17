@@ -10851,6 +10851,326 @@
           }
         }
       }
+    },
+    "Microphone": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microfone"
+          }
+        }
+      }
+    },
+    "Display Brightness": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brilho das telas"
+          }
+        }
+      }
+    },
+    "Keyboard Light": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Luz do teclado"
+          }
+        }
+      }
+    },
+    "Peek Camera": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Espiar câmera"
+          }
+        }
+      }
+    },
+    "Per-App Mixer": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mixer por app"
+          }
+        }
+      }
+    },
+    "Opens the list of everything you copied, to paste it again.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abre a lista de tudo que você copiou, para colar de novo."
+          }
+        }
+      }
+    },
+    "Choose a window to keep floating above all the others.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escolha uma janela para ficar flutuando acima de todas as outras."
+          }
+        }
+      }
+    },
+    "Select an area of the screen and copy the text in it, even from images and videos.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selecione uma área da tela e copie o texto dela, até de imagens e vídeos."
+          }
+        }
+      }
+    },
+    "The Mac's sound volume, with a click on the speaker to mute.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O volume do Mac; clique no alto-falante para silenciar."
+          }
+        }
+      }
+    },
+    "Mutes or unmutes the microphone for every app at once. Green: on; red: muted.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Silencia ou liga o microfone para todos os apps de uma vez. Verde: ligado; vermelho: mudo."
+          }
+        }
+      }
+    },
+    "Brightness of the built-in display and Apple displays, one slider each.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brilho da tela do Mac e de monitores Apple, um controle para cada."
+          }
+        }
+      }
+    },
+    "The keyboard backlight, on Macs that have one.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A luz do teclado, nos Macs que têm."
+          }
+        }
+      }
+    },
+    "Keeps the Mac and the display from sleeping, for the time you choose or indefinitely. The time is remembered.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impede o Mac e a tela de dormir, pelo tempo que você escolher ou sem limite. O tempo fica salvo."
+          }
+        }
+      }
+    },
+    "Opens the camera below the menu bar for a quick look at yourself. Click it again to close.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abre a câmera abaixo da barra de menus para você dar uma olhadinha. Clique de novo para fechar."
+          }
+        }
+      }
+    },
+    "Outputs, volume of each app and the microphone, in detail.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saídas de som, volume de cada app e o microfone, em detalhes."
+          }
+        }
+      }
+    },
+    "Muted": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mudo"
+          }
+        }
+      }
+    },
+    "No display here can change brightness.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nenhuma tela aqui permite mudar o brilho."
+          }
+        }
+      }
+    },
+    "This Mac has no keyboard light.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este Mac não tem luz no teclado."
+          }
+        }
+      }
+    },
+    "Awake indefinitely": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acordado sem limite"
+          }
+        }
+      }
+    },
+    "Mac can sleep": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Mac pode dormir"
+          }
+        }
+      }
+    },
+    "Duration": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duração"
+          }
+        }
+      }
+    },
+    "How long Cafeína keeps the Mac awake. Remembered for next time.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Por quanto tempo a Cafeína mantém o Mac acordado. Fica salvo para a próxima vez."
+          }
+        }
+      }
+    },
+    "Quick look at yourself": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uma olhadinha rápida"
+          }
+        }
+      }
+    },
+    "Peek": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Espiar"
+          }
+        }
+      }
+    },
+    "15 minutes": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "15 minutos"
+          }
+        }
+      }
+    },
+    "30 minutes": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 minutos"
+          }
+        }
+      }
+    },
+    "5 hours": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "5 horas"
+          }
+        }
+      }
+    },
+    "Indefinitely": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sem limite"
+          }
+        }
+      }
+    },
+    "Your menu bar menu": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seu menu da barra"
+          }
+        }
+      }
+    },
+    "Controllers": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Controladores"
+          }
+        }
+      }
+    },
+    "Programs opened with one click from the menu.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Programas abertos com um clique a partir do menu."
+          }
+        }
+      }
+    },
+    "Adjusted right there in the menu: sound, microphone, brightness, Cafeína and a peek through the camera.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajustados ali mesmo no menu: som, microfone, brilho, Cafeína e uma espiada pela câmera."
+          }
+        }
+      }
     }
   }
 }
