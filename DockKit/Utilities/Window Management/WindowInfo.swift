@@ -1,0 +1,544 @@
+import ApplicationServices
+import Cocoa
+import Defaults
+import ScreenCaptureKit
+
+enum WindowCloseResult {
+    case closed
+    case appQuit
+    case noChange
+}
+
+struct WindowInfo: Identifiable, Hashable {
+    let id: CGWindowID
+    let windowProvider: WindowPropertiesProviding
+    let app: NSRunningApplication
+    let ownerApp: NSRunningApplication
+    var windowName: String?
+    var frame: CGRect
+    var image: CGImage?
+    var axElement: AXUIElement
+    var appAxElement: AXUIElement
+    var closeButton: AXUIElement?
+    var spaceID: Int?
+    var screenIdentifier: String?
+    var lastAccessedTime: Date
+    var creationTime: Date
+    var imageCapturedTime: Date
+    var isMinimized: Bool
+    var isHidden: Bool
+    private(set) var isWindowlessApp: Bool
+
+    private var _scWindow: SCWindow?
+
+    init(windowProvider: WindowPropertiesProviding, app: NSRunningApplication, ownerApp: NSRunningApplication? = nil, image: CGImage?, axElement: AXUIElement, appAxElement: AXUIElement, closeButton: AXUIElement?, lastAccessedTime: Date, creationTime: Date? = nil, imageCapturedTime: Date? = nil, spaceID: Int? = nil, screenIdentifier: String? = nil, isMinimized: Bool, isHidden: Bool, readsAXTitle: Bool = true) {
+        id = windowProvider.windowID
+        self.windowProvider = windowProvider
+        self.app = app
+        self.ownerApp = ownerApp ?? app
+        if readsAXTitle, !AXResponsiveness.isUnresponsive(app.processIdentifier) {
+            windowName = (try? axElement.title()) ?? windowProvider.title
+        } else {
+            windowName = windowProvider.title
+        }
+        frame = windowProvider.frame
+        self.image = image
+        self.axElement = axElement
+        self.appAxElement = appAxElement
+        self.closeButton = closeButton
+        self.spaceID = spaceID
+        self.screenIdentifier = screenIdentifier
+        self.lastAccessedTime = lastAccessedTime
+        self.creationTime = creationTime ?? lastAccessedTime
+        self.imageCapturedTime = imageCapturedTime ?? lastAccessedTime
+        self.isMinimized = isMinimized
+        self.isHidden = isHidden
+        isWindowlessApp = false
+        _scWindow = windowProvider as? SCWindow
+    }
+
+    var scWindow: SCWindow? { _scWindow }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+        hasher.combine(app.processIdentifier)
+    }
+
+    static func == (lhs: WindowInfo, rhs: WindowInfo) -> Bool {
+        lhs.id == rhs.id &&
+            lhs.app.processIdentifier == rhs.app.processIdentifier &&
+            lhs.axElement == rhs.axElement
+    }
+
+    struct ViewSnapshot: Equatable {
+        let id: CGWindowID
+        let pid: pid_t
+        let windowName: String?
+        let isMinimized: Bool
+        let isHidden: Bool
+        let imagePointer: UnsafeRawPointer?
+    }
+
+    var viewSnapshot: ViewSnapshot {
+        ViewSnapshot(
+            id: id,
+            pid: app.processIdentifier,
+            windowName: windowName,
+            isMinimized: isMinimized,
+            isHidden: isHidden,
+            imagePointer: image.map { Unmanaged.passUnretained($0).toOpaque() }
+        )
+    }
+}
+
+extension WindowInfo {
+    static func windowlessEntry(for app: NSRunningApplication) -> WindowInfo {
+        let pid = app.processIdentifier
+        let appAX = AXUIElementCreateApplication(pid)
+        let provider = MockPreviewWindow(
+            windowID: 0,
+            frame: .zero,
+            title: app.localizedName,
+            owningApplicationBundleIdentifier: app.bundleIdentifier,
+            owningApplicationProcessID: pid,
+            isOnScreen: false,
+            windowLayer: 0
+        )
+        var info = WindowInfo(
+            windowProvider: provider,
+            app: app,
+            image: nil,
+            axElement: appAX,
+            appAxElement: appAX,
+            closeButton: nil,
+            lastAccessedTime: .distantPast,
+            isMinimized: false,
+            isHidden: false,
+            readsAXTitle: false
+        )
+        info.isWindowlessApp = true
+        return info
+    }
+
+    @discardableResult
+    mutating func toggleMinimize() -> Bool? {
+        guard !isWindowlessApp else { return nil }
+        if isMinimized {
+            if app.isHidden {
+                app.unhide()
+            }
+            do {
+                try axElement.setAttribute(kAXMinimizedAttribute, false)
+                app.activate()
+                bringToFront()
+                isMinimized = false
+                WindowUtil.updateCachedWindowState(self, isMinimized: false)
+                return false
+            } catch {
+                return nil
+            }
+        } else {
+            do {
+                try axElement.setAttribute(kAXMinimizedAttribute, true)
+                isMinimized = true
+                WindowUtil.updateCachedWindowState(self, isMinimized: true)
+                return true
+            } catch {
+                return nil
+            }
+        }
+    }
+
+    @discardableResult
+    mutating func toggleHidden() -> Bool? {
+        guard !isWindowlessApp else { return nil }
+        let newHiddenState = !isHidden
+
+        do {
+            try appAxElement.setAttribute(kAXHiddenAttribute, newHiddenState)
+            if !newHiddenState {
+                app.activate()
+                bringToFront()
+            }
+            isHidden = newHiddenState
+            WindowUtil.updateCachedWindowState(self, isHidden: newHiddenState)
+            return newHiddenState
+        } catch {
+            print("Error toggling hidden state of application")
+            return nil
+        }
+    }
+
+    mutating func toggleFullScreen() {
+        guard !isWindowlessApp else { return }
+        if let isCurrentlyInFullScreen = try? axElement.isFullscreen() {
+            do {
+                bringToFront()
+                try axElement.setAttribute(kAXFullscreenAttribute, !isCurrentlyInFullScreen)
+            } catch {
+                print("Failed to toggle full screen")
+            }
+        } else {
+            print("Failed to determine current full screen state")
+        }
+    }
+
+    func zoom() {
+        positionWindow(.full)
+    }
+
+    // MARK: - Window Positioning
+
+    enum WindowPositionRect {
+        case full
+        case leftHalf
+        case rightHalf
+        case topHalf
+        case bottomHalf
+        case topLeftQuarter
+        case topRightQuarter
+        case bottomLeftQuarter
+        case bottomRightQuarter
+        case center
+
+        func frame(in visibleFrame: CGRect, currentSize: CGSize? = nil) -> CGRect {
+            switch self {
+            case .full:
+                return visibleFrame
+            case .leftHalf:
+                return CGRect(
+                    x: visibleFrame.origin.x,
+                    y: visibleFrame.origin.y,
+                    width: visibleFrame.width / 2,
+                    height: visibleFrame.height
+                )
+            case .rightHalf:
+                return CGRect(
+                    x: visibleFrame.origin.x + visibleFrame.width / 2,
+                    y: visibleFrame.origin.y,
+                    width: visibleFrame.width / 2,
+                    height: visibleFrame.height
+                )
+            case .topHalf:
+                return CGRect(
+                    x: visibleFrame.origin.x,
+                    y: visibleFrame.origin.y + visibleFrame.height / 2,
+                    width: visibleFrame.width,
+                    height: visibleFrame.height / 2
+                )
+            case .bottomHalf:
+                return CGRect(
+                    x: visibleFrame.origin.x,
+                    y: visibleFrame.origin.y,
+                    width: visibleFrame.width,
+                    height: visibleFrame.height / 2
+                )
+            case .topLeftQuarter:
+                return CGRect(
+                    x: visibleFrame.origin.x,
+                    y: visibleFrame.origin.y + visibleFrame.height / 2,
+                    width: visibleFrame.width / 2,
+                    height: visibleFrame.height / 2
+                )
+            case .topRightQuarter:
+                return CGRect(
+                    x: visibleFrame.origin.x + visibleFrame.width / 2,
+                    y: visibleFrame.origin.y + visibleFrame.height / 2,
+                    width: visibleFrame.width / 2,
+                    height: visibleFrame.height / 2
+                )
+            case .bottomLeftQuarter:
+                return CGRect(
+                    x: visibleFrame.origin.x,
+                    y: visibleFrame.origin.y,
+                    width: visibleFrame.width / 2,
+                    height: visibleFrame.height / 2
+                )
+            case .bottomRightQuarter:
+                return CGRect(
+                    x: visibleFrame.origin.x + visibleFrame.width / 2,
+                    y: visibleFrame.origin.y,
+                    width: visibleFrame.width / 2,
+                    height: visibleFrame.height / 2
+                )
+            case .center:
+                let requested = currentSize ?? CGSize(width: visibleFrame.width * 0.6, height: visibleFrame.height * 0.6)
+                let size = CGSize(width: min(requested.width, visibleFrame.width), height: min(requested.height, visibleFrame.height))
+                return CGRect(
+                    x: visibleFrame.origin.x + (visibleFrame.width - size.width) / 2,
+                    y: visibleFrame.origin.y + (visibleFrame.height - size.height) / 2,
+                    width: size.width,
+                    height: size.height
+                )
+            }
+        }
+    }
+
+    private func currentWindowPlacementContext() -> (screen: NSScreen, size: CGSize)? {
+        guard let windowFrame = currentWindowFrame(),
+              let screen = NSScreen.screen(containing: windowFrame)
+        else {
+            return nil
+        }
+
+        return (screen, windowFrame.size)
+    }
+
+    static func positionedFrame(_ rect: WindowPositionRect, for windowFrame: CGRect, size: CGSize? = nil) -> CGRect? {
+        guard let screen = NSScreen.screen(containing: windowFrame) else { return nil }
+        return rect.frame(in: screen.snappingFrame, currentSize: size ?? windowFrame.size)
+    }
+
+    static func currentWindowFrame(for element: AXUIElement) -> CGRect? {
+        guard let currentPosition = try? element.position(),
+              let currentSize = try? element.size()
+        else {
+            return nil
+        }
+
+        let primaryScreenMaxY = NSScreen.screens.first?.frame.maxY ?? NSScreen.main?.frame.maxY ?? 0
+        return CGRect(
+            x: currentPosition.x,
+            y: primaryScreenMaxY - currentPosition.y - currentSize.height,
+            width: currentSize.width,
+            height: currentSize.height
+        )
+    }
+
+    func currentWindowFrame() -> CGRect? {
+        Self.currentWindowFrame(for: axElement)
+    }
+
+    func applyFrame(_ targetFrame: CGRect) {
+        guard let primaryScreenMaxY = NSScreen.screens.first?.frame.maxY,
+              let positionValue = AXValue.from(point: CGPoint(x: targetFrame.minX, y: primaryScreenMaxY - targetFrame.maxY)),
+              let sizeValue = AXValue.from(size: targetFrame.size)
+        else {
+            return
+        }
+
+        let enhancedUserInterface = (try? appAxElement.attribute("AXEnhancedUserInterface", Bool.self)) == true
+        if enhancedUserInterface {
+            try? appAxElement.setAttribute("AXEnhancedUserInterface", false)
+        }
+        try? axElement.setAttribute(kAXSizeAttribute, sizeValue)
+        try? axElement.setAttribute(kAXPositionAttribute, positionValue)
+        try? axElement.setAttribute(kAXSizeAttribute, sizeValue)
+        if enhancedUserInterface {
+            try? appAxElement.setAttribute("AXEnhancedUserInterface", true)
+        }
+    }
+
+    func setWindowFrame(_ targetFrame: CGRect) {
+        applyFrame(targetFrame)
+        bringToFront()
+    }
+
+    func positionWindow(_ rect: WindowPositionRect, size: CGSize? = nil) {
+        guard let windowFrame = currentWindowFrame(),
+              let targetFrame = Self.positionedFrame(rect, for: windowFrame, size: size)
+        else {
+            return
+        }
+
+        setWindowFrame(targetFrame)
+    }
+
+    func fillLeftHalf() {
+        positionWindow(.leftHalf)
+    }
+
+    func fillRightHalf() {
+        positionWindow(.rightHalf)
+    }
+
+    func fillTopHalf() {
+        positionWindow(.topHalf)
+    }
+
+    func fillBottomHalf() {
+        positionWindow(.bottomHalf)
+    }
+
+    func fillTopLeftQuarter() {
+        positionWindow(.topLeftQuarter)
+    }
+
+    func fillTopRightQuarter() {
+        positionWindow(.topRightQuarter)
+    }
+
+    func fillBottomLeftQuarter() {
+        positionWindow(.bottomLeftQuarter)
+    }
+
+    func fillBottomRightQuarter() {
+        positionWindow(.bottomRightQuarter)
+    }
+
+    func centerWindow() {
+        positionWindow(.center)
+    }
+
+    func centerWindow(scale: CGFloat) {
+        guard let context = currentWindowPlacementContext() else {
+            return
+        }
+
+        let visibleFrame = context.screen.snappingFrame
+        let clampedScale = min(max(scale, 0.2), 1.0)
+        let targetSize = CGSize(
+            width: visibleFrame.width * clampedScale,
+            height: visibleFrame.height * clampedScale
+        )
+        let targetFrame = WindowPositionRect.center.frame(in: visibleFrame, currentSize: targetSize)
+        setWindowFrame(targetFrame)
+    }
+
+    func centerWindow(widthScale: CGFloat, heightScale: CGFloat, lockAspectRatio: Bool) {
+        guard let context = currentWindowPlacementContext() else {
+            return
+        }
+
+        let visibleFrame = context.screen.snappingFrame
+
+        let clampedWidthScale = min(max(widthScale, 0.2), 1.0)
+        let clampedHeightScale = min(max(heightScale, 0.2), 1.0)
+
+        let maxWidth = visibleFrame.width * clampedWidthScale
+        let maxHeight = visibleFrame.height * clampedHeightScale
+
+        let targetSize: CGSize
+        if lockAspectRatio {
+            let currentSize = context.size
+            guard currentSize.width > 0, currentSize.height > 0 else {
+                targetSize = CGSize(width: maxWidth, height: maxHeight)
+                let targetFrame = WindowPositionRect.center.frame(in: visibleFrame, currentSize: targetSize)
+                setWindowFrame(targetFrame)
+                return
+            }
+
+            let scaleFactor = min(maxWidth / currentSize.width, maxHeight / currentSize.height)
+            targetSize = CGSize(width: currentSize.width * scaleFactor, height: currentSize.height * scaleFactor)
+        } else {
+            targetSize = CGSize(width: maxWidth, height: maxHeight)
+        }
+
+        let targetFrame = WindowPositionRect.center.frame(in: visibleFrame, currentSize: targetSize)
+        setWindowFrame(targetFrame)
+    }
+
+    @discardableResult
+    func moveToCurrentManagedSpace(mouseLocation: CGPoint = NSEvent.mouseLocation) -> Bool {
+        WindowUtil.moveWindowToCurrentManagedSpace(self, mouseLocation: mouseLocation)
+    }
+
+    private static let axRaiseQueue = DispatchQueue(label: "com.ethanbills.DockDoor.axRaise", qos: .userInteractive)
+
+    func bringToFront() {
+        guard !isWindowlessApp else {
+            app.activate(options: [.activateIgnoringOtherApps])
+            return
+        }
+
+        var psn = ProcessSerialNumber()
+        _ = GetProcessForPID(ownerApp.processIdentifier, &psn)
+        _ = _SLPSSetFrontProcessWithOptions(&psn, UInt32(id), SLPSMode.userGenerated.rawValue)
+        WindowUtil.makeKeyWindow(&psn, windowID: id)
+
+        let window = self
+        WindowInfo.axRaiseQueue.async {
+            let maxRetries = 3
+            var retryCount = 0
+
+            func attemptActivation() -> Bool {
+                do {
+                    if retryCount > 0 {
+                        var psn = ProcessSerialNumber()
+                        _ = GetProcessForPID(window.ownerApp.processIdentifier, &psn)
+                        _ = _SLPSSetFrontProcessWithOptions(&psn, UInt32(window.id), SLPSMode.userGenerated.rawValue)
+                        WindowUtil.makeKeyWindow(&psn, windowID: window.id)
+                    }
+
+                    try window.axElement.performAction(kAXRaiseAction)
+                    try window.axElement.setAttribute(kAXMainWindowAttribute, true)
+
+                    return true
+                } catch {
+                    print("Attempt \(retryCount + 1) failed to bring window to front: \(error)")
+                    if error is AxError {
+                        WindowUtil.removeWindowFromDesktopSpaceCache(with: window.id, in: window.app.processIdentifier)
+                    }
+                    return false
+                }
+            }
+
+            while retryCount < maxRetries {
+                if attemptActivation() {
+                    WindowUtil.updateTimestampOptimistically(for: window)
+                    return
+                }
+                retryCount += 1
+                if retryCount < maxRetries {
+                    usleep(50000)
+                }
+            }
+
+            print("Failed to bring window to front after \(maxRetries) attempts")
+        }
+    }
+
+    func warpMouseToCenterIfNeeded() {
+        let mode = Defaults[.mouseFollowsFocusMode]
+        guard mode != .never else { return }
+
+        guard let position = try? axElement.position(), let size = try? axElement.size(),
+              size.width > 0, size.height > 0
+        else { return }
+        let windowCenter = CGPoint(x: position.x + size.width / 2, y: position.y + size.height / 2)
+
+        if mode == .differentDisplayOnly {
+            let mousePosition = DockObserver.getMousePosition()
+            let mouseScreen = NSScreen.screenFromQuartzPoint(mousePosition)
+            let windowScreen = NSScreen.screenFromQuartzPoint(windowCenter)
+            if mouseScreen == windowScreen {
+                return
+            }
+        }
+
+        CGWarpMouseCursorPosition(windowCenter)
+        CGAssociateMouseAndMouseCursorPosition(1)
+    }
+
+    @discardableResult
+    func close() -> WindowCloseResult {
+        guard !isWindowlessApp else { return .noChange }
+        guard closeButton != nil else {
+            print("Error: closeButton is nil.")
+            return .noChange
+        }
+
+        do {
+            try closeButton?.performAction(kAXPressAction)
+            WindowUtil.removeWindowFromDesktopSpaceCache(with: id, in: app.processIdentifier)
+            if WindowUtil.readCachedWindows(for: app.processIdentifier).isEmpty,
+               WindowUtil.quitAppOnLastWindowCloseIfNeeded(app: app)
+            {
+                return .appQuit
+            }
+            return .closed
+        } catch {
+            print("Error closing window")
+            return .noChange
+        }
+    }
+
+    func quit(force: Bool) {
+        if force {
+            app.forceTerminate()
+        } else {
+            app.terminate()
+        }
+        WindowUtil.purgeAppCache(with: app.processIdentifier)
+    }
+}

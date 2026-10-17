@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundleDisplayName</key>
+	<string>Sirena</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>$(MARKETING_VERSION)</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>sirena</string>
+			</array>
+		</dict>
+	</array>
+	<key>CFBundleVersion</key>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.productivity</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
+	<key>LSUIElement</key>
+	<true/>
+	<key>NSAppleEventsUsageDescription</key>
+	<string>O Sirena usa Apple Events para mostrar a música tocando no Música e no Spotify nas pré-visualizações da Dock.</string>
+	<key>NSAudioCaptureUsageDescription</key>
+	<string>O Sirena ajusta o volume de cada app processando o áudio dele. O áudio nunca sai do seu Mac.</string>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>O Sirena conecta e desconecta seus fones Bluetooth pareados.</string>
+	<key>NSCalendarsFullAccessUsageDescription</key>
+	<string>O Sirena usa o Calendário para mostrar seus próximos eventos na pré-visualização do app Calendário na Dock.</string>
+	<key>NSCalendarsUsageDescription</key>
+	<string>O Sirena usa o Calendário para mostrar seus próximos eventos na pré-visualização do app Calendário na Dock.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>O Sirena usa a câmera para mostrar o Espelho (Iris) na tela.</string>
+	<key>NSDownloadsFolderUsageDescription</key>
+	<string>A Ilha Dinâmica mostra o progresso dos downloads desta pasta.</string>
+	<key>NSHumanReadableCopyright</key>
+	<string>Copyright © 2026 Matheus Faria. Window management based on Rectangle © Ryan Hanson (MIT).</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>O Sirena usa o microfone só para mostrar o nível de áudio no Espelho, quando você liga essa opção.</string>
+	<key>NSPrincipalClass</key>
+	<string>NSApplication</string>
+	<key>NSScreenCaptureUsageDescription</key>
+	<string>O Sirena usa a gravação de tela para mostrar miniaturas das janelas na Dock e no seletor de janelas, e para manter janelas fixadas sempre no topo.</string>
+	<key>NSServices</key>
+	<array>
+		<dict>
+			<key>NSMenuItem</key>
+			<dict>
+				<key>default</key>
+				<string>Adicionar à Prateleira do Sirena</string>
+			</dict>
+			<key>NSMessage</key>
+			<string>addToShelf</string>
+			<key>NSPortName</key>
+			<string>Sirena</string>
+			<key>NSRequiredContext</key>
+			<dict/>
+			<key>NSSendFileTypes</key>
+			<array>
+				<string>public.item</string>
+			</array>
+			<key>NSSendTypes</key>
+			<array>
+				<string>public.utf8-plain-text</string>
+				<string>public.url</string>
+				<string>public.image</string>
+			</array>
+		</dict>
+	</array>
+	<key>UTExportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.data</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Sirena Clipboard Pin Reorder Type</string>
+			<key>UTTypeIdentifier</key>
+			<string>com.matheusfaria.Sirena.clipboard.pin-reorder</string>
+			<key>UTTypeTagSpecification</key>
+			<dict/>
+		</dict>
+	</array>
+</dict>
+</plist>
