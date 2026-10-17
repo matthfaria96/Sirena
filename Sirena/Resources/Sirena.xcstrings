@@ -1057,7 +1057,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ajustes"
+            "value": "Configurações"
           }
         }
       }
@@ -11178,6 +11178,56 @@
           "stringUnit": {
             "state": "translated",
             "value": "Abrir a página"
+          }
+        }
+      }
+    },
+    "Keep Display On": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não desligar tela"
+          }
+        }
+      }
+    },
+    "Sleep allowed": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suspensão permitida"
+          }
+        }
+      }
+    },
+    "Quit": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desligar"
+          }
+        }
+      }
+    },
+    "Opens Sirena on Home (⌃⌥S)": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abre o Sirena na tela Início (⌃⌥S)"
+          }
+        }
+      }
+    },
+    "Quits Sirena": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fecha o Sirena"
           }
         }
       }
