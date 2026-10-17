@@ -148,7 +148,7 @@ private struct SliderRow<Value: BinaryFloatingPoint>: View where Value.Stride: B
             HStack {
                 Slider(value: $value, in: range, step: step)
                     .frame(maxWidth: 240)
-                Text(String(format: format, Double(value)))
+                Text(String(format: format, locale: .current, Double(value)))
                     .monospacedDigit()
                     .foregroundStyle(.secondary)
                     .frame(width: 64, alignment: .trailing)

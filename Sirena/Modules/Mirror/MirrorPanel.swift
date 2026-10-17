@@ -97,7 +97,7 @@ struct MirrorView: View {
                 VStack {
                     HStack(spacing: 5) {
                         Image(systemName: "timer")
-                        Text("\(left)s")
+                        Text(Duration.seconds(left).formatted(.units(allowed: [.seconds], width: .narrow)))
                             .monospacedDigit()
                             .contentTransition(.numericText(countsDown: true))
                     }
@@ -105,7 +105,7 @@ struct MirrorView: View {
                     .foregroundStyle(.white)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 5)
-                    .background(.ultraThinMaterial, in: Capsule())
+                    .glassEffect(.regular, in: .capsule)
                     .environment(\.colorScheme, .dark)
                     .animation(.snappy, value: left)
                     .padding(.top, settings.shape == .circle ? 22 : 10)
@@ -147,7 +147,7 @@ struct MirrorView: View {
             }
             .overlay(alignment: .topTrailing) {
                 if settings.zoom > 1 {
-                    Text(settings.zoom == 1.5 ? "1.5×" : "2×")
+                    Text(settings.zoom.formatted(.number.precision(.fractionLength(0...1))) + "×")
                         .font(.caption2.weight(.bold))
                         .foregroundStyle(.white)
                         .offset(x: 4, y: -4)
@@ -170,7 +170,8 @@ struct MirrorView: View {
             }
         }
         .padding(5)
-        .background(.ultraThinMaterial, in: Capsule())
+        // Liquid Glass floating over the video, like the camera controls in FaceTime.
+        .glassEffect(.regular.interactive(), in: .capsule)
         .environment(\.colorScheme, .dark)
     }
 }
@@ -187,7 +188,7 @@ private struct ControlButton: View {
                 .font(.system(size: prominent ? 15 : 13, weight: .semibold))
                 .foregroundStyle(.white)
                 .frame(width: 30, height: 30)
-                .background(prominent ? Color.white.opacity(0.22) : .clear, in: Circle())
+                .background(prominent ? Color.white.opacity(0.18) : .clear, in: Circle())
                 .contentShape(Circle())
         }
         .buttonStyle(.plain)
@@ -216,7 +217,7 @@ private struct MicrophoneLevel: View {
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
-        .background(.ultraThinMaterial, in: Capsule())
+        .glassEffect(.regular, in: .capsule)
         .environment(\.colorScheme, .dark)
         .animation(.linear(duration: 0.08), value: level)
     }

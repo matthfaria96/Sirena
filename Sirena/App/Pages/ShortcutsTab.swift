@@ -51,21 +51,6 @@ struct ShortcutsTab: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack(spacing: 8) {
-                Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
-                TextField(L("Search shortcuts"), text: $query)
-                    .textFieldStyle(.plain)
-                if !query.isEmpty {
-                    Button { query = "" } label: { Image(systemName: "xmark.circle.fill") }
-                        .buttonStyle(.borderless)
-                        .foregroundStyle(.secondary)
-                }
-            }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 10)
-
-            Divider()
-
             Form {
                 if query.isEmpty, manager.isEnabled(.switcher) {
                     SwitcherShortcutsSection()
@@ -130,6 +115,7 @@ struct ShortcutsTab: View {
             }
             .formStyle(.grouped)
         }
+        .searchable(text: $query, placement: .toolbar, prompt: Text(L("Search shortcuts")))
         .onChange(of: query) { _, _ in editingKey = nil }
         .onReceive(NotificationCenter.default.publisher(for: Notification.Name.configImported)) { _ in labelsVersion += 1 }
         .onReceive(NotificationCenter.default.publisher(for: .switcherShortcutRecordingStarted)) { _ in editingKey = nil }

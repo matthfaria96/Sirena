@@ -43,9 +43,6 @@ private struct ClipboardHistoryView: View {
 
         VStack(spacing: 0) {
             HStack(spacing: 10) {
-                Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
-                TextField(L("Search the history"), text: $query)
-                    .textFieldStyle(.plain)
                 if controller.isPaused {
                     Label(L("Paused"), systemImage: "pause.circle.fill")
                         .font(.caption)
@@ -55,6 +52,7 @@ private struct ClipboardHistoryView: View {
                 Text(L("\(controller.historyCount) items"))
                     .font(.caption.monospacedDigit())
                     .foregroundStyle(.secondary)
+                Spacer()
                 Button(L("Clear…")) { confirmsClear = true }
                     .controlSize(.small)
                     .disabled(recent.isEmpty)
@@ -105,6 +103,7 @@ private struct ClipboardHistoryView: View {
                 }
             }
         }
+        .searchable(text: $query, placement: .toolbar, prompt: Text(L("Search the history")))
         .confirmationDialog(L("Clear the clipboard history?"), isPresented: $confirmsClear) {
             Button(L("Clear History"), role: .destructive) { controller.clearHistory() }
         } message: {
