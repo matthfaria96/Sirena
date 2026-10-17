@@ -3,8 +3,8 @@
 /// What Sirena's menu bar icon shows, chosen on Home. Two kinds of things:
 /// - Atalhos: programs opened with one click (clipboard history, pin a window, capture text).
 /// - Controladores: things adjusted right there (volume, microphone, display brightness,
-///   keyboard light, Cafeína, a peek through the camera, the per-app mixer). Volume,
-///   microphone, brightness and keyboard light use the controls ported from Vorssaint.
+///   Cafeína, a peek through the camera, the per-app mixer). Volume,
+///   microphone and brightness use the controls ported from Vorssaint.
 
 import AppKit
 import ClipboardKit
@@ -15,7 +15,7 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
     // Atalhos
     case clipboard, pinWindow, textCapture
     // Controladores
-    case volume, microphone, brightness, keyboardLight, keepAwake, mirror, sound
+    case volume, microphone, brightness, keepAwake, mirror, sound
 
     var id: String { rawValue }
 
@@ -39,7 +39,6 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
         case .volume: return L("Volume")
         case .microphone: return L("Microphone")
         case .brightness: return L("Display Brightness")
-        case .keyboardLight: return L("Keyboard Light")
         case .keepAwake: return L("Keep Awake")
         case .mirror: return L("Peek Camera")
         case .sound: return L("Per-App Mixer")
@@ -55,7 +54,6 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
         case .volume: return L("The Mac's sound volume, with a click on the speaker to mute.")
         case .microphone: return L("Mutes or unmutes the microphone for every app at once. Green: on; red: muted.")
         case .brightness: return L("Brightness of the built-in display and Apple displays, one slider each.")
-        case .keyboardLight: return L("The keyboard backlight, on Macs that have one.")
         case .keepAwake: return L("Keeps the Mac and the display from sleeping, for the time you choose or indefinitely. The time is remembered.")
         case .mirror: return L("Opens the camera below the menu bar for a quick look at yourself. Click it again to close.")
         case .sound: return L("Outputs, volume of each app and the microphone, in detail.")
@@ -70,7 +68,6 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
         case .volume: return "speaker.wave.2.fill"
         case .microphone: return "mic.fill"
         case .brightness: return "sun.max.fill"
-        case .keyboardLight: return "light.max"
         case .keepAwake: return "cup.and.saucer.fill"
         case .mirror: return "camera.fill"
         case .sound: return "slider.vertical.3"
@@ -85,7 +82,6 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
         case .volume: return .indigo
         case .microphone: return .red
         case .brightness: return .yellow
-        case .keyboardLight: return .orange
         case .keepAwake: return ModuleID.keepAwake.tint
         case .mirror: return ModuleID.mirror.tint
         case .sound: return .purple
@@ -248,17 +244,6 @@ private struct ControlRow: View {
                                              set: { brightness.setBrightness($0, for: display.id, announces: false) }),
                               caption: displays.count > 1 ? display.name : nil)
                 }
-            }
-        case .keyboardLight:
-            if brightness.hasKeyboardLight {
-                sliderRow(symbol: item.symbol,
-                          value: Binding(get: { Double(brightness.keyboardLightLevel ?? 0) },
-                                         set: { brightness.setKeyboardLightLevel(Float($0)) }),
-                          iconAction: { brightness.setKeyboardLightEnabled(!(brightness.keyboardLightEnabled ?? false)) },
-                          dimmed: brightness.keyboardLightEnabled == false)
-                    .onAppear { brightness.refreshKeyboardLight() }
-            } else {
-                unavailable(L("This Mac has no keyboard light."))
             }
         case .keepAwake:
             HStack(spacing: 10) {

@@ -14,15 +14,8 @@ struct HomeView: View {
             // One clock for the whole page: statuses (permissions, timers) refresh together.
             TimelineView(.periodic(from: .now, by: 2)) { _ in
                 VStack(alignment: .leading, spacing: 12) {
-                    BoltMenuHero()
+                    BoltMenuHero(router: router)
                         .padding(.bottom, 12)
-                    Text(L("Tools"))
-                        .font(.headline)
-                    LazyVGrid(columns: columns, spacing: 12) {
-                        ForEach(ModuleID.tools) { module in
-                            ModuleCard(module: module) { router.selection = .module(module) }
-                        }
-                    }
                     overview
                         .padding(.top, 12)
                     LazyVGrid(columns: columns, spacing: 12) {
@@ -145,6 +138,7 @@ private struct ModuleCard: View {
 /// Home's first section: what Sirena's ⚡ menu shows. It's where the app's everyday
 /// reach is decided, so it gets the spotlight.
 private struct BoltMenuHero: View {
+    let router: Router
     @State private var settings = BoltMenuSettings.shared
     @State private var manager = ModuleManager.shared
     private let columns = [GridItem(.adaptive(minimum: 200), spacing: 10)]
@@ -211,7 +205,8 @@ private extension BoltMenuHero {
             LazyVGrid(columns: columns, alignment: .leading, spacing: 10) {
                 ForEach(items) { item in
                     BoltItemTile(item: item, isOn: settings.isOn(item),
-                                 available: item.module.map { manager.isRunning($0) } ?? true) {
+                                 available: item.module.map { manager.isRunning($0) } ?? true,
+                                 open: item.module.map { module in { router.selection = .module(module) } }) {
                         settings.set(item, !settings.isOn(item))
                     }
                 }
@@ -224,6 +219,8 @@ private struct BoltItemTile: View {
     let item: BoltMenuItem
     let isOn: Bool
     let available: Bool
+    /// The tool's own page (Cafeína, Espelho, Área de Transferência…), when it has one.
+    let open: (() -> Void)?
     let toggle: () -> Void
     @State private var isHovering = false
 
@@ -239,13 +236,21 @@ private struct BoltItemTile: View {
                 Text(item.title)
                     .font(.callout.weight(.medium))
                     .lineLimit(1)
-                Text(available ? item.detail : L("Feature turned off"))
+                Text(!available ? L("Feature turned off") : item.module.map { ModuleStatusLabel.detail($0) } ?? item.detail)
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
             Spacer(minLength: 4)
             InfoButton(item.detail)
+            if let open {
+                Button(action: open) {
+                    Image(systemName: "chevron.right.circle")
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.borderless)
+                .help(L("Open its page"))
+            }
             Toggle("", isOn: Binding(get: { isOn }, set: { _ in toggle() }))
                 .toggleStyle(.switch)
                 .controlSize(.small)

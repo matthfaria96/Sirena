@@ -11171,6 +11171,16 @@
           }
         }
       }
+    },
+    "Open its page": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir a página"
+          }
+        }
+      }
     }
   }
 }
