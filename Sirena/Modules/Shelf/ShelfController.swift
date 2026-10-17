@@ -41,6 +41,7 @@ final class ShelfController {
     /// Screen and (in "at cursor" mode) the point the shelf was placed at.
     @ObservationIgnored private var anchorScreen: NSScreen?
     @ObservationIgnored private var anchorPoint: CGPoint?
+    @ObservationIgnored private var isTrackingItems = false
 
     private var settings: ShelfSettings { .shared }
     private var store: ShelfStore { .shared }
@@ -77,7 +78,10 @@ final class ShelfController {
                 self?.relayout(animated: true)
             }
         })
-        trackItems()
+        if !isTrackingItems {
+            isTrackingItems = true
+            trackItems()
+        }
         if !store.items.isEmpty { show() }
     }
 
@@ -161,7 +165,7 @@ final class ShelfController {
     }
 
     private func targetFrame() -> CGRect {
-        let screen = anchorScreen ?? NSScreen.main ?? NSScreen.screens[0]
+        guard let screen = anchorScreen ?? NSScreen.main ?? NSScreen.screens.first else { return panel.frame }
         let visible = screen.visibleFrame
         let side = settings.itemSize.side(for: store.items.count)
         let size = ShelfLayout.size(itemCount: store.items.count, side: side, maxHeight: visible.height * 0.85)

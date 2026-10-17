@@ -21,16 +21,7 @@ struct KeepAwakeSettings: View {
     @AppStorage(PreferenceKeys.deactivateOnManualSleep) private var deactivateOnManualSleep = false
     @AppStorage(PreferenceKeys.keepAppsActive) private var keepAppsActive = false
 
-    private let durations: [(minutes: Int, title: String)] = [
-        (5, String(localized: "5 minutes")),
-        (10, String(localized: "10 minutes")),
-        (15, String(localized: "15 minutes")),
-        (30, String(localized: "30 minutes")),
-        (60, String(localized: "1 hour")),
-        (120, String(localized: "2 hours")),
-        (300, String(localized: "5 hours")),
-        (0, String(localized: "Indefinitely"))
-    ]
+    private var durations: [(minutes: Int, title: String)] { KeepAwakeModule.durations }
 
     var body: some View {
         Form {
@@ -44,7 +35,7 @@ struct KeepAwakeSettings: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(viewModel.isActive ? L("Your Mac is staying awake") : L("Your Mac can sleep normally"))
                             .font(.headline)
-                        Text(viewModel.formattedTimeRemaining() ?? L("Click the cup in the menu bar to switch it on, or use the button here."))
+                        Text(viewModel.formattedTimeRemaining() ?? L("Turn it on here or in the menu bar menu, under “Keep Display On”."))
                             .font(.callout)
                             .foregroundStyle(.secondary)
                     }
@@ -53,7 +44,7 @@ struct KeepAwakeSettings: View {
                         viewModel.toggleActive()
                     }
                     .buttonStyle(.borderedProminent)
-                    .tint(viewModel.isActive ? .gray : .brown)
+                    
                     .controlSize(.large)
                 }
                 .padding(.vertical, 6)
@@ -85,10 +76,6 @@ struct KeepAwakeSettings: View {
                 }
             } header: {
                 Text(L("Activity"))
-            } footer: {
-                Text(L("Right-click (or ⌃-click) the cup in the menu bar for more options."))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
             }
         }
         .formStyle(.grouped)

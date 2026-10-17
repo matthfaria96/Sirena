@@ -36,7 +36,6 @@ final class MirrorController: NSObject {
     private var dwellTimer: Timer?
     private var leaveTimer: Timer?
     private var openedFromNotch = false
-    private var hotkeyRecorderPanel: NSPanel?
 
     var onOpenSettings: (() -> Void)?
 
@@ -84,7 +83,7 @@ final class MirrorController: NSObject {
 
     func toggle() {
         openedFromNotch = false
-        isVisible ? hide() : show()
+        (isVisible || showTask != nil) ? hide() : show()
     }
 
     private var peekTimer: Timer?
@@ -92,9 +91,12 @@ final class MirrorController: NSObject {
     /// "Espiar" from the menu: the camera drops down below the menu bar for a few
     /// seconds (10 unless changed on its page) with a countdown, then goes away.
     func peek() {
-        if isVisible { hide(); return }
+        if isVisible || showTask != nil { hide(); return }
         openedFromNotch = false
-        show()
+        show { [weak self] in self?.startPeekCountdown() }
+    }
+
+    private func startPeekCountdown() {
         let state = MirrorState.shared
         state.peekRemaining = settings.peekSeconds
         peekTimer?.invalidate()
@@ -114,15 +116,25 @@ final class MirrorController: NSObject {
         }
     }
 
-    func show() {
-        Task { @MainActor in
+    /// The camera starting (and, the first time, asking for access) before showing.
+    private var showTask: Task<Void, Never>?
+
+    func show(onShown: (() -> Void)? = nil) {
+        guard showTask == nil else { return }
+        showTask = Task { @MainActor in
+            defer { showTask = nil }
             do {
                 try await MirrorCamera.shared.start()
             } catch {
                 presentError(error)
                 return
             }
+            guard !Task.isCancelled else {
+                MirrorCamera.shared.stop()
+                return
+            }
             isVisible = true
+            onShown?()
             layoutPanel(animated: false)
             let target = panel.frame
             let dropsDown = settings.displayMode == .popover || openedFromNotch
@@ -147,6 +159,12 @@ final class MirrorController: NSObject {
     }
 
     func hide() {
+        if let showTask, !isVisible {
+            // Still starting: don't appear at all.
+            showTask.cancel()
+            self.showTask = nil
+            return
+        }
         guard isVisible else { return }
         peekTimer?.invalidate()
         peekTimer = nil
@@ -194,7 +212,7 @@ final class MirrorController: NSObject {
 
         switch (settings.displayMode, openedFromNotch) {
         case (_, true):
-            let screen = triggerScreen()
+            guard let screen = triggerScreen() else { return }
             origin = NSPoint(x: screen.frame.midX - size.width / 2, y: screen.visibleFrame.maxY - size.height - 8)
         case (.popover, false):
             if let buttonFrame = anchorButton?.window?.frame {
@@ -264,13 +282,13 @@ final class MirrorController: NSObject {
         }
     }
 
-    private func triggerScreen() -> NSScreen {
+    private func triggerScreen() -> NSScreen? {
         switch settings.triggerDisplay {
         case .main:
-            return NSScreen.screens.first ?? NSScreen.main!
+            return NSScreen.screens.first ?? NSScreen.main
         case .mouse:
             let mouse = NSEvent.mouseLocation
-            return NSScreen.screens.first { $0.frame.contains(mouse) } ?? NSScreen.main!
+            return NSScreen.screens.first { $0.frame.contains(mouse) } ?? NSScreen.main
         }
     }
 
@@ -285,7 +303,7 @@ final class MirrorController: NSObject {
 
     private func pointerMoved() {
         let mouse = NSEvent.mouseLocation
-        let screen = triggerScreen()
+        guard let screen = triggerScreen() else { return }
         let trigger = triggerRect(on: screen)
         let inTrigger = trigger.insetBy(dx: 0, dy: -1).contains(mouse)
 
@@ -309,7 +327,8 @@ final class MirrorController: NSObject {
             dwellTimer = Timer.scheduledTimer(withTimeInterval: 0.35, repeats: false) { [weak self] _ in
                 guard let self else { return }
                 self.dwellTimer = nil
-                if self.triggerRect(on: self.triggerScreen()).insetBy(dx: 0, dy: -1).contains(NSEvent.mouseLocation) {
+                if let screen = self.triggerScreen(),
+                   self.triggerRect(on: screen).insetBy(dx: 0, dy: -1).contains(NSEvent.mouseLocation) {
                     self.openedFromNotch = true
                     self.show()
                 }
@@ -342,63 +361,6 @@ final class MirrorController: NSObject {
             try? jpeg.write(to: url)
         }
     }
-
-    // MARK: - Shortcut recording (from Iris)
-
-    func showHotkeyRecorderPanel() {
-        hotkeyRecorderPanel?.close()
-
-        let panel = NSPanel(contentRect: NSRect(x: 0, y: 0, width: 320, height: 120),
-                            styleMask: [.titled, .closable, .nonactivatingPanel], backing: .buffered, defer: false)
-        panel.title = L("Record Hotkey")
-        panel.isFloatingPanel = true
-        panel.becomesKeyOnlyIfNeeded = false
-        panel.level = .floating
-        panel.center()
-        hotkeyRecorderPanel = panel
-
-        let contentView = NSView(frame: NSRect(x: 0, y: 0, width: 320, height: 120))
-        let label = NSTextField(labelWithString: L("Press a key combination:"))
-        label.frame = NSRect(x: 20, y: 80, width: 280, height: 20)
-        contentView.addSubview(label)
-
-        let recorderView = HotkeyRecorderView(frame: NSRect(x: 20, y: 35, width: 280, height: 35))
-        recorderView.setDisplayString(HotkeyManager.shared.currentHotkeyDisplayString())
-        recorderView.onHotkeyRecorded = { [weak self, weak panel] keyCode, modifiers in
-            let oldKeyCode = PreferencesManager.shared.toggleHotkeyKeyCode
-            let oldModifiers = PreferencesManager.shared.toggleHotkeyModifiers
-            let wasEnabled = PreferencesManager.shared.toggleHotkeyEnabled
-
-            PreferencesManager.shared.toggleHotkeyKeyCode = keyCode
-            PreferencesManager.shared.toggleHotkeyModifiers = modifiers.rawValue
-            PreferencesManager.shared.toggleHotkeyEnabled = true
-
-            if HotkeyManager.shared.restartMonitoring() {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                    panel?.close()
-                    self?.hotkeyRecorderPanel = nil
-                }
-            } else {
-                PreferencesManager.shared.toggleHotkeyKeyCode = oldKeyCode
-                PreferencesManager.shared.toggleHotkeyModifiers = oldModifiers
-                PreferencesManager.shared.toggleHotkeyEnabled = wasEnabled
-                if wasEnabled { HotkeyManager.shared.restartMonitoring() }
-                self?.presentError(L("Could not register hotkey. It may be in use by another application."))
-                recorderView.setDisplayString(HotkeyManager.shared.currentHotkeyDisplayString())
-            }
-        }
-        recorderView.onRecordingCancelled = { [weak self, weak panel] in
-            panel?.close()
-            self?.hotkeyRecorderPanel = nil
-        }
-        contentView.addSubview(recorderView)
-        panel.contentView = contentView
-        panel.makeKeyAndOrderFront(nil)
-        NSApp.activate(ignoringOtherApps: true)
-        panel.makeFirstResponder(recorderView)
-    }
-
-    // MARK: - Errors
 
     private func presentError(_ error: Error) {
         presentError(error.localizedDescription)

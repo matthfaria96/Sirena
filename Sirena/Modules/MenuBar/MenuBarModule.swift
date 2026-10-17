@@ -8,7 +8,6 @@
 /// bridge (MIT, © Dwarves Foundation). Sirena itself is never hidden.
 
 import AppKit
-import HotKey
 import MASShortcut
 
 /// How Sirena's arrow reveals the hidden icons.
@@ -67,7 +66,6 @@ final class MenuBarModule: NSObject {
     @ObservationIgnored private let inventory = AccessibilityMenuBarInventory()
     @ObservationIgnored private var assertion: NativeVisibilityAssertion?
     @ObservationIgnored private var autoHideTimer: Timer?
-    @ObservationIgnored private var hotKey: HotKey?
     @ObservationIgnored private var openPage: () -> Void = {}
     @ObservationIgnored private let panel = HiddenIconsPanel()
     @ObservationIgnored private var revealWatcher: Timer?
@@ -115,7 +113,14 @@ final class MenuBarModule: NSObject {
     func terminate() {
         panel.close()
         revealWatcher?.invalidate()
+        autoHideTimer?.invalidate()
+        autoHideTimer = nil
         release()
+        MASShortcutBinder.shared()?.breakBinding(withDefaultsKey: Self.shortcutKey)
+        NSWorkspace.shared.notificationCenter.removeObserver(self)
+        if let statusItem { NSStatusBar.system.removeStatusItem(statusItem) }
+        statusItem = nil
+        isRunning = false
     }
 
     // MARK: - Hide / show
@@ -230,7 +235,6 @@ final class MenuBarModule: NSObject {
             migrateShortcut(to: Self.shortcutKey, keyCode: Int(old.keyCode), modifiers: modifiers)
             UserDefaults.standard.removeObject(forKey: UserDefaults.Key.globalKey)
         }
-        hotKey = nil
         MASShortcutBinder.shared()?.bindingOptions = [NSBindingOption.valueTransformerName: MASDictionaryTransformerName]
         MASShortcutBinder.shared()?.bindShortcut(withDefaultsKey: Self.shortcutKey) { [weak self] in self?.toggle() }
     }
@@ -378,7 +382,7 @@ final class MenuBarModule: NSObject {
     private func togglePanel() {
         if panel.isShown {
             panel.close()
-        } else if let button = statusItem?.button {
+        } else if !panel.closedJustNow, let button = statusItem?.button {
             panel.show(from: button, apps: hiddenRunningApps, onPick: { [weak self] app in
                 self?.reveal(app)
             }, onSettings: { [weak self] in
@@ -523,8 +527,11 @@ final class MenuBarModule: NSObject {
                 task.executableURL = URL(fileURLWithPath: "/usr/bin/defaults")
                 task.arguments = ["write", Self.menuBarPreferences, "TrailingItemPreferredPositions", "-dict-add"]
                     + changed.flatMap { [$0.key, "-float", String($0.value)] }
-                try? task.run()
-                task.waitUntilExit()
+                // Off the main thread: never block the menu bar while defaults writes.
+                let moved = positions[arrowKey] != arrow
+                task.terminationHandler = { _ in DispatchQueue.main.async { done(moved) } }
+                do { try task.run() } catch { done(moved) }
+                return
             }
             done(positions[arrowKey] != arrow)
         }

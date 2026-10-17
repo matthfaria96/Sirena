@@ -13,6 +13,8 @@ enum SidebarItem: Hashable {
 @Observable
 final class Router {
     var selection: SidebarItem? = .home
+    /// False while the window is closed: the pages (and their timers) are torn down.
+    var isWindowOpen = true
 }
 
 /// Asks the page being shown to switch to one of its tabs (used to reach modules
@@ -68,11 +70,13 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
            UserDefaults.standard.string(forKey: "NSWindow Frame SirenaMainWindow") == nil {
             window?.center()
         }
+        router.isWindowOpen = true
         showWindow(nil)
         window?.makeKeyAndOrderFront(nil)
     }
 
     func windowWillClose(_ notification: Notification) {
+        router.isWindowOpen = false
         NSApp.setActivationPolicy(.accessory)
     }
 }

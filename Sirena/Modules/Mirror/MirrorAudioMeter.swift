@@ -29,6 +29,8 @@ final class MirrorAudioMeter {
     }
 
     private func begin() {
+        // Access may arrive after the mirror closed, or after a second start().
+        guard !running, MainActor.assumeIsolated({ MirrorState.shared.isVisible }) else { return }
         let input = engine.inputNode
         let format = input.outputFormat(forBus: 0)
         guard format.sampleRate > 0 else { return }

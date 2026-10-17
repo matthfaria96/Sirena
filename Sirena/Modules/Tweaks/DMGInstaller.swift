@@ -34,12 +34,17 @@ final class DMGInstaller {
 
     private func volumeDidMount(_ volume: URL) {
         guard TweaksSettings.shared.installFromDMG, !offered.contains(volume) else { return }
+        // Claimed now: a second mount notification for the same volume must not ask twice.
+        offered.insert(volume)
         Task.detached(priority: .userInitiated) {
             // Give Finder a moment to open its window and the volume to settle.
             try? await Task.sleep(for: .milliseconds(400))
             guard let image = Self.diskImage(mountedAt: volume),
                   image.pathExtension.lowercased() == "dmg",
-                  let app = Self.singleApp(in: volume) else { return }
+                  let app = Self.singleApp(in: volume) else {
+                await MainActor.run { _ = DMGInstaller.shared.offered.remove(volume) }
+                return
+            }
             await MainActor.run { DMGInstaller.shared.offer(app: app, volume: volume, image: image) }
         }
     }
@@ -100,7 +105,10 @@ final class DMGInstaller {
         alert.addButton(withTitle: replacing ? L("Replace") : L("Install"))
         alert.addButton(withTitle: L("Cancel"))
         NSApp.activate()
-        guard alert.runModal() == .alertFirstButtonReturn else { return }
+        guard alert.runModal() == .alertFirstButtonReturn else {
+            offered.remove(volume)
+            return
+        }
 
         let bundleID = Bundle(url: app)?.bundleIdentifier
         Task.detached(priority: .userInitiated) {
@@ -162,9 +170,11 @@ final class DMGInstaller {
         let errors = Pipe()
         task.standardError = errors
         try task.run()
+        // Read before waiting: a full pipe would otherwise stall ditto forever.
+        let errorData = errors.fileHandleForReading.readDataToEndOfFile()
         task.waitUntilExit()
         guard task.terminationStatus == 0 else {
-            let message = String(data: errors.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? ""
+            let message = String(data: errorData, encoding: .utf8) ?? ""
             throw NSError(domain: "Sirena.DMGInstaller", code: Int(task.terminationStatus),
                           userInfo: [NSLocalizedDescriptionKey: message.isEmpty ? L("The app couldn't be copied to Applications.") : message])
         }

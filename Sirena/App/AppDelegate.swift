@@ -1,7 +1,6 @@
 /// AppDelegate.swift
 
 import ClipboardKit
-import SoundKit
 import MASShortcut
 import Cocoa
 import SwiftUI
@@ -30,7 +29,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             controller.sizingOptions = [.preferredContentSize]
             return controller
         }
-        SoundController.shared.start()
+        // Per-app volumes (Vorssaint's mixer) apply from launch, not only once the menu opens.
+        SirenaMixer.shared.start()
         statusItem.refreshVisibility()
 
         // A crashed run may have left macOS's ⌘ Tab turned off: give it back first.
@@ -38,7 +38,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         let modules = ModuleManager.shared
         modules.openPage = { [weak self] item in self?.mainWindowController.present(item) }
-        modules.isMainWindowVisible = { [weak self] in self?.mainWindowController.isVisible ?? false }
         modules.startEnabledModules(windowManagement: windowManagement, windowsMenu: windowsMenu)
 
         // Anywhere: open Sirena on Home (⌃⌥S unless changed in Geral).
@@ -65,7 +64,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
-        SoundController.shared.stop()
+        SirenaMixer.shared.stop()
         ModuleManager.shared.terminate()
     }
 
@@ -121,16 +120,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return menu
     }
 
-
-    private func header(_ module: ModuleID) -> NSMenuItem {
-        if #available(macOS 14.0, *) {
-            return NSMenuItem.sectionHeader(title: module.title)
-        }
-        let header = NSMenuItem(title: module.title, action: nil, keyEquivalent: "")
-        header.isEnabled = false
-        return header
-    }
-
     private func item(_ title: String, symbol: String?, _ action: Selector?, key: String = "", target: AnyObject? = nil) -> NSMenuItem {
         let item = NSMenuItem(title: title, action: action, keyEquivalent: key)
         item.target = target ?? self
@@ -144,39 +133,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     // MARK: - Actions
-
-
-
-
-
-
-    @objc private func takeSnap() {
-        MirrorController.shared.takeSnap()
-    }
-
-    @objc private func selectWindowToPin() {
-        PinWindowController.shared.selectWindowToPin()
-    }
-
-
-
-
-
-    @objc private func captureLastSelection() {
-        TextCaptureController.shared.captureLastSelection()
-    }
-
-
-
-
-
-
-
-    @objc private func stopSpeaking() {
-        TextCaptureController.shared.stopSpeaking()
-    }
-
-
 
     /// No dots: MASShortcut reaches it through a key path.
     static let openHomeShortcutKey = "sirenaOpenHomeShortcut"
@@ -193,13 +149,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         mainWindowController.present(.about)
     }
 
-    @objc func viewLogging(_ sender: Any?) {
-        Logger.showLogging(sender: sender)
-    }
-
-    @objc func authorizeAccessibility(_ sender: Any?) {
-        windowManagement.requestAuthorization()
-    }
 }
 
 // MARK: - Continuity Camera

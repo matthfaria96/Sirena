@@ -7,8 +7,6 @@ import SwiftUI
 struct HomeView: View {
     let router: Router
 
-    private let columns = [GridItem(.adaptive(minimum: 230), spacing: 12)]
-
     var body: some View {
         ScrollView {
             // One clock for the whole page: statuses (permissions, timers) refresh together.
@@ -17,7 +15,6 @@ struct HomeView: View {
                     BoltMenuHero(router: router)
                         .padding(.bottom, 12)
                     overview
-                        .padding(.top, 12)
                     LazyVGrid(columns: [GridItem(.flexible(), spacing: 14), GridItem(.flexible(), spacing: 14)], spacing: 14) {
                         ForEach(ModuleID.featurePages) { module in
                             ModuleCard(module: module) { router.selection = .module(module) }
@@ -35,7 +32,7 @@ struct HomeView: View {
     private var overview: some View {
         let manager = ModuleManager.shared
         let features = ModuleID.featurePages
-        let active = features.filter { manager.isRunning($0) }.count
+        let active = features.filter { manager.isEnabled($0) && !manager.pendingRestart.contains($0) }.count
         let needsPermission = ModuleID.featurePages.filter { ModuleStatusLabel.needsPermission($0) && manager.isEnabled($0) }
         return HStack(spacing: 10) {
             Text(L("Features — \(active) of \(features.count) on"))
@@ -55,10 +52,7 @@ struct HomeView: View {
 
 private struct ModuleCard: View {
     let module: ModuleID
-    /// Tools shown in the menu bar menu: the switch puts them in it or takes them out.
-    var menuItem: BoltMenuItem? = nil
     let open: () -> Void
-    @State private var menuSettings = BoltMenuSettings.shared
     @State private var isHovering = false
     @State private var manager = ModuleManager.shared
 
@@ -79,14 +73,6 @@ private struct ModuleCard: View {
                     .font(.headline)
                     .lineLimit(1)
                 Spacer(minLength: 0)
-                if let menuItem {
-                    Toggle(L("Show in the menu"), isOn: Binding(get: { menuSettings.isOn(menuItem) },
-                                                                set: { menuSettings.set(menuItem, $0) }))
-                        .toggleStyle(.switch)
-                        .controlSize(.small)
-                        .labelsHidden()
-                        .help(L("Show in the menu bar menu"))
-                }
                 if !module.isTool {
                     // Always shown, 0/0 included, so every feature card reads the same.
                     let options = FeatureOptions.count(module) ?? (0, 0)
@@ -138,7 +124,6 @@ private struct BoltMenuHero: View {
     let router: Router
     @State private var settings = BoltMenuSettings.shared
     @State private var manager = ModuleManager.shared
-    private let columns = [GridItem(.adaptive(minimum: 200), spacing: 10)]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -150,13 +135,12 @@ private struct BoltMenuHero: View {
                     .padding(13)
                     .frame(width: 58, height: 58)
                     .background(
-                        LinearGradient(colors: [.purple, .pink, .indigo], startPoint: .topLeading, endPoint: .bottomTrailing),
-                        in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-                    .shadow(color: .purple.opacity(0.45), radius: 12, y: 4)
+                        LinearGradient(colors: [.purple, .indigo], startPoint: .topLeading, endPoint: .bottomTrailing),
+                        in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                     .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 4) {
                     Text(L("Your menu bar menu"))
-                        .font(.title2.bold())
+                        .font(.title3.weight(.semibold))
                     Text(L("Everything you reach for, one click away in the menu bar. Choose what it shows."))
                         .font(.callout)
                         .foregroundStyle(.secondary)
@@ -168,27 +152,15 @@ private struct BoltMenuHero: View {
                 } label: {
                     Label(L("Try It"), systemImage: "cursorarrow.click.2")
                 }
-                .controlSize(.large)
-                .buttonStyle(.borderedProminent)
-                .tint(.purple)
+                .buttonStyle(.bordered)
             }
 
             group(L("Shortcuts"), L("Tools opened with one click from the menu. Click a card for all of its settings."), BoltMenuItem.shortcuts)
             group(L("Controllers"), L("Adjusted right there in the menu, without opening anything."), BoltMenuItem.controls)
         }
         .padding(20)
-        .background {
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(.background.secondary)
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(LinearGradient(colors: [.purple.opacity(0.18), .pink.opacity(0.10), .clear],
-                                     startPoint: .topLeading, endPoint: .bottomTrailing))
-        }
-        .overlay {
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .strokeBorder(LinearGradient(colors: [.purple.opacity(0.5), .pink.opacity(0.2)], startPoint: .topLeading, endPoint: .bottomTrailing),
-                              lineWidth: 1)
-        }
+        .background(.background.secondary, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(.separator, lineWidth: 0.5))
     }
 }
 
@@ -254,7 +226,7 @@ private struct MenuItemCard: View {
         .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .onHover { isHovering = $0 }
         .onTapGesture { open?() }
-        .opacity(available ? 1 : 0.6)
+        .foregroundStyle(available ? .primary : .secondary)
     }
 }
 
@@ -279,7 +251,7 @@ private struct OptionsRing: View {
                 Text("\(on)")
                     .font(.system(size: 12, weight: .bold).monospacedDigit())
                 Text("/\(total)")
-                    .font(.system(size: 8, weight: .medium).monospacedDigit())
+                    .font(.caption2.monospacedDigit())
                     .foregroundStyle(.secondary)
             }
         }
@@ -321,35 +293,6 @@ enum FeatureOptions {
             let flags = [s.showAtCursor, s.showOnlyAtEdge, s.suppressKey != .none, !s.ignoredApps.isEmpty,
                          s.showPreviews, s.removeAfterDragOut, s.resolveAliases]
             return (flags.filter { $0 }.count, flags.count)
-        default:
-            return nil
-        }
-    }
-}
-
-/// The one thing each feature is most often used for, offered right on its card.
-private struct QuickAction {
-    let title: String
-    let run: () -> Void
-
-    @MainActor
-    init?(module: ModuleID) {
-        switch module {
-        case .clipboard:
-            title = L("Open History"); run = { ClipboardController.shared.togglePanel() }
-        case .mirror:
-            title = MirrorState.shared.isVisible ? L("Hide Mirror") : L("Show Mirror"); run = { MirrorController.shared.toggle() }
-        case .pinWindow:
-            title = L("Pin…"); run = { PinWindowController.shared.selectWindowToPin() }
-        case .textCapture:
-            title = L("Capture Text"); run = { TextCaptureController.shared.capture(.text()) }
-        case .shelf:
-            title = ShelfController.shared.isVisible ? L("Hide") : L("Show"); run = { ShelfController.shared.toggle() }
-        case .keepAwake:
-            let viewModel = KeepAwakeModule.shared.viewModel
-            // Turning on always uses the default duration set on the Cafeína page.
-            title = viewModel.isActive ? L("Turn Off") : L("Turn On")
-            run = { viewModel.toggleActive() }
         default:
             return nil
         }

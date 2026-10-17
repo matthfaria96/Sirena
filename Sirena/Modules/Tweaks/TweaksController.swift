@@ -257,7 +257,9 @@ final class TweaksEngine: @unchecked Sendable {
         guard settings.anyClickTweak, event.flags.intersection(Self.modifierMask).isEmpty else { return event }
 
         let point = event.location
-        // Cheap geometry first: which window is under the pointer?
+        // Cheapest first: a click away from the Dock's windows needs no window list.
+        guard Self.mayBeOnDock(point) else { return event }
+        // Then: which window is under the pointer?
         guard let window = Self.windowUnderPoint(point) else { return event }
 
         // (The green button is handled by the Windows feature, see TweaksSettings.)
@@ -324,6 +326,25 @@ final class TweaksEngine: @unchecked Sendable {
     }
 
     private static let ownPID = ProcessInfo.processInfo.processIdentifier
+
+    /// The Dock's window frames, refreshed at most every 2 s (tap thread only).
+    private static var dockFrames: [CGRect] = []
+    private static var dockFramesDate = Date.distantPast
+
+    private static func mayBeOnDock(_ point: CGPoint) -> Bool {
+        if Date().timeIntervalSince(dockFramesDate) > 2 {
+            let dockLayer = Int(CGWindowLevelForKey(.dockWindow))
+            let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]] ?? []
+            dockFrames = windows.compactMap { window in
+                guard window[kCGWindowOwnerName as String] as? String == "Dock",
+                      window[kCGWindowLayer as String] as? Int == dockLayer,
+                      let bounds = window[kCGWindowBounds as String] as? NSDictionary else { return nil }
+                return CGRect(dictionaryRepresentation: bounds)
+            }
+            dockFramesDate = Date()
+        }
+        return dockFrames.contains { $0.contains(point) }
+    }
 
     private static func windowUnderPoint(_ point: CGPoint) -> WindowHit? {
         guard let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]] else { return nil }

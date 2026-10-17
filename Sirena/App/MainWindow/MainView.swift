@@ -36,8 +36,10 @@ struct MainView: View {
             // The page gets exactly the space of the detail column: a page's own
             // minimum size must never grow the window or push the sidebar.
             GeometryReader { proxy in
-                detail(for: router.selection ?? .home)
-                    .frame(width: proxy.size.width, height: proxy.size.height)
+                if router.isWindowOpen {
+                    detail(for: router.selection ?? .home)
+                        .frame(width: proxy.size.width, height: proxy.size.height)
+                }
             }
         }
         .navigationTitle(title(for: router.selection ?? .home))
@@ -48,7 +50,7 @@ struct MainView: View {
         Label {
             Text(title)
         } icon: {
-            GlassIcon(symbol: symbol, tint: tint, size: 22)
+            GlassIcon(symbol: symbol, tint: tint, size: 22, glass: false)
         }
         .tag(item)
     }

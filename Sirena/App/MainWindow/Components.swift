@@ -23,9 +23,11 @@ struct GlassIcon: View {
     let tint: Color
     var size: CGFloat = 32
     var isOn = true
+    /// Liquid Glass on cards; flat (like System Settings) inside the glass sidebar.
+    var glass = true
 
     var body: some View {
-        let shape = RoundedRectangle(cornerRadius: size * 0.28, style: .continuous)
+        let shape = RoundedRectangle(cornerRadius: size * (glass ? 0.28 : 0.225), style: .continuous)
         Group {
             if let image {
                 Image(image).resizable().renderingMode(.template).scaledToFit()
@@ -38,7 +40,7 @@ struct GlassIcon: View {
         .foregroundStyle(isOn ? .white : .secondary)
         .frame(width: size, height: size)
         .background(isOn ? AnyShapeStyle(tint.gradient.opacity(0.9)) : AnyShapeStyle(Color.primary.opacity(0.06)), in: shape)
-        .glassEffect(.regular.tint(isOn ? tint.opacity(0.25) : .clear), in: shape)
+        .glassEffect(glass ? .regular.tint(isOn ? tint.opacity(0.25) : .clear) : .identity, in: shape)
     }
 }
 
@@ -202,7 +204,6 @@ struct ModulePage<Accessory: View>: View {
                 ModuleManager.shared.setEnabled(module, true)
             }
             .buttonStyle(.borderedProminent)
-            .tint(module.tint)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -312,7 +313,6 @@ struct EmbeddedModule<Content: View>: View {
                 } actions: {
                     Button(L("Turn On")) { ModuleManager.shared.setEnabled(module, true) }
                         .buttonStyle(.borderedProminent)
-                        .tint(module.tint)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }

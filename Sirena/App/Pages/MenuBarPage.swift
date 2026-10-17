@@ -166,60 +166,6 @@ struct MenuBarBehavior: View {
     }
 }
 
-/// Records a global shortcut the way Hidden Bar's preferences did (press keys while armed).
-private struct GlobalKeyRecorder: View {
-    @Binding var globalKey: GlobalKeybindPreferences?
-    @State private var isRecording = false
-    @State private var monitor: Any?
-
-    var body: some View {
-        Button {
-            isRecording ? stop() : start()
-        } label: {
-            Text(isRecording ? L("Press shortcut…") : (globalKey?.description ?? L("Record Shortcut")))
-                .frame(minWidth: 120)
-        }
-        .buttonStyle(.bordered)
-        .tint(isRecording ? .accentColor : nil)
-        .onDisappear { stop() }
-    }
-
-    private func start() {
-        isRecording = true
-        monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
-            if event.keyCode == 53 { // esc cancels
-                stop()
-                return nil
-            }
-            let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
-            guard !flags.intersection([.command, .control, .option, .shift, .function]).isEmpty,
-                  let characters = event.charactersIgnoringModifiers else {
-                NSSound.beep()
-                return nil
-            }
-            globalKey = GlobalKeybindPreferences(
-                function: flags.contains(.function),
-                control: flags.contains(.control),
-                command: flags.contains(.command),
-                shift: flags.contains(.shift),
-                option: flags.contains(.option),
-                capsLock: flags.contains(.capsLock),
-                carbonFlags: flags.carbonFlags,
-                characters: characters,
-                keyCode: UInt32(event.keyCode)
-            )
-            stop()
-            return nil
-        }
-    }
-
-    private func stop() {
-        isRecording = false
-        if let monitor { NSEvent.removeMonitor(monitor) }
-        monitor = nil
-    }
-}
-
 /// Everything about hidden icons on one tab: reveal style, the apps, auto-hiding and the shortcut.
 struct HiddenIconsTab: View {
     @State private var module = MenuBarModule.shared

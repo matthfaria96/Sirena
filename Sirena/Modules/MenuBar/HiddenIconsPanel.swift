@@ -13,6 +13,9 @@ final class HiddenIconsPanel: NSObject, NSPopoverDelegate {
     private var onClose: (() -> Void)?
 
     var isShown: Bool { popover?.isShown == true }
+    /// The click on the arrow that closed it must not reopen it.
+    var closedJustNow: Bool { Date().timeIntervalSince(lastClose) < 0.3 }
+    private var lastClose = Date.distantPast
 
     /// Shows the menu below the arrow, in a popover like the ⚡ menu: fixed to the icon,
     /// closed by a click outside or Esc.
@@ -44,6 +47,7 @@ final class HiddenIconsPanel: NSObject, NSPopoverDelegate {
     }
 
     func popoverDidClose(_ notification: Notification) {
+        lastClose = Date()
         onClose?()
     }
 }

@@ -443,7 +443,12 @@ final class ShelfCellView: NSView, NSDraggingSource {
 
     override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
 
+    /// The shelf takes keys once an item is clicked, so Delete removes it from the shelf
+    /// (never the Finder's selection behind it) and Space opens Quick Look.
+    override var needsPanelToBecomeKey: Bool { true }
+
     override func mouseDown(with event: NSEvent) {
+        window?.makeKey()
         let store = ShelfStore.shared
         mouseDownPoint = event.locationInWindow
         window?.makeFirstResponder(window?.contentView)

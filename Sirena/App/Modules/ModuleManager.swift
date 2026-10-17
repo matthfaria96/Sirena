@@ -17,7 +17,6 @@ final class ModuleManager {
 
     /// Set by the app delegate: opens the main window on a page.
     var openPage: (SidebarItem) -> Void = { _ in }
-    var isMainWindowVisible: () -> Bool = { false }
 
     func startEnabledModules(windowManagement: WindowManagementModule, windowsMenu: NSMenu) {
         for module in ModuleID.allCases where module.isEnabled {
@@ -51,6 +50,12 @@ final class ModuleManager {
         } else if module == .switcher, running.contains(module) {
             // Give ⌘ Tab back to macOS right away, no restart needed.
             WindowSwitcherController.shared.terminate()
+            running.remove(module)
+        } else if module == .shelf, running.contains(module) {
+            ShelfController.shared.terminate()
+            running.remove(module)
+        } else if module == .menuBar, running.contains(module) {
+            MenuBarModule.shared.terminate()
             running.remove(module)
         } else if module == .tweaks {
             TweaksController.shared.applyFinderSwitch()

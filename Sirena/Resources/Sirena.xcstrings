@@ -1297,7 +1297,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Versão %1$@ (%2$@)"
+            "value": "Versão %@ (%@)"
           }
         }
       }
@@ -4467,7 +4467,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Identifique os arquivos por uma pré-visualização completa em vez do ícone."
+            "value": "Identifique os arquivos por uma prévia completa em vez do ícone."
           }
         }
       }
@@ -9997,7 +9997,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Concluir"
+            "value": "OK"
           }
         }
       }
@@ -10487,7 +10487,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "⌘ Tab"
+            "value": "Alternador de janelas"
           }
         }
       }
@@ -11037,7 +11037,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Acordado sem limite"
+            "value": "Sem limite de tempo"
           }
         }
       }
@@ -11137,7 +11137,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Seu menu da barra"
+            "value": "Seu menu na barra de menus"
           }
         }
       }
@@ -11388,6 +11388,116 @@
           "stringUnit": {
             "state": "translated",
             "value": "O Sirena só pede o que os recursos precisam. Tudo fica neste Mac."
+          }
+        }
+      }
+    },
+    "Each status is read from macOS right now and updates as soon as you change it in System Settings. Everything stays on this Mac.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cada estado é lido do macOS agora e atualiza assim que você muda nos Ajustes do Sistema. Tudo fica neste Mac."
+          }
+        }
+      }
+    },
+    "%lld of %lld allowed": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld de %lld permitidas"
+          }
+        }
+      }
+    },
+    "From any app.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De qualquer app."
+          }
+        }
+      }
+    },
+    "Moves and resizes windows, pastes from the clipboard history and powers the switcher.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move e redimensiona janelas, cola do histórico e faz o alternador funcionar."
+          }
+        }
+      }
+    },
+    "Window previews in the Dock and the switcher, and capturing text from the screen.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prévias de janelas no Dock e no alternador, e capturar texto da tela."
+          }
+        }
+      }
+    },
+    "The mirror and “Peek” from the menu.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Espelho e o “Espiar” do menu."
+          }
+        }
+      }
+    },
+    "The microphone level in the mirror and the microphone controls.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O nível do microfone no Espelho e os controles de microfone."
+          }
+        }
+      }
+    },
+    "Sirena brings together what you use every day on the Mac: windows, the Dock, ⌘ Tab, the clipboard, a shelf for files, the notch and quick controls in the menu bar.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Sirena reúne o que você usa todo dia no Mac: janelas, o Dock, o ⌘ Tab, a área de transferência, uma prateleira para arquivos, o notch e controles rápidos na barra de menus."
+          }
+        }
+      }
+    },
+    "Built on open-source projects: %@.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Feito a partir de projetos de código aberto: %@."
+          }
+        }
+      }
+    },
+    "Open-source licenses": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licenças de código aberto"
+          }
+        }
+      }
+    },
+    "Turn it on here or in the menu bar menu, under “Keep Display On”.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ligue aqui ou no menu da barra, em “Não desligar tela”."
           }
         }
       }

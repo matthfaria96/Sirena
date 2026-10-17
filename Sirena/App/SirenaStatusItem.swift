@@ -28,7 +28,9 @@ final class SirenaStatusItem: NSObject {
     func refreshVisibility() {
         if Defaults.hideMenuBarIcon.enabled {
             remove()
-        } else if statusItem == nil {
+        } else if let statusItem {
+            statusItem.isVisible = true
+        } else {
             create()
         }
     }
@@ -80,16 +82,22 @@ final class SirenaStatusItem: NSObject {
         popover?.performClose(nil)
     }
 
+    /// When the popover last closed: the click that closes it (mouse-down) must not
+    /// reopen it on mouse-up.
+    private var lastClose = Date.distantPast
+
     private func togglePanel() {
         guard let button = statusItem?.button else { return }
         if let popover, popover.isShown {
             popover.performClose(nil)
             return
         }
+        guard Date().timeIntervalSince(lastClose) > 0.3 else { return }
         guard let content = panelProvider?() else { return }
         let popover = self.popover ?? NSPopover()
         popover.behavior = .transient
         popover.animates = true
+        popover.delegate = self
         popover.contentViewController = content
         self.popover = popover
         NSApp.activate()
@@ -106,6 +114,12 @@ final class SirenaStatusItem: NSObject {
         DispatchQueue.main.async {
             statusItem.button?.performClick(nil)
         }
+    }
+}
+
+extension SirenaStatusItem: NSPopoverDelegate {
+    func popoverDidClose(_ notification: Notification) {
+        lastClose = Date()
     }
 }
 

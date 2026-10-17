@@ -48042,7 +48042,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Caffeine está ativo"
+            "value": "Cafeína está ativa"
           }
         },
         "pt": {
@@ -62113,7 +62113,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ajuste isso se a pré-visualização está desalinhada com o dock"
+            "value": "Ajuste isso se a prévia está desalinhada com o dock"
           }
         },
         "pt-PT": {
@@ -120120,7 +120120,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "EXPERIMENTAL: Mostrar pré-visualização acima dos títulos de apps"
+            "value": "EXPERIMENTAL: Mostrar prévia acima dos títulos de apps"
           }
         },
         "pt-PT": {
@@ -151325,7 +151325,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Carregando pré-visualização"
+            "value": "Carregando prévia"
           }
         },
         "pt-PT": {
@@ -154937,7 +154937,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Limite máximo para pré-visualização do Dock"
+            "value": "Limite máximo para prévia do Dock"
           }
         },
         "pt-PT": {
@@ -182722,7 +182722,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mostre uma pré-visualização cheia da janela"
+            "value": "Mostre uma prévia cheia da janela"
           }
         },
         "pt-PT": {
@@ -186712,7 +186712,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Atraso de pré-visualização do foco"
+            "value": "Atraso de prévia do foco"
           }
         },
         "pt-PT": {
@@ -206489,7 +206489,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ver uma pré-visualização da janela"
+            "value": "Ver uma prévia da janela"
           }
         },
         "pt-PT": {
@@ -211430,7 +211430,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Determine o máximo de linhas (para Dock superior/inferior) ou colunas (para Dock lateral) que a pré-visualização irá utilizar. '0' irá adequá-lo dinamicamente"
+            "value": "Determine o máximo de linhas (para Dock superior/inferior) ou colunas (para Dock lateral) que a prévia irá utilizar. '0' irá adequá-lo dinamicamente"
           }
         },
         "pt-PT": {
@@ -218083,7 +218083,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mostrar pré-visualização acima dos rótulos dos apps"
+            "value": "Mostrar prévia acima dos rótulos dos apps"
           }
         },
         "pt-PT": {
@@ -227023,7 +227023,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ordenar pré-visualização de Janelas por Data (se houver múltiplas)"
+            "value": "Ordenar prévia de Janelas por Data (se houver múltiplas)"
           }
         },
         "pt-PT": {
@@ -245864,7 +245864,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pré-visualização dos botões de luzes de sinalização"
+            "value": "Botões de janela nas prévias"
           }
         },
         "pt-PT": {
@@ -246814,7 +246814,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Realiza uma ação ao passar sobre uma janela em uma pré-visualização do Dock"
+            "value": "Realiza uma ação ao passar sobre uma janela em uma prévia do Dock"
           }
         },
         "pt-PT": {
@@ -247004,7 +247004,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Realiza uma ação ao mexer a janela enquanto ela está sendo arrasta de uma pré-visualização do Dock"
+            "value": "Realiza uma ação ao mexer a janela enquanto ela está sendo arrasta de uma prévia do Dock"
           }
         },
         "pt-PT": {
@@ -260891,7 +260891,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ao passar o mouse sobre a pré-visualização"
+            "value": "Ao passar o mouse sobre a prévia"
           }
         },
         "pt-PT": {
@@ -266218,7 +266218,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Leiaute de pré-visualização de Janela"
+            "value": "Leiaute de prévia de Janela"
           }
         },
         "pt-PT": {

@@ -148,7 +148,7 @@ struct MirrorView: View {
             .overlay(alignment: .topTrailing) {
                 if settings.zoom > 1 {
                     Text(settings.zoom == 1.5 ? "1.5×" : "2×")
-                        .font(.system(size: 8, weight: .bold))
+                        .font(.caption2.weight(.bold))
                         .foregroundStyle(.white)
                         .offset(x: 4, y: -4)
                 }

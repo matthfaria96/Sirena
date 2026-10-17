@@ -16,7 +16,6 @@ class CaffeineViewModel: ObservableObject {
 
     @Published var isActive = false
     @Published var timeRemaining: TimeInterval?
-    @Published var showPreferences = false
 
     // MARK: - Private Properties
 

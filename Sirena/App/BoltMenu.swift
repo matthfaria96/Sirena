@@ -8,7 +8,6 @@
 
 import AppKit
 import ClipboardKit
-import SoundKit
 import SwiftUI
 
 enum BoltMenuItem: String, CaseIterable, Identifiable {
@@ -167,12 +166,16 @@ struct BoltMenuView: View {
             ForEach(controls) { item in
                 ControlRow(item: item, close: close)
                     .padding(10)
-                    .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color.primary.opacity(0.05)))
-                    .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(Color.primary.opacity(0.10), lineWidth: 0.8))
+                    .background(.quaternary.opacity(0.6), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
             }
             if visible.contains(.sound) {
-                SoundPanel()
-                    .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color.primary.opacity(0.05)))
+                // Vorssaint's volume mixer; scrolls when many apps are playing.
+                ScrollView(.vertical) {
+                    SirenaMixerView(width: 316)
+                }
+                .scrollIndicators(.automatic)
+                .frame(maxHeight: 460)
+                .fixedSize(horizontal: false, vertical: true)
             }
             if visible.isEmpty {
                 ContentUnavailableView(L("Nothing here yet"), systemImage: "circle.hexagongrid",
@@ -216,10 +219,8 @@ private struct ShortcutButton: View {
                 }
                 .foregroundStyle(.primary)
                 .frame(width: 44, height: 44)
-                .background(RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(Color.primary.opacity(isHovering ? 0.14 : 0.07)))
-                .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .strokeBorder(Color.primary.opacity(0.14), lineWidth: 0.8))
+                .background(isHovering ? AnyShapeStyle(.tertiary) : AnyShapeStyle(.quaternary),
+                            in: RoundedRectangle(cornerRadius: 12, style: .continuous))
                 Text(item.shortTitle)
                     .font(.system(size: 11))
                     .lineLimit(1)
@@ -263,7 +264,6 @@ private struct ControlRow: View {
     let item: BoltMenuItem
     let close: () -> Void
     @ObservedObject private var keepAwake = KeepAwakeModule.shared.viewModel
-    @State private var mirror = MirrorState.shared
     @AppStorage(PreferenceKeys.defaultDuration) private var defaultDuration = 0
 
     var body: some View {
@@ -274,7 +274,6 @@ private struct ControlRow: View {
                 VStack(alignment: .leading, spacing: 1) {
                     HStack(spacing: 4) {
                         Text(item.title).font(.system(size: 12, weight: .medium))
-                        InfoButton(item.detail).controlSize(.mini)
                     }
                     Text(keepAwake.isActive ? (keepAwake.formattedTimeRemaining() ?? L("Awake indefinitely")) : L("Sleep allowed"))
                         .font(.system(size: 10))
@@ -297,7 +296,7 @@ private struct ControlRow: View {
                     // Already on: restart with the new time.
                     if keepAwake.isActive { keepAwake.activate() }
                 }
-                Toggle("", isOn: Binding(get: { keepAwake.isActive },
+                Toggle(item.title, isOn: Binding(get: { keepAwake.isActive },
                                          set: { $0 ? keepAwake.activate() : keepAwake.deactivate() }))
                     .toggleStyle(.switch)
                     .controlSize(.small)
@@ -309,10 +308,7 @@ private struct ControlRow: View {
         }
     }
 
-    static let durations: [(minutes: Int, title: String)] = [
-        (15, L("15 minutes")), (30, L("30 minutes")), (60, L("1 hour")), (120, L("2 hours")),
-        (300, L("5 hours")), (0, L("Indefinitely"))
-    ]
+    static var durations: [(minutes: Int, title: String)] { KeepAwakeModule.durations }
 
     private func icon(_ on: Bool) -> some View {
         Image(systemName: item.symbol)
@@ -325,47 +321,4 @@ private struct ControlRow: View {
             }
     }
 
-    private func sliderRow(symbol: String, value: Binding<Double>, caption: String? = nil,
-                           iconAction: (() -> Void)? = nil, dimmed: Bool = false) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            if let caption {
-                Text(caption).font(.system(size: 10)).foregroundStyle(.secondary).padding(.leading, 36)
-            }
-            HStack(spacing: 10) {
-                Button { iconAction?() } label: {
-                    Image(systemName: symbol)
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(dimmed ? .secondary : .primary)
-                        .frame(width: 26, height: 26)
-                        .background(Color.primary.opacity(0.08), in: RoundedRectangle(cornerRadius: 7, style: .continuous))
-                }
-                .buttonStyle(.plain)
-                .disabled(iconAction == nil)
-                Slider(value: value, in: 0...1)
-                    .controlSize(.small)
-                Text("\(Int((value.wrappedValue * 100).rounded()))%")
-                    .font(.system(size: 10).monospacedDigit())
-                    .foregroundStyle(.secondary)
-                    .frame(width: 32, alignment: .trailing)
-            }
-        }
-        .help(item.detail)
-    }
-
-    private func unavailable(_ text: String) -> some View {
-        HStack(spacing: 10) {
-            icon(false)
-            Text(text).font(.system(size: 11)).foregroundStyle(.secondary)
-            Spacer()
-        }
-    }
-}
-
-/// Fader's mixer (SoundKit), hosted in the popover.
-private struct SoundPanel: NSViewControllerRepresentable {
-    func makeNSViewController(context: Context) -> NSViewController {
-        SoundController.shared.makeViewController()
-    }
-
-    func updateNSViewController(_ controller: NSViewController, context: Context) {}
 }

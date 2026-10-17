@@ -133,8 +133,6 @@ private struct TextCaptureSettingsView: View {
                 }
             } header: {
                 Text(L("More"))
-            } footer: {
-                Text(L("To read a photo or document scan from your iPhone, use “Import from iPhone” in the Sirena menu."))
             }
         }
         .formStyle(.grouped)
