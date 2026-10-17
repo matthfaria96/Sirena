@@ -28,7 +28,6 @@ struct MainView: View {
                 }
                 Section("Sirena") {
                     sidebarRow(.general, title: L("General"), symbol: "gearshape.fill", tint: .gray)
-                    sidebarRow(.about, title: L("About"), symbol: "info.circle.fill", tint: .gray)
                 }
             }
             .listStyle(.sidebar)
@@ -59,7 +58,7 @@ struct MainView: View {
         case .home: return "Sirena"
         case .module(let module): return module.title
         case .general: return L("General")
-        case .about: return L("About")
+        case .about: return L("General")
         }
     }
 
@@ -86,10 +85,8 @@ struct MainView: View {
             TextCapturePage()
         case .module(.shelf):
             ShelfPage()
-        case .general:
+        case .general, .about:
             GeneralPage()
-        case .about:
-            AboutView()
         }
     }
 }

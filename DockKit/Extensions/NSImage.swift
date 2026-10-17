@@ -2,7 +2,6 @@ import Cocoa
 import SwiftUI
 
 extension NSImage.Name {
-    static let logo = NSImage.Name("DDMiniIcon")
 }
 
 extension NSImage {

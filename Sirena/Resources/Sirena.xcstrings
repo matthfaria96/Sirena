@@ -11351,6 +11351,46 @@
           }
         }
       }
+    },
+    "Back to Home": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voltar para Início"
+          }
+        }
+      }
+    },
+    "Needed for the mirror and “Peek” from the menu.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Necessária para o Espelho e o “Espiar” do menu."
+          }
+        }
+      }
+    },
+    "Needed for the microphone level in the mirror and the microphone controls.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Necessário para o nível do microfone no Espelho e os controles de microfone."
+          }
+        }
+      }
+    },
+    "Sirena only asks for what its features need. Everything stays on this Mac.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Sirena só pede o que os recursos precisam. Tudo fica neste Mac."
+          }
+        }
+      }
     }
   }
 }

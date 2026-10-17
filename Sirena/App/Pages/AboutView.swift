@@ -2,7 +2,8 @@
 
 import SwiftUI
 
-struct AboutView: View {
+/// Sirena's version and credits, as sections at the end of Geral.
+struct AboutSections: View {
     private var version: String {
         let short = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
         let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? ""
@@ -25,12 +26,14 @@ struct AboutView: View {
     ]
 
     var body: some View {
-        Form {
+        Group {
             Section {
                 VStack(spacing: 10) {
-                    Image(nsImage: NSApp.applicationIconImage)
+                    Image("SirenaIcon")
                         .resizable()
-                        .frame(width: 128, height: 128)
+                        .frame(width: 112, height: 112)
+                        .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
+                        .shadow(color: .purple.opacity(0.35), radius: 14, y: 6)
                     Text("Sirena")
                         .font(.largeTitle.bold())
                     Text(version)
@@ -54,7 +57,6 @@ struct AboutView: View {
                 }
             }
         }
-        .formStyle(.grouped)
     }
 
     private func credit<Icon: View>(_ name: String, _ author: String, _ license: String, _ url: String,

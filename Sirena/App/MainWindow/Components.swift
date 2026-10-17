@@ -113,6 +113,7 @@ struct ModulePage<Accessory: View>: View {
         .onChange(of: navigator.requestedTab) { openRequestedTab() }
         // The page's main action lives in the window toolbar, where it never truncates.
         .toolbar {
+            BackToHomeButton()
             ToolbarItem(placement: .primaryAction) {
                 accessory()
                     .labelStyle(.titleAndIcon)
@@ -325,4 +326,19 @@ func migrateShortcut(to defaultsKey: String, keyCode: Int, modifiers: NSEvent.Mo
     guard UserDefaults.standard.object(forKey: defaultsKey) == nil,
           let stored = MASDictionaryTransformer().reverseTransformedValue(MASShortcut(keyCode: keyCode, modifierFlags: modifiers)) else { return }
     UserDefaults.standard.set(stored, forKey: defaultsKey)
+}
+
+/// "‹" in the toolbar of every page: back to Home, like a sub-screen in System Settings.
+struct BackToHomeButton: ToolbarContent {
+    var body: some ToolbarContent {
+        ToolbarItem(placement: .navigation) {
+            Button {
+                ModuleManager.shared.openPage(.home)
+            } label: {
+                Label(L("Home"), systemImage: "chevron.left")
+            }
+            .help(L("Back to Home"))
+            .keyboardShortcut("[", modifiers: .command)
+        }
+    }
 }
