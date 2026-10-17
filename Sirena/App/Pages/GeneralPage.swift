@@ -9,6 +9,7 @@ struct GeneralPage: View {
     @State private var manager = ModuleManager.shared
     @State private var isTrusted = AXIsProcessTrusted()
     @State private var hasScreenRecording = DockController.hasScreenRecordingPermission
+    @State private var recordingObserver = ShortcutRecordingObserver()
 
     var body: some View {
         Form {
@@ -23,6 +24,8 @@ struct GeneralPage: View {
                         Defaults.hideMenuBarIcon.enabled = hideMenuBarIcon
                         SirenaStatusItem.instance.refreshVisibility()
                     }
+                ShortcutRow(title: L("Open Sirena on Home"), defaultsKey: AppDelegate.openHomeShortcutKey,
+                            recordingObserver: recordingObserver)
                 if hideMenuBarIcon {
                     Text(L("Open Sirena again from Finder or Spotlight to see this window."))
                         .font(.caption)

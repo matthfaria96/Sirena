@@ -10781,6 +10781,76 @@
           }
         }
       }
+    },
+    "Awake": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acordado"
+          }
+        }
+      }
+    },
+    "Can sleep": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pode dormir"
+          }
+        }
+      }
+    },
+    "Showing": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aparecendo"
+          }
+        }
+      }
+    },
+    "1 pinned": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 fixada"
+          }
+        }
+      }
+    },
+    "%lld pinned": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld fixadas"
+          }
+        }
+      }
+    },
+    "None pinned": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nenhuma fixada"
+          }
+        }
+      }
+    },
+    "Open Sirena on Home": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir o Sirena na tela Início"
+          }
+        }
+      }
     }
   }
 }

@@ -41,6 +41,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         modules.isMainWindowVisible = { [weak self] in self?.mainWindowController.isVisible ?? false }
         modules.startEnabledModules(windowManagement: windowManagement, windowsMenu: windowsMenu)
 
+        // Anywhere: open Sirena on Home (⌃⌥S unless changed in Geral).
+        let binder = MASShortcutBinder.shared()
+        binder?.bindingOptions = [NSBindingOption.valueTransformerName: MASDictionaryTransformerName]
+        migrateShortcut(to: Self.openHomeShortcutKey, keyCode: 1, modifiers: [.control, .option])
+        binder?.bindShortcut(withDefaultsKey: Self.openHomeShortcutKey) { [weak self] in
+            self?.mainWindowController.present(.home)
+        }
+
         // Debug helpers: SIRENA_OPEN_SETTINGS=1 opens the main window,
         // SIRENA_OPEN_PAGE=<module id|general|about> opens it on a page.
         let environment = ProcessInfo.processInfo.environment
@@ -169,6 +177,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
 
+
+    /// No dots: MASShortcut reaches it through a key path.
+    static let openHomeShortcutKey = "sirenaOpenHomeShortcut"
 
     @objc func openMainWindow(_ sender: Any?) {
         mainWindowController.present()

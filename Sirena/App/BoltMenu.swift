@@ -65,6 +65,34 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
         }
     }
 
+    /// On or off right now, for the items that switch something (nil for one-shot actions).
+    @MainActor
+    var isOn: Bool? {
+        switch self {
+        case .keepAwake: return KeepAwakeModule.shared.viewModel.isActive
+        case .mirror: return MirrorState.shared.isVisible
+        case .shelf: return ShelfController.shared.isVisible
+        case .hiddenIcons: return MenuBarModule.shared.isCollapsed
+        case .pinWindow: return !PinWindowController.shared.pins.isEmpty
+        default: return nil
+        }
+    }
+
+    /// The state in words, under the button.
+    @MainActor
+    var stateText: String? {
+        guard let isOn else { return nil }
+        switch self {
+        case .keepAwake: return isOn ? L("Awake") : L("Can sleep")
+        case .mirror, .shelf: return isOn ? L("Showing") : L("Hidden")
+        case .hiddenIcons: return isOn ? L("Hidden") : L("Showing")
+        case .pinWindow:
+            let count = PinWindowController.shared.pins.count
+            return isOn ? (count == 1 ? L("1 pinned") : L("\(count) pinned")) : L("None pinned")
+        default: return nil
+        }
+    }
+
     /// The module that has to run for this item to make sense.
     var module: ModuleID? {
         switch self {
@@ -142,27 +170,11 @@ struct BoltMenuView: View {
                 if settings.visibleItems.contains(.sound) { Divider().padding(.horizontal, 12) }
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 4), spacing: 8) {
                     ForEach(actions) { item in
-                        Button {
-                            close()
+                        BoltButton(item: item) {
+                            // Toggles stay open so the new state shows; actions close it.
+                            if item.isOn == nil || item == .mirror { close() }
                             item.perform()
-                        } label: {
-                            VStack(spacing: 5) {
-                                Image(systemName: item.symbol)
-                                    .font(.system(size: 15, weight: .semibold))
-                                    .foregroundStyle(.white)
-                                    .frame(width: 34, height: 34)
-                                    .background(item.tint.gradient, in: RoundedRectangle(cornerRadius: 9, style: .continuous))
-                                Text(item.title)
-                                    .font(.system(size: 10))
-                                    .lineLimit(2)
-                                    .multilineTextAlignment(.center)
-                                    .frame(height: 26, alignment: .top)
-                            }
-                            .frame(maxWidth: .infinity)
-                            .contentShape(Rectangle())
                         }
-                        .buttonStyle(.plain)
-                        .help(item.detail)
                     }
                 }
                 .padding(12)
@@ -226,5 +238,64 @@ private struct HoverHighlight: View {
         RoundedRectangle(cornerRadius: 8, style: .continuous)
             .fill(isHovering ? Color.primary.opacity(0.08) : .clear)
             .onHover { isHovering = $0 }
+    }
+}
+
+/// One quick button: colored when what it switches is on, gray when off, with the state
+/// in words below (Cafeína "Acordado", Espelho "Aparecendo"…).
+private struct BoltButton: View {
+    let item: BoltMenuItem
+    let action: () -> Void
+    @ObservedObject private var keepAwake = KeepAwakeModule.shared.viewModel
+    @State private var mirror = MirrorState.shared
+    @State private var shelf = ShelfController.shared
+    @State private var menuBar = MenuBarModule.shared
+    @State private var pins = PinWindowController.shared
+
+    var body: some View {
+        // Reading the observed objects keeps the state live while the menu is open.
+        _ = (keepAwake.isActive, mirror.isVisible, shelf.isVisible, menuBar.isCollapsed, pins.pins.count)
+        let isOn = item.isOn
+        let lit = isOn ?? true
+        return Button(action: action) {
+            VStack(spacing: 4) {
+                Image(systemName: item.symbol)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(lit ? .white : .secondary)
+                    .frame(width: 34, height: 34)
+                    .background {
+                        RoundedRectangle(cornerRadius: 9, style: .continuous)
+                            .fill(lit ? AnyShapeStyle(item.tint.gradient) : AnyShapeStyle(Color.primary.opacity(0.08)))
+                    }
+                    .overlay(alignment: .topTrailing) {
+                        if isOn == true {
+                            Circle()
+                                .fill(.green)
+                                .frame(width: 9, height: 9)
+                                .overlay(Circle().strokeBorder(.background, lineWidth: 1.5))
+                                .offset(x: 3, y: -3)
+                        }
+                    }
+                    .animation(.snappy, value: isOn)
+                Text(item.title)
+                    .font(.system(size: 10))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.85)
+                if let state = item.stateText {
+                    Text(state)
+                        .font(.system(size: 9, weight: .medium))
+                        .foregroundStyle(isOn == true ? .green : .secondary)
+                        .lineLimit(1)
+                        .contentTransition(.opacity)
+                } else {
+                    Text(" ").font(.system(size: 9))
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .help(item.detail)
+        .accessibilityValue(item.stateText ?? "")
     }
 }

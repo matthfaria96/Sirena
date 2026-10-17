@@ -95,11 +95,22 @@ final class MirrorController: NSObject {
             }
             isVisible = true
             layoutPanel(animated: false)
+            let target = panel.frame
+            let dropsDown = settings.displayMode == .popover || openedFromNotch
+            if dropsDown {
+                // Unrolls downward from the menu bar, like a curtain, for a quick look.
+                var start = target
+                start.size.height = 24
+                start.origin.y = target.maxY - start.height
+                panel.setFrame(start, display: false)
+            }
             panel.alphaValue = 0
             panel.orderFrontRegardless()
             NSAnimationContext.runAnimationGroup({ context in
-                context.duration = 0.18
+                context.duration = dropsDown ? 0.32 : 0.18
+                context.timingFunction = CAMediaTimingFunction(controlPoints: 0.2, 1.1, 0.35, 1)
                 self.panel.animator().alphaValue = 1
+                if dropsDown { self.panel.animator().setFrame(target, display: true) }
             }, completionHandler: nil)
             if settings.showMicrophoneLevel { MirrorAudioMeter.shared.start() }
             installOutsideClickMonitor()
