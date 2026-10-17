@@ -55,7 +55,10 @@ struct HomeView: View {
 
 private struct ModuleCard: View {
     let module: ModuleID
+    /// Tools shown in the menu bar menu: the switch puts them in it or takes them out.
+    var menuItem: BoltMenuItem? = nil
     let open: () -> Void
+    @State private var menuSettings = BoltMenuSettings.shared
     @State private var isHovering = false
     @State private var manager = ModuleManager.shared
 
@@ -77,11 +80,19 @@ private struct ModuleCard: View {
                     .lineLimit(1)
                 Spacer(minLength: 0)
                 InfoButton(module.summary)
+                if let menuItem {
+                    Toggle(L("Show in the menu"), isOn: Binding(get: { menuSettings.isOn(menuItem) },
+                                                                set: { menuSettings.set(menuItem, $0) }))
+                        .toggleStyle(.switch)
+                        .controlSize(.small)
+                        .labelsHidden()
+                        .help(L("Show in the menu bar menu"))
+                }
                 if !module.isTool {
                     // Always shown, 0/0 included, so every feature card reads the same.
                     let options = FeatureOptions.count(module) ?? (0, 0)
                     OptionsRing(on: Self.isOn(module) ? options.on : 0, total: options.total,
-                                tint: Self.isOn(module) ? .green : .red)
+                                tint: module.tint)
                 }
             }
             Text(module.summary)
@@ -115,16 +126,8 @@ private struct ModuleCard: View {
                 .fill(isHovering ? AnyShapeStyle(.quaternary) : AnyShapeStyle(.background.secondary))
         }
         .overlay {
-            // Features: a steady green glow when on, red when off. No animation.
-            if module.isTool {
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .strokeBorder(.separator, lineWidth: 0.5)
-            } else {
-                let color: Color = Self.isOn(module) ? .green : .red
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .strokeBorder(color.opacity(0.85), lineWidth: 1.5)
-                    .shadow(color: color.opacity(0.55), radius: 8)
-            }
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .strokeBorder(.separator, lineWidth: 0.5)
         }
         .onHover { isHovering = $0 }
         .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
@@ -176,7 +179,19 @@ private struct BoltMenuHero: View {
                 .tint(.purple)
             }
 
-            group(L("Shortcuts"), L("Programs opened with one click from the menu."), BoltMenuItem.shortcuts)
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 6) {
+                    Text(L("Shortcuts")).font(.headline)
+                    InfoButton(L("Tools opened with one click from the menu. Click a card for all its settings; the switch puts it in the menu or takes it out."))
+                }
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 230), spacing: 12)], spacing: 12) {
+                    ForEach(BoltMenuItem.shortcuts) { item in
+                        if let module = item.module {
+                            ModuleCard(module: module, menuItem: item) { router.selection = .module(module) }
+                        }
+                    }
+                }
+            }
             group(L("Controllers"), L("Adjusted right there in the menu: sound, microphone, brightness, Cafeína and a peek through the camera."), BoltMenuItem.controls)
         }
         .padding(20)
@@ -226,12 +241,7 @@ private struct BoltItemTile: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            Image(systemName: item.symbol)
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(.white)
-                .frame(width: 30, height: 30)
-                .background((isOn ? item.tint : .gray).gradient, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-                .saturation(isOn ? 1 : 0.2)
+            GlassIcon(symbol: item.symbol, tint: item.tint, size: 30, isOn: isOn)
             VStack(alignment: .leading, spacing: 1) {
                 Text(item.title)
                     .font(.callout.weight(.medium))

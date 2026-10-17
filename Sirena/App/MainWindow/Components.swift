@@ -6,21 +6,39 @@
 import MASShortcut
 import SwiftUI
 
-/// The module's symbol on a tinted rounded square.
+/// The module's symbol as a Liquid Glass icon, like macOS 27's own settings icons.
 struct ModuleIcon: View {
     let module: ModuleID
     var size: CGFloat = 44
 
     var body: some View {
-        Image(systemName: module.symbol)
-            .font(.system(size: size * 0.46, weight: .semibold))
-            .foregroundStyle(.white)
-            .frame(width: size, height: size)
-            .background(
-                RoundedRectangle(cornerRadius: size * 0.28, style: .continuous)
-                    .fill(module.tint.gradient)
-            )
-            .shadow(color: size >= 40 ? module.tint.opacity(0.35) : .clear, radius: size * 0.12, y: size * 0.05)
+        GlassIcon(symbol: module.symbol, tint: module.tint, size: size)
+    }
+}
+
+/// A symbol on a tinted Liquid Glass rounded square.
+struct GlassIcon: View {
+    var symbol: String? = nil
+    var image: String? = nil
+    let tint: Color
+    var size: CGFloat = 32
+    var isOn = true
+
+    var body: some View {
+        let shape = RoundedRectangle(cornerRadius: size * 0.28, style: .continuous)
+        Group {
+            if let image {
+                Image(image).resizable().renderingMode(.template).scaledToFit()
+                    .padding(size * 0.25)
+            } else if let symbol {
+                Image(systemName: symbol)
+                    .font(.system(size: size * 0.46, weight: .semibold))
+            }
+        }
+        .foregroundStyle(isOn ? .white : .secondary)
+        .frame(width: size, height: size)
+        .background(isOn ? AnyShapeStyle(tint.gradient.opacity(0.9)) : AnyShapeStyle(Color.primary.opacity(0.06)), in: shape)
+        .glassEffect(.regular.tint(isOn ? tint.opacity(0.25) : .clear), in: shape)
     }
 }
 

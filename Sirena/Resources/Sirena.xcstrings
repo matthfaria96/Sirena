@@ -11231,6 +11231,56 @@
           }
         }
       }
+    },
+    "Show in the menu": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar no menu"
+          }
+        }
+      }
+    },
+    "Show in the menu bar menu": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar no menu da barra"
+          }
+        }
+      }
+    },
+    "Sound Mixer": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mixer de som"
+          }
+        }
+      }
+    },
+    "Volume of the Mac and of each app, the sound output and the microphone, all in one place.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Volume do Mac e de cada app, a saída de som e o microfone, tudo num lugar só."
+          }
+        }
+      }
+    },
+    "Tools opened with one click from the menu. Click a card for all its settings; the switch puts it in the menu or takes it out.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ferramentas abertas com um clique pelo menu. Clique no cartão para ver todos os ajustes; o botão coloca ou tira do menu."
+          }
+        }
+      }
     }
   }
 }

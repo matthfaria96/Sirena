@@ -1,10 +1,10 @@
 /// BoltMenu.swift
 ///
 /// What Sirena's menu bar icon shows, chosen on Home. Two kinds of things:
-/// - Atalhos: programs opened with one click (clipboard history, pin a window, capture text).
-/// - Controladores: things adjusted right there (volume, microphone, display brightness,
-///   Cafeína, a peek through the camera, the per-app mixer). Volume,
-///   microphone and brightness use the controls ported from Vorssaint.
+/// - Atalhos: tools opened with one click (clipboard history, pin a window, capture
+///   text, a peek through the camera).
+/// - Controladores: things adjusted right there (Cafeína, display brightness ported from
+///   Vorssaint, and the sound mixer with the Mac's volume, each app's and the microphone).
 
 import AppKit
 import ClipboardKit
@@ -15,7 +15,7 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
     // Atalhos
     case clipboard, pinWindow, textCapture, mirror
     // Controladores
-    case keepAwake, volume, microphone, brightness, sound
+    case keepAwake, brightness, sound
 
     var id: String { rawValue }
 
@@ -36,12 +36,10 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
         case .clipboard: return L("History")
         case .pinWindow: return ModuleID.pinWindow.title
         case .textCapture: return ModuleID.textCapture.title
-        case .volume: return L("Volume")
-        case .microphone: return L("Microphone")
         case .brightness: return L("Display Brightness")
         case .keepAwake: return L("Keep Display On")
         case .mirror: return L("Peek Camera")
-        case .sound: return L("Per-App Mixer")
+        case .sound: return L("Sound Mixer")
         }
     }
 
@@ -51,12 +49,10 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
         case .clipboard: return L("Opens the list of everything you copied, to paste it again.")
         case .pinWindow: return L("Choose a window to keep floating above all the others.")
         case .textCapture: return L("Select an area of the screen and copy the text in it, even from images and videos.")
-        case .volume: return L("The Mac's sound volume, with a click on the speaker to mute.")
-        case .microphone: return L("Mutes or unmutes the microphone for every app at once. Green: on; red: muted.")
         case .brightness: return L("Brightness of the built-in display and Apple displays, one slider each.")
         case .keepAwake: return L("Keeps the Mac and the display from sleeping, for the time you choose or indefinitely. The time is remembered.")
         case .mirror: return L("Opens the camera below the menu bar for a quick look at yourself. Click it again to close.")
-        case .sound: return L("Outputs, volume of each app and the microphone, in detail.")
+        case .sound: return L("Volume of the Mac and of each app, the sound output and the microphone, all in one place.")
         }
     }
 
@@ -65,8 +61,6 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
         case .clipboard: return ModuleID.clipboard.symbol
         case .pinWindow: return ModuleID.pinWindow.symbol
         case .textCapture: return ModuleID.textCapture.symbol
-        case .volume: return "speaker.wave.2.fill"
-        case .microphone: return "mic.fill"
         case .brightness: return "sun.max.fill"
         case .keepAwake: return "cup.and.saucer.fill"
         case .mirror: return "camera.fill"
@@ -79,8 +73,6 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
         case .clipboard: return ModuleID.clipboard.tint
         case .pinWindow: return ModuleID.pinWindow.tint
         case .textCapture: return ModuleID.textCapture.tint
-        case .volume: return .indigo
-        case .microphone: return .red
         case .brightness: return .yellow
         case .keepAwake: return ModuleID.keepAwake.tint
         case .mirror: return ModuleID.mirror.tint
@@ -126,7 +118,7 @@ final class BoltMenuSettings {
     private init() {
         let saved = UserDefaults.standard.stringArray(forKey: Self.key)
         enabled = saved.map { Set($0.compactMap(BoltMenuItem.init)) }
-            ?? [.clipboard, .pinWindow, .textCapture, .volume, .microphone, .brightness, .keepAwake, .mirror]
+            ?? [.clipboard, .pinWindow, .textCapture, .mirror, .keepAwake, .sound]
     }
 
     func isOn(_ item: BoltMenuItem) -> Bool { enabled.contains(item) }
@@ -264,8 +256,6 @@ private struct FooterButton: View {
 private struct ControlRow: View {
     let item: BoltMenuItem
     let close: () -> Void
-    @ObservedObject private var audio = IslandAudioOutput.shared
-    @ObservedObject private var microphone = IslandMicrophone.shared
     @ObservedObject private var brightness = IslandBrightness.shared
     @ObservedObject private var keepAwake = KeepAwakeModule.shared.viewModel
     @State private var mirror = MirrorState.shared
@@ -273,18 +263,6 @@ private struct ControlRow: View {
 
     var body: some View {
         switch item {
-        case .volume:
-            sliderRow(symbol: audio.systemOutputMuted == true ? "speaker.slash.fill" : item.symbol,
-                      value: Binding(get: { audio.systemOutputVolume ?? 0 },
-                                     set: { audio.requestOutputAdjustment(volume: $0, muted: false) }),
-                      iconAction: { audio.requestOutputAdjustment(muted: !(audio.systemOutputMuted ?? false)) },
-                      dimmed: audio.systemOutputMuted == true)
-        case .microphone:
-            switchRow(isOn: !microphone.isMuted,
-                      symbol: microphone.isMuted ? "mic.slash.fill" : "mic.fill",
-                      state: microphone.isMuted ? L("Muted") : L("On")) {
-                microphone.toggle()
-            }
         case .brightness:
             let displays = brightness.displays.filter { $0.method != nil }
             if displays.isEmpty {
@@ -377,26 +355,6 @@ private struct ControlRow: View {
                     .foregroundStyle(.secondary)
                     .frame(width: 32, alignment: .trailing)
             }
-        }
-        .help(item.detail)
-    }
-
-    private func switchRow(isOn: Bool, symbol: String, state: String, toggle: @escaping () -> Void) -> some View {
-        HStack(spacing: 10) {
-            Image(systemName: symbol)
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(.white)
-                .frame(width: 26, height: 26)
-                .background((isOn ? Color.green : Color.red).gradient, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
-            VStack(alignment: .leading, spacing: 1) {
-                Text(item.title).font(.system(size: 12, weight: .medium))
-                Text(state).font(.system(size: 10)).foregroundStyle(isOn ? .green : .red)
-            }
-            Spacer()
-            Toggle("", isOn: Binding(get: { isOn }, set: { _ in toggle() }))
-                .toggleStyle(.switch)
-                .controlSize(.small)
-                .labelsHidden()
         }
         .help(item.detail)
     }
