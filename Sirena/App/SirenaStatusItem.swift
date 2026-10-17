@@ -42,8 +42,9 @@ final class SirenaStatusItem: NSObject {
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         item.autosaveName = Self.autosaveName
         item.behavior = .removalAllowed
-        let image = NSImage(systemSymbolName: "bolt.fill", accessibilityDescription: "Sirena")?
-            .withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: 14, weight: .regular))
+        // The orb, drawn as a template so the menu bar tints it (black or white).
+        let image = NSImage(named: "TrayOrb")
+        image?.size = NSSize(width: 18, height: 18)
         image?.isTemplate = true
         item.button?.image = image
         item.button?.toolTip = "Sirena"
