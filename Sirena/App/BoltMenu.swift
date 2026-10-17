@@ -3,8 +3,8 @@
 /// What Sirena's menu bar icon shows, chosen on Home. Two kinds of things:
 /// - Atalhos: tools opened with one click (clipboard history, pin a window, capture
 ///   text, a peek through the camera).
-/// - Controladores: things adjusted right there (Cafeína, display brightness ported from
-///   Vorssaint, and the sound mixer with the Mac's volume, each app's and the microphone).
+/// - Controladores: things adjusted right there (Cafeína, and the sound mixer with the
+///   Mac's volume, each app's and the microphone).
 
 import AppKit
 import ClipboardKit
@@ -15,7 +15,7 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
     // Atalhos
     case clipboard, pinWindow, textCapture, mirror
     // Controladores
-    case keepAwake, brightness, sound
+    case keepAwake, sound
 
     var id: String { rawValue }
 
@@ -36,22 +36,31 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
         case .clipboard: return L("History")
         case .pinWindow: return ModuleID.pinWindow.title
         case .textCapture: return ModuleID.textCapture.title
-        case .brightness: return L("Display Brightness")
         case .keepAwake: return L("Keep Display On")
         case .mirror: return L("Peek Camera")
         case .sound: return L("Sound Mixer")
         }
     }
 
-    /// The (i) explanation.
+    /// One word, for the buttons at the top of the menu.
+    var shortTitle: String {
+        switch self {
+        case .clipboard: return L("History")
+        case .pinWindow: return L("Pin")
+        case .textCapture: return L("Capture")
+        case .mirror: return L("Peek")
+        default: return title
+        }
+    }
+
+    /// What it does, shown on Home.
     var detail: String {
         switch self {
         case .clipboard: return L("Opens the list of everything you copied, to paste it again.")
         case .pinWindow: return L("Choose a window to keep floating above all the others.")
         case .textCapture: return L("Select an area of the screen and copy the text in it, even from images and videos.")
-        case .brightness: return L("Brightness of the built-in display and Apple displays, one slider each.")
         case .keepAwake: return L("Keeps the Mac and the display from sleeping, for the time you choose or indefinitely. The time is remembered.")
-        case .mirror: return L("Opens the camera below the menu bar for a quick look at yourself. Click it again to close.")
+        case .mirror: return L("Opens the camera below the menu bar for a quick look at yourself, with a countdown. It closes by itself after 10 seconds (changeable on its page).")
         case .sound: return L("Volume of the Mac and of each app, the sound output and the microphone, all in one place.")
         }
     }
@@ -61,7 +70,6 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
         case .clipboard: return ModuleID.clipboard.symbol
         case .pinWindow: return ModuleID.pinWindow.symbol
         case .textCapture: return ModuleID.textCapture.symbol
-        case .brightness: return "sun.max.fill"
         case .keepAwake: return "cup.and.saucer.fill"
         case .mirror: return "camera.fill"
         case .sound: return "slider.vertical.3"
@@ -73,7 +81,6 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
         case .clipboard: return ModuleID.clipboard.tint
         case .pinWindow: return ModuleID.pinWindow.tint
         case .textCapture: return ModuleID.textCapture.tint
-        case .brightness: return .yellow
         case .keepAwake: return ModuleID.keepAwake.tint
         case .mirror: return ModuleID.mirror.tint
         case .sound: return .purple
@@ -98,7 +105,7 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
         case .clipboard: ClipboardController.shared.togglePanel()
         case .pinWindow: PinWindowController.shared.selectWindowToPin()
         case .textCapture: TextCaptureController.shared.capture(.text())
-        case .mirror: MirrorController.shared.toggle()
+        case .mirror: MirrorController.shared.peek()
         default: break
         }
     }
@@ -213,10 +220,9 @@ private struct ShortcutButton: View {
                     .fill(Color.primary.opacity(isHovering ? 0.14 : 0.07)))
                 .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .strokeBorder(Color.primary.opacity(0.14), lineWidth: 0.8))
-                Text(item.title)
+                Text(item.shortTitle)
                     .font(.system(size: 11))
                     .lineLimit(1)
-                    .minimumScaleFactor(0.8)
             }
             .frame(maxWidth: .infinity)
             .contentShape(Rectangle())
@@ -256,25 +262,12 @@ private struct FooterButton: View {
 private struct ControlRow: View {
     let item: BoltMenuItem
     let close: () -> Void
-    @ObservedObject private var brightness = IslandBrightness.shared
     @ObservedObject private var keepAwake = KeepAwakeModule.shared.viewModel
     @State private var mirror = MirrorState.shared
     @AppStorage(PreferenceKeys.defaultDuration) private var defaultDuration = 0
 
     var body: some View {
         switch item {
-        case .brightness:
-            let displays = brightness.displays.filter { $0.method != nil }
-            if displays.isEmpty {
-                unavailable(L("No display here can change brightness."))
-            } else {
-                ForEach(displays) { display in
-                    sliderRow(symbol: item.symbol,
-                              value: Binding(get: { display.brightness },
-                                             set: { brightness.setBrightness($0, for: display.id, announces: false) }),
-                              caption: displays.count > 1 ? display.name : nil)
-                }
-            }
         case .keepAwake:
             HStack(spacing: 10) {
                 icon(keepAwake.isActive)

@@ -12,10 +12,14 @@ struct MainView: View {
                 Section {
                     sidebarRow(.home, title: L("Home"), symbol: "house.fill", tint: .purple)
                 }
-                Section(L("Tools")) {
-                    ForEach(ModuleID.tools) { module in
+                Section(L("Shortcuts")) {
+                    ForEach([ModuleID.clipboard, .pinWindow, .textCapture, .mirror]) { module in
                         sidebarRow(.module(module), title: module.title, symbol: module.symbol, tint: module.tint)
                     }
+                }
+                Section(L("Controllers")) {
+                    sidebarRow(.module(.keepAwake), title: ModuleID.keepAwake.title,
+                               symbol: ModuleID.keepAwake.symbol, tint: ModuleID.keepAwake.tint)
                 }
                 Section(L("Features")) {
                     ForEach(ModuleID.featurePages) { module in
@@ -41,11 +45,11 @@ struct MainView: View {
     }
 
     private func sidebarRow(_ item: SidebarItem, title: String, symbol: String, tint: Color) -> some View {
+        // Like System Settings: a small colored glass square, then the name.
         Label {
             Text(title)
         } icon: {
-            Image(systemName: symbol)
-                .foregroundStyle(tint)
+            GlassIcon(symbol: symbol, tint: tint, size: 22)
         }
         .tag(item)
     }

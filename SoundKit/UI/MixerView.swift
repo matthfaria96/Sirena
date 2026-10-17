@@ -40,6 +40,14 @@ struct MixerView: View {
                         pairZoneFrame = frame
                     }
                 if engine.isStarted, hasOutputListRows {
+                    VStack(alignment: .leading, spacing: 2) {
+                        sectionLabel("Outros aparelhos")
+                        Text("Clique para trocar a saída. Arraste para cima para tocar nos dois ao mesmo tempo, ou sobre um app para só ele tocar ali.")
+                            .font(.system(size: 10))
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .padding(.horizontal, 8)
+                    }
                     DeviceListSection(
                         monitor: engine.deviceMonitor,
                         excludedUIDs: activeOutputUIDs.union(routedOutputUIDs),
@@ -58,6 +66,7 @@ struct MixerView: View {
             } else {
                 inputVolumeSection
                 if engine.isStarted, engine.inputDeviceMonitor.devices.count > 1 {
+                    sectionLabel("Outros microfones")
                     DeviceListSection(monitor: engine.inputDeviceMonitor)
                 }
             }
@@ -111,8 +120,8 @@ struct MixerView: View {
     /// click target for the popover's most-used control.
     private var directionPicker: some View {
         HStack(spacing: 2) {
-            directionTab(.output, icon: "speaker.wave.2.fill", label: "Output")
-            directionTab(.input, icon: "mic.fill", label: "Microphone")
+            directionTab(.output, icon: "speaker.wave.2.fill", label: "Saída de som")
+            directionTab(.input, icon: "mic.fill", label: "Microfone")
         }
         .padding(2)
         .background(Color(nsColor: .quaternarySystemFill), in: RoundedRectangle(cornerRadius: 8))
@@ -122,7 +131,7 @@ struct MixerView: View {
         Button {
             direction = value
         } label: {
-            Image(systemName: icon)
+            Label(label, systemImage: icon)
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundStyle(direction == value ? AnyShapeStyle(.primary) : AnyShapeStyle(.secondary))
                 .frame(maxWidth: .infinity)
@@ -150,7 +159,7 @@ struct MixerView: View {
 
     private var bluetoothSection: some View {
         VStack(alignment: .leading, spacing: DeviceListSection.rowSpacing) {
-            sectionLabel("Bluetooth")
+            sectionLabel("Bluetooth desconectado")
             ForEach(disconnectedBluetooth) { device in
                 BluetoothRowView(device: device)
             }
@@ -163,9 +172,8 @@ struct MixerView: View {
     /// a heading for a control group reads differently from a list label.
     private func sectionLabel(_ text: String) -> some View {
         Text(text)
-            .font(.system(size: 10, weight: .semibold))
-            .foregroundStyle(.tertiary)
-            .textCase(.uppercase)
+            .font(.system(size: 11, weight: .semibold))
+            .foregroundStyle(.secondary)
             .padding(.horizontal, 8)
     }
 
@@ -173,7 +181,7 @@ struct MixerView: View {
         let inputVolume = engine.inputVolume
         return VStack(alignment: .leading, spacing: 5) {
             HStack {
-                Text("Input")
+                Text("Microfone em uso")
                     .font(.system(size: 12, weight: .semibold))
                 Spacer()
                 Text(inputVolume.deviceName)
@@ -196,7 +204,7 @@ struct MixerView: View {
             .disabled(!inputVolume.canSetVolume)
             .opacity(inputVolume.canSetVolume ? 1.0 : 0.4)
             if !inputVolume.canSetVolume {
-                Text("Gain is controlled on the device")
+                Text("O volume do microfone é controlado no próprio aparelho")
                     .font(.system(size: 10))
                     .foregroundStyle(.tertiary)
             }
@@ -217,9 +225,9 @@ struct MixerView: View {
             // Per-app taps are suspended during multi-output (see
             // MixerEngine.makeTap); live-looking sliders would be a lie.
             emptyState(icon: "slider.horizontal.3",
-                       message: "Per-app volume is paused while playing to multiple outputs")
+                       message: "O volume por app fica pausado enquanto toca em vários aparelhos")
         } else if mixerApps.isEmpty {
-            emptyState(icon: "waveform.slash", message: "Nothing is playing")
+            emptyState(icon: "waveform.slash", message: "Nenhum app está tocando som agora")
         } else {
             // MenuBarExtra windows size to the content's ideal height, and a
             // ScrollView's ideal height is zero — give it an explicit one.
@@ -243,7 +251,11 @@ struct MixerView: View {
             }
             .padding(.vertical, 2)
             VStack(alignment: .leading, spacing: 6) {
-                sectionLabel("Apps")
+                sectionLabel("Volume de cada app")
+                Text("Os apps tocando som agora. Clique no alto-falante para silenciar um app.")
+                    .font(.system(size: 10))
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 8)
                 #if RENDER_SHOTS
                     // ImageRenderer doesn't lay out ScrollView content; the render
                     // harness seeds few enough apps that a flat list needs no scroll.
@@ -264,10 +276,11 @@ struct MixerView: View {
     @ViewBuilder
     private var recordingAppsSection: some View {
         let apps = engine.processMonitor.apps.filter(\.isRecording)
+        if !apps.isEmpty { sectionLabel("Apps usando o microfone") }
         if !engine.isStarted {
             waitingState
         } else if apps.isEmpty {
-            emptyState(icon: "mic.slash", message: "Nothing is using the microphone")
+            emptyState(icon: "mic.slash", message: "Nenhum app está usando o microfone")
         } else {
             VStack(spacing: 2) {
                 ForEach(apps) { app in
@@ -282,7 +295,7 @@ struct MixerView: View {
             Spacer()
             ProgressView()
                 .controlSize(.small)
-            Text("Waiting for the audio system…")
+            Text("Aguardando o sistema de áudio…")
                 .font(.system(size: 12))
                 .foregroundStyle(.secondary)
             Spacer()

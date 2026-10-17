@@ -8,14 +8,14 @@ struct PermissionBanner: View {
             Image(systemName: "exclamationmark.triangle.fill")
                 .foregroundStyle(.yellow)
             VStack(alignment: .leading, spacing: 2) {
-                Text("Audio access needed")
+                Text("Precisa de acesso ao áudio")
                     .font(.system(size: 11, weight: .semibold))
-                Text("Allow Fader to record system audio in Privacy & Security.")
+                Text("Permita que o Sirena grave o áudio do sistema em Privacidade e Segurança, para controlar o volume de cada app.")
                     .font(.system(size: 10))
                     .foregroundStyle(.secondary)
             }
             Spacer()
-            Button("Open") {
+            Button("Abrir") {
                 let url = "x-apple.systempreferences:com.apple.preference.security?Privacy_AudioCapture"
                 if let settingsURL = URL(string: url) {
                     NSWorkspace.shared.open(settingsURL)

@@ -3317,7 +3317,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Captura"
+            "value": "Capturar"
           }
         }
       }
@@ -11278,6 +11278,76 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ferramentas abertas com um clique pelo menu. Clique no cartão para ver todos os ajustes; o botão coloca ou tira do menu."
+          }
+        }
+      }
+    },
+    "In the menu": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No menu"
+          }
+        }
+      }
+    },
+    "Not in the menu": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fora do menu"
+          }
+        }
+      }
+    },
+    "Tools opened with one click from the menu. Click a card for all of its settings.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ferramentas abertas com um clique pelo menu. Clique no cartão para ver todos os ajustes."
+          }
+        }
+      }
+    },
+    "Adjusted right there in the menu, without opening anything.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajustados ali mesmo no menu, sem abrir nada."
+          }
+        }
+      }
+    },
+    "Opens the camera below the menu bar for a quick look at yourself, with a countdown. It closes by itself after 10 seconds (changeable on its page).": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abre a câmera embaixo da barra de menus para uma olhadinha rápida, com contagem regressiva. Fecha sozinha depois de 10 segundos (dá para mudar na página dela)."
+          }
+        }
+      }
+    },
+    "“Peek” from the menu lasts": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“Espiar” pelo menu dura"
+          }
+        }
+      }
+    },
+    "The camera opens below the menu bar with a countdown and closes by itself.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A câmera abre embaixo da barra de menus com contagem regressiva e fecha sozinha."
           }
         }
       }

@@ -80,6 +80,7 @@ struct MirrorView: View {
     @State private var meter = MirrorAudioMeter.shared
     @State private var isHovering = false
     @State private var flash = false
+    @State private var state = MirrorState.shared
 
     private var cornerRadius: CGFloat { settings.shape == .circle ? 1000 : 22 }
 
@@ -89,6 +90,27 @@ struct MirrorView: View {
 
             if flash {
                 Color.white.transition(.opacity)
+            }
+
+            // The peek's countdown, top center.
+            if let left = state.peekRemaining {
+                VStack {
+                    HStack(spacing: 5) {
+                        Image(systemName: "timer")
+                        Text("\(left)s")
+                            .monospacedDigit()
+                            .contentTransition(.numericText(countsDown: true))
+                    }
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(.ultraThinMaterial, in: Capsule())
+                    .environment(\.colorScheme, .dark)
+                    .animation(.snappy, value: left)
+                    .padding(.top, settings.shape == .circle ? 22 : 10)
+                    Spacer()
+                }
             }
 
             VStack {

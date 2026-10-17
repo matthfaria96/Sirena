@@ -18,7 +18,7 @@ struct HomeView: View {
                         .padding(.bottom, 12)
                     overview
                         .padding(.top, 12)
-                    LazyVGrid(columns: columns, spacing: 12) {
+                    LazyVGrid(columns: [GridItem(.flexible(), spacing: 14), GridItem(.flexible(), spacing: 14)], spacing: 14) {
                         ForEach(ModuleID.featurePages) { module in
                             ModuleCard(module: module) { router.selection = .module(module) }
                         }
@@ -79,7 +79,6 @@ private struct ModuleCard: View {
                     .font(.headline)
                     .lineLimit(1)
                 Spacer(minLength: 0)
-                InfoButton(module.summary)
                 if let menuItem {
                     Toggle(L("Show in the menu"), isOn: Binding(get: { menuSettings.isOn(menuItem) },
                                                                 set: { menuSettings.set(menuItem, $0) }))
@@ -112,11 +111,6 @@ private struct ModuleCard: View {
                         .lineLimit(1)
                 }
                 Spacer(minLength: 8)
-                if let action = QuickAction(module: module), manager.isRunning(module) {
-                    Button(action.title, action: action.run)
-                        .controlSize(.small)
-                        .fixedSize()
-                }
             }
         }
         .padding(14)
@@ -179,20 +173,8 @@ private struct BoltMenuHero: View {
                 .tint(.purple)
             }
 
-            VStack(alignment: .leading, spacing: 8) {
-                HStack(spacing: 6) {
-                    Text(L("Shortcuts")).font(.headline)
-                    InfoButton(L("Tools opened with one click from the menu. Click a card for all its settings; the switch puts it in the menu or takes it out."))
-                }
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 230), spacing: 12)], spacing: 12) {
-                    ForEach(BoltMenuItem.shortcuts) { item in
-                        if let module = item.module {
-                            ModuleCard(module: module, menuItem: item) { router.selection = .module(module) }
-                        }
-                    }
-                }
-            }
-            group(L("Controllers"), L("Adjusted right there in the menu: sound, microphone, brightness, Cafeína and a peek through the camera."), BoltMenuItem.controls)
+            group(L("Shortcuts"), L("Tools opened with one click from the menu. Click a card for all of its settings."), BoltMenuItem.shortcuts)
+            group(L("Controllers"), L("Adjusted right there in the menu, without opening anything."), BoltMenuItem.controls)
         }
         .padding(20)
         .background {
@@ -211,72 +193,71 @@ private struct BoltMenuHero: View {
 }
 
 private extension BoltMenuHero {
-    func group(_ title: String, _ info: String, _ items: [BoltMenuItem]) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 6) {
+    func group(_ title: String, _ subtitle: String, _ items: [BoltMenuItem]) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 2) {
                 Text(title).font(.headline)
-                InfoButton(info)
+                Text(subtitle).font(.subheadline).foregroundStyle(.secondary)
             }
-            LazyVGrid(columns: columns, alignment: .leading, spacing: 10) {
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 240), spacing: 12)], alignment: .leading, spacing: 12) {
                 ForEach(items) { item in
-                    BoltItemTile(item: item, isOn: settings.isOn(item),
+                    MenuItemCard(item: item,
                                  available: item.module.map { manager.isRunning($0) } ?? true,
-                                 open: item.module.map { module in { router.selection = .module(module) } }) {
-                        settings.set(item, !settings.isOn(item))
-                    }
+                                 open: item.module.map { module in { router.selection = .module(module) } })
                 }
             }
         }
     }
 }
 
-private struct BoltItemTile: View {
+/// A shortcut or controller: what it does in three lines, its state, and the switch
+/// that puts it in the menu bar menu. Clicking the card opens its page, when it has one.
+private struct MenuItemCard: View {
     let item: BoltMenuItem
-    let isOn: Bool
     let available: Bool
-    /// The tool's own page (Cafeína, Espelho, Área de Transferência…), when it has one.
     let open: (() -> Void)?
-    let toggle: () -> Void
+    @State private var settings = BoltMenuSettings.shared
     @State private var isHovering = false
 
     var body: some View {
-        HStack(spacing: 10) {
-            GlassIcon(symbol: item.symbol, tint: item.tint, size: 30, isOn: isOn)
-            VStack(alignment: .leading, spacing: 1) {
-                Text(item.title)
-                    .font(.callout.weight(.medium))
-                    .lineLimit(1)
-                Text(!available ? L("Feature turned off") : item.module.map { ModuleStatusLabel.detail($0) } ?? item.detail)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-            }
-            Spacer(minLength: 4)
-            InfoButton(item.detail)
-            if let open {
-                Button(action: open) {
-                    Image(systemName: "chevron.right.circle")
+        let isOn = settings.isOn(item)
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 10) {
+                GlassIcon(symbol: item.symbol, tint: item.tint, size: 32, isOn: isOn)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(item.title)
+                        .font(.headline)
+                        .lineLimit(1)
+                    Text(!available ? L("Feature turned off") : item.module.map { ModuleStatusLabel.detail($0) } ?? (isOn ? L("In the menu") : L("Not in the menu")))
+                        .font(.caption)
                         .foregroundStyle(.secondary)
+                        .lineLimit(1)
                 }
-                .buttonStyle(.borderless)
-                .help(L("Open its page"))
+                Spacer(minLength: 6)
+                Toggle(L("Show in the menu"), isOn: Binding(get: { isOn }, set: { settings.set(item, $0) }))
+                    .toggleStyle(.switch)
+                    .controlSize(.small)
+                    .labelsHidden()
+                    .help(L("Show in the menu bar menu"))
             }
-            Toggle("", isOn: Binding(get: { isOn }, set: { _ in toggle() }))
-                .toggleStyle(.switch)
-                .controlSize(.small)
-                .labelsHidden()
-                .accessibilityLabel(item.title)
+            Text(item.detail)
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .lineLimit(3, reservesSpace: true)
+                .fixedSize(horizontal: false, vertical: true)
         }
-        .padding(10)
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .background(RoundedRectangle(cornerRadius: 12, style: .continuous)
-            .fill(isHovering ? AnyShapeStyle(.quaternary) : AnyShapeStyle(.background.opacity(0.6))))
-        .contentShape(Rectangle())
-        .onTapGesture(perform: toggle)
+            .fill(isHovering && open != nil ? AnyShapeStyle(.quaternary) : AnyShapeStyle(.background.secondary)))
+        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(.separator, lineWidth: 0.5))
+        .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .onHover { isHovering = $0 }
+        .onTapGesture { open?() }
         .opacity(available ? 1 : 0.6)
-        .animation(.easeOut(duration: 0.15), value: isOn)
     }
 }
+
 
 /// How many of a background feature's options are on: a small ring with "on/total".
 private struct OptionsRing: View {

@@ -106,6 +106,8 @@ final class MirrorSettings {
     var triggerDisplay: MirrorTriggerDisplay { didSet { save(triggerDisplay.rawValue, "mirror.triggerDisplay") } }
     var showMicrophoneLevel: Bool { didSet { save(showMicrophoneLevel, "mirror.showMicrophoneLevel") } }
     var cameraID: String? { didSet { defaults.set(cameraID, forKey: "mirror.cameraID") } }
+    /// How long "Espiar" (from the menu) keeps the camera open, in seconds.
+    var peekSeconds: Int { didSet { save(peekSeconds, "mirror.peekSeconds") } }
 
     private init() {
         displayMode = MirrorDisplayMode(rawValue: defaults.string(forKey: "mirror.displayMode") ?? "") ?? .popover
@@ -123,6 +125,7 @@ final class MirrorSettings {
         triggerDisplay = MirrorTriggerDisplay(rawValue: defaults.string(forKey: "mirror.triggerDisplay") ?? "") ?? .mouse
         showMicrophoneLevel = defaults.object(forKey: "mirror.showMicrophoneLevel") as? Bool ?? false
         cameraID = defaults.string(forKey: "mirror.cameraID")
+        peekSeconds = defaults.object(forKey: "mirror.peekSeconds") as? Int ?? 10
     }
 
     private func save(_ value: Any, _ key: String) {

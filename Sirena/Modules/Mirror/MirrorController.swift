@@ -15,6 +15,8 @@ import MASShortcut
 final class MirrorState {
     static let shared = MirrorState()
     var isVisible = false
+    /// Seconds left of a peek from the menu (nil when not peeking).
+    var peekRemaining: Int?
 }
 
 @MainActor
@@ -85,6 +87,33 @@ final class MirrorController: NSObject {
         isVisible ? hide() : show()
     }
 
+    private var peekTimer: Timer?
+
+    /// "Espiar" from the menu: the camera drops down below the menu bar for a few
+    /// seconds (10 unless changed on its page) with a countdown, then goes away.
+    func peek() {
+        if isVisible { hide(); return }
+        openedFromNotch = false
+        show()
+        let state = MirrorState.shared
+        state.peekRemaining = settings.peekSeconds
+        peekTimer?.invalidate()
+        peekTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] timer in
+            MainActor.assumeIsolated {
+                guard let self, self.isVisible, let left = state.peekRemaining else {
+                    timer.invalidate(); state.peekRemaining = nil; return
+                }
+                if left <= 1 {
+                    timer.invalidate()
+                    state.peekRemaining = nil
+                    self.hide()
+                } else {
+                    state.peekRemaining = left - 1
+                }
+            }
+        }
+    }
+
     func show() {
         Task { @MainActor in
             do {
@@ -119,6 +148,9 @@ final class MirrorController: NSObject {
 
     func hide() {
         guard isVisible else { return }
+        peekTimer?.invalidate()
+        peekTimer = nil
+        MirrorState.shared.peekRemaining = nil
         isVisible = false
         openedFromNotch = false
         removeOutsideClickMonitor()

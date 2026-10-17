@@ -45,7 +45,7 @@ struct AppRowView: View {
                 // A routed app's loudness lives on its per-device sliders, so
                 // the app-level percentage gives way to them.
                 if routeUIDs.isEmpty {
-                    Text(entry.isMuted ? "muted" : "\(Int(entry.volume * 100))%")
+                    Text(entry.isMuted ? "mudo" : "\(Int(entry.volume * 100))%")
                         .font(.system(size: 11, weight: .regular, design: .monospaced))
                         .foregroundStyle(.secondary)
                         .contentTransition(.numericText())
@@ -83,9 +83,9 @@ struct AppRowView: View {
         )
         .animation(.easeOut(duration: 0.2), value: app.isPlaying)
         .contextMenu {
-            Button("Reset to 100%") { engine.reset(app) }
+            Button("Voltar para 100%") { engine.reset(app) }
             if !engine.routeUIDs(for: app).isEmpty {
-                Button("Play on default output") { engine.clearRoute(for: app) }
+                Button("Tocar na saída padrão") { engine.clearRoute(for: app) }
             }
         }
     }
@@ -111,7 +111,7 @@ struct AppRowView: View {
             HStack(spacing: 4) {
                 Image(systemName: "arrow.turn.down.right")
                     .font(.system(size: 10, weight: .semibold))
-                Text(engine.routeDeviceName(forUID: uid) ?? "Unavailable")
+                Text(engine.routeDeviceName(forUID: uid) ?? "Indisponível")
                     .font(.system(size: 12, weight: .medium))
                     .lineLimit(1)
                     .truncationMode(.tail)
@@ -123,7 +123,7 @@ struct AppRowView: View {
                         .font(.system(size: 12))
                 }
                 .buttonStyle(.plain)
-                .help("Stop playing to this device")
+                .help("Parar de tocar neste dispositivo")
             }
             .foregroundStyle(Color.accentColor)
 

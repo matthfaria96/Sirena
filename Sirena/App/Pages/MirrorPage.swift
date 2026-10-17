@@ -46,6 +46,12 @@ private struct MirrorSettingsView: View {
                 }
                 .pickerStyle(.segmented)
                 Toggle(L("Mirror the image"), isOn: $settings.mirrored)
+                Picker(selection: $settings.peekSeconds) {
+                    ForEach([5, 10, 15, 30, 60], id: \.self) { Text(L("\($0) seconds")).tag($0) }
+                } label: {
+                    Text(L("“Peek” from the menu lasts"))
+                    Text(L("The camera opens below the menu bar with a countdown and closes by itself."))
+                }
                 Picker(L("Zoom"), selection: $settings.zoom) {
                     Text("1×").tag(1.0)
                     Text("1.5×").tag(1.5)

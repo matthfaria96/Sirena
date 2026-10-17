@@ -27,7 +27,7 @@ struct ActiveOutputsSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 5) {
-            Text("Output")
+            Text("Tocando agora em")
                 .font(.system(size: 12, weight: .semibold))
             if rows.isEmpty {
                 // The default is a device the list hides (someone else's
@@ -67,7 +67,7 @@ struct ActiveOutputsSection: View {
                             .foregroundStyle(.tertiary)
                     }
                     .buttonStyle(.plain)
-                    .help("Stop playing to this device")
+                    .help("Parar de tocar neste dispositivo")
                 } else {
                     Image(systemName: "checkmark")
                         .font(.system(size: 11, weight: .semibold))
@@ -96,7 +96,7 @@ struct ActiveOutputsSection: View {
         .disabled(!volume.canSetVolume)
         .opacity(volume.canSetVolume ? 1.0 : 0.4)
         if !volume.canSetVolume {
-            Text("Volume is controlled on the device")
+            Text("O volume é controlado no próprio aparelho")
                 .font(.system(size: 10))
                 .foregroundStyle(.tertiary)
         }
@@ -120,7 +120,7 @@ struct ActiveOutputsSection: View {
                 .fill(Color.accentColor.opacity(0.12))
             RoundedRectangle(cornerRadius: 10)
                 .strokeBorder(Color.accentColor, lineWidth: 1.5)
-            Text("Drop here to play together")
+            Text("Solte aqui para tocar nos dois juntos")
                 .font(.system(size: 11, weight: .semibold))
                 .foregroundStyle(Color.accentColor)
                 .padding(.horizontal, 10)

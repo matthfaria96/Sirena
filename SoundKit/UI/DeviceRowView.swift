@@ -81,7 +81,7 @@ struct DeviceRowView: View {
                         .foregroundStyle(.tertiary)
                 }
                 .buttonStyle(.plain)
-                .help("Disconnect")
+                .help("Desconectar")
             } else if isActive {
                 Image(systemName: "checkmark")
                     .font(.system(size: 11, weight: .semibold))
@@ -145,7 +145,7 @@ struct RarelyUsedDisclosure: View {
                     .rotationEffect(.degrees(isExpanded ? 90 : 0))
                     .foregroundStyle(.tertiary)
                     .frame(width: 18)
-                Text("Rarely used (\(devices.count))")
+                Text("Pouco usados (\(devices.count))")
                     .font(.system(size: 12))
                     .foregroundStyle(
                         isDropTarget
@@ -217,7 +217,7 @@ struct BluetoothRowView: View {
                     ProgressView()
                         .controlSize(.mini)
                 } else if hovered {
-                    Text("Connect")
+                    Text("Conectar")
                         .font(.system(size: 11))
                         .foregroundStyle(Color.accentColor)
                 }
