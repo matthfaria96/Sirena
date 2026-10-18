@@ -75,6 +75,17 @@ enum ModuleID: String, CaseIterable, Identifiable {
         }
     }
 
+    /// One short, direct line about what it does, for its card on Home.
+    var tagline: String {
+        switch self {
+        case .windows, .dock, .switcher, .tweaks: return L("Arrange windows, ⌘ Tab with previews, the Dock and the Finder.")
+        case .menuBar: return L("Hides the menu bar icons you don't need.")
+        case .shelf: return L("A shelf at the screen edge to park files while dragging.")
+        case .island: return L("The notch becomes a panel with music, calendar and controls.")
+        default: return summary
+        }
+    }
+
     /// A custom template image used instead of the SF Symbol (the camera shutter).
     var imageName: String? { self == .mirror ? "CameraShutter" : nil }
 

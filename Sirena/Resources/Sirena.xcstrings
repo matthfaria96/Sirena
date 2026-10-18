@@ -11641,6 +11641,136 @@
           }
         }
       }
+    },
+    "Lives in your menu bar": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mora na sua barra de menus"
+          }
+        }
+      }
+    },
+    "Opens this window": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abre esta janela"
+          }
+        }
+      }
+    },
+    "Everything you use every day on the Mac, in one place. Click the orb in the menu bar to reach your shortcuts and controllers.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tudo o que você usa todo dia no Mac, num lugar só. Clique na orbe da barra de menus para chegar aos seus atalhos e controladores."
+          }
+        }
+      }
+    },
+    "Everything you copied, ready to paste again.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tudo o que você copiou, pronto para colar de novo."
+          }
+        }
+      }
+    },
+    "Keeps a window on top of all the others.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deixa uma janela sempre por cima das outras."
+          }
+        }
+      }
+    },
+    "Copies the text from any part of the screen.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copia o texto de qualquer parte da tela."
+          }
+        }
+      }
+    },
+    "A quick look at yourself before a call.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uma olhadinha rápida em você antes de uma chamada."
+          }
+        }
+      }
+    },
+    "Keeps the display on for as long as you want.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mantém a tela acesa pelo tempo que você quiser."
+          }
+        }
+      }
+    },
+    "Each app's volume and where the sound goes.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O volume de cada app e para onde vai o som."
+          }
+        }
+      }
+    },
+    "Arrange windows, ⌘ Tab with previews, the Dock and the Finder.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Organize janelas, ⌘ Tab com prévias, o Dock e o Finder."
+          }
+        }
+      }
+    },
+    "Hides the menu bar icons you don't need.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esconde os ícones da barra que você não usa."
+          }
+        }
+      }
+    },
+    "A shelf at the screen edge to park files while dragging.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uma prateleira na borda da tela para guardar arquivos ao arrastar."
+          }
+        }
+      }
+    },
+    "The notch becomes a panel with music, calendar and controls.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O notch vira um painel com música, agenda e controles."
+          }
+        }
+      }
     }
   }
 }

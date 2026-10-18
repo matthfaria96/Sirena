@@ -41,6 +41,18 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
         }
     }
 
+    /// One short, direct line about what it is, for its card on Home.
+    var tagline: String {
+        switch self {
+        case .clipboard: return L("Everything you copied, ready to paste again.")
+        case .pinWindow: return L("Keeps a window on top of all the others.")
+        case .textCapture: return L("Copies the text from any part of the screen.")
+        case .mirror: return L("A quick look at yourself before a call.")
+        case .keepAwake: return L("Keeps the display on for as long as you want.")
+        case .sound: return L("Each app's volume and where the sound goes.")
+        }
+    }
+
     /// One word, for the buttons at the top of the menu.
     var shortTitle: String {
         switch self {

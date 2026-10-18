@@ -13,18 +13,21 @@ struct HomeView: View {
             TimelineView(.periodic(from: .now, by: 2)) { _ in
                 VStack(alignment: .leading, spacing: 36) {
                     HomeBanner()
+                        .modifier(Entrance(order: 0))
 
                     HomeSection(number: 1, title: L("Shortcuts"),
                                 subtitle: L("Tools you open with one click. Click a card for all of its settings."),
                                 inMenu: true) {
                         menuGrid(BoltMenuItem.shortcuts)
                     }
+                    .modifier(Entrance(order: 1))
 
                     HomeSection(number: 2, title: L("Controllers"),
                                 subtitle: L("Adjusted right there in the menu, without opening anything."),
                                 inMenu: true) {
                         menuGrid(BoltMenuItem.controls)
                     }
+                    .modifier(Entrance(order: 2))
 
                     HomeSection(number: 3, title: L("Features"),
                                 subtitle: L("They work on their own in the background, when you switch them on."),
@@ -38,6 +41,7 @@ struct HomeView: View {
                             }
                         }
                     }
+                    .modifier(Entrance(order: 3))
                 }
                 .padding(.horizontal, 28)
                 .padding(.vertical, 24)
@@ -111,10 +115,10 @@ private struct ModuleCard: View {
                                 tint: module.tint)
                 }
             }
-            Text(module.summary)
+            Text(module.tagline)
                 .font(.callout)
                 .foregroundStyle(.secondary)
-                .lineLimit(2)
+                .lineLimit(2, reservesSpace: true)
                 .fixedSize(horizontal: false, vertical: true)
             HStack {
                 if module.isTool {
@@ -130,18 +134,9 @@ private struct ModuleCard: View {
                 Spacer(minLength: 8)
             }
         }
-        .padding(14)
+        .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background {
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(isHovering ? AnyShapeStyle(.quaternary) : AnyShapeStyle(.background.secondary))
-        }
-        .overlay {
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .strokeBorder(.separator, lineWidth: 0.5)
-        }
-        .onHover { isHovering = $0 }
-        .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .modifier(OpensPage(enabled: true))
         .onTapGesture(perform: open)
         .accessibilityElement(children: .contain)
         .accessibilityAddTraits(.isButton)
@@ -151,70 +146,136 @@ private struct ModuleCard: View {
 
 /// Home's first section: what Sirena's ⚡ menu shows. It's where the app's everyday
 /// reach is decided, so it gets the spotlight.
-/// The welcome banner: what Sirena is, in a few words, with the mascot on the right.
+/// The welcome banner: what Sirena is, with the mascot (hair flowing, orb in hand) on the right.
 private struct HomeBanner: View {
+    @State private var appeared = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     var body: some View {
-        HStack(alignment: .center, spacing: 24) {
-            VStack(alignment: .leading, spacing: 12) {
-                Text(L("Welcome to Sirena"))
-                    .font(.largeTitle.weight(.bold))
+        ZStack(alignment: .leading) {
+            // The mascot fills the right side and fades into the banner's color.
+            GeometryReader { proxy in
+                Image("HomeMascot")
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: proxy.size.width * 0.62, height: proxy.size.height)
+                    .clipped()
+                    .mask(LinearGradient(stops: [.init(color: .clear, location: 0), .init(color: .black, location: 0.35)],
+                                         startPoint: .leading, endPoint: .trailing))
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+                    .scaleEffect(appeared || reduceMotion ? 1 : 1.06, anchor: .trailing)
+                    .opacity(appeared || reduceMotion ? 1 : 0)
+            }
+            .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: 14) {
+                Label(L("Lives in your menu bar"), systemImage: "sparkles")
+                    .font(.caption.weight(.semibold))
                     .foregroundStyle(.white)
-                Text(L("Everything you use every day on the Mac, in one place. Sirena lives in the menu bar: click the orb to reach your shortcuts and controllers."))
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(.white.opacity(0.16), in: Capsule())
+                Text(L("Welcome to Sirena"))
+                    .font(.system(.largeTitle, design: .rounded, weight: .bold))
+                    .foregroundStyle(.white)
+                Text(L("Everything you use every day on the Mac, in one place. Click the orb in the menu bar to reach your shortcuts and controllers."))
                     .font(.title3)
                     .foregroundStyle(.white.opacity(0.85))
                     .fixedSize(horizontal: false, vertical: true)
-                VStack(alignment: .leading, spacing: 8) {
-                    tip("1.circle.fill", L("Shortcuts and controllers: choose what appears in the menu."))
-                    tip("2.circle.fill", L("Features: switch on what should work by itself."))
-                    tip("command", L("⌃⌥S opens this window from anywhere."))
+                HStack(spacing: 8) {
+                    chip("1", L("Shortcuts"))
+                    chip("2", L("Controllers"))
+                    chip("⌃⌥S", L("Opens this window"))
                 }
-                .padding(.top, 4)
+                .padding(.top, 2)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-
-            mascot
+            .frame(maxWidth: 440, alignment: .leading)
+            .padding(32)
+            .offset(x: appeared || reduceMotion ? 0 : -12)
+            .opacity(appeared || reduceMotion ? 1 : 0)
         }
-        .padding(28)
-        .frame(minHeight: 230)
+        .frame(height: 280)
+        .frame(maxWidth: .infinity)
         .background {
             ZStack {
-                LinearGradient(colors: [Color(red: 0.32, green: 0.12, blue: 0.55), Color(red: 0.12, green: 0.08, blue: 0.30)],
-                               startPoint: .topLeading, endPoint: .bottomTrailing)
-                RadialGradient(colors: [Color.pink.opacity(0.45), .clear], center: .topTrailing, startRadius: 10, endRadius: 360)
-                RadialGradient(colors: [Color.blue.opacity(0.35), .clear], center: .bottomLeading, startRadius: 10, endRadius: 320)
+                LinearGradient(colors: [Color(red: 0.20, green: 0.06, blue: 0.36), Color(red: 0.42, green: 0.10, blue: 0.48)],
+                               startPoint: .leading, endPoint: .trailing)
+                RadialGradient(colors: [Color.blue.opacity(0.35), .clear], center: .bottomLeading, startRadius: 10, endRadius: 340)
             }
         }
-        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).strokeBorder(.white.opacity(0.12), lineWidth: 1))
-    }
-
-    private func tip(_ symbol: String, _ text: String) -> some View {
-        Label {
-            Text(text).foregroundStyle(.white.opacity(0.9))
-        } icon: {
-            Image(systemName: symbol).foregroundStyle(.white)
+        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).strokeBorder(.white.opacity(0.12), lineWidth: 1))
+        .shadow(color: Color(red: 0.4, green: 0.1, blue: 0.5).opacity(0.25), radius: 20, y: 10)
+        .onAppear {
+            withAnimation(.smooth(duration: 0.7)) { appeared = true }
         }
-        .font(.callout)
     }
 
-    /// The mascot (asset "HomeMascot" when it exists; the orb meanwhile), saying hello.
-    private var mascot: some View {
-        VStack(alignment: .trailing, spacing: 8) {
-            Text(L("Hi! I'm here in the menu bar whenever you need me."))
+    private func chip(_ key: String, _ text: String) -> some View {
+        HStack(spacing: 6) {
+            Text(key)
+                .font(.caption.weight(.bold).monospacedDigit())
+                .foregroundStyle(Color(red: 0.3, green: 0.08, blue: 0.45))
+                .padding(.horizontal, 6)
+                .frame(minWidth: 20, minHeight: 20)
+                .background(.white, in: Capsule())
+            Text(text)
                 .font(.callout.weight(.medium))
-                .foregroundStyle(.primary)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 10)
-                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-                .frame(maxWidth: 220, alignment: .trailing)
-            Image(NSImage(named: "HomeMascot") != nil ? "HomeMascot" : "SirenaIcon")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 150, height: 150)
-                .clipShape(RoundedRectangle(cornerRadius: 34, style: .continuous))
-                .shadow(color: .black.opacity(0.35), radius: 16, y: 8)
+                .foregroundStyle(.white)
         }
-        .accessibilityHidden(true)
+        .padding(.leading, 4)
+        .padding(.trailing, 10)
+        .padding(.vertical, 4)
+        .background(.white.opacity(0.12), in: Capsule())
+    }
+}
+
+/// Lifts a card under the pointer and shows where clicking leads, like a link to a page.
+private struct OpensPage: ViewModifier {
+    let enabled: Bool
+    @State private var isHovering = false
+
+    func body(content: Content) -> some View {
+        content
+            .overlay(alignment: .bottomTrailing) {
+                if enabled {
+                    Image(systemName: "chevron.right")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(isHovering ? Color.accentColor : Color.secondary.opacity(0.6))
+                        .padding(14)
+                        .offset(x: isHovering ? 2 : 0)
+                        .accessibilityHidden(true)
+                }
+            }
+            .background(RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(isHovering && enabled ? AnyShapeStyle(.quaternary) : AnyShapeStyle(.background.secondary)))
+            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .strokeBorder(isHovering && enabled ? AnyShapeStyle(Color.accentColor.opacity(0.5)) : AnyShapeStyle(.separator),
+                              lineWidth: isHovering && enabled ? 1 : 0.5))
+            .shadow(color: .black.opacity(isHovering && enabled ? 0.12 : 0), radius: 10, y: 4)
+            .scaleEffect(isHovering && enabled ? 1.012 : 1)
+            .contentShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .onHover { hovering in
+                withAnimation(.snappy(duration: 0.22)) { isHovering = hovering }
+                if enabled { hovering ? NSCursor.pointingHand.push() : NSCursor.pop() }
+            }
+            .accessibilityAddTraits(enabled ? .isButton : [])
+    }
+}
+
+/// Fades a section in from below, a little later than the one above it.
+private struct Entrance: ViewModifier {
+    let order: Int
+    @State private var shown = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        content
+            .opacity(shown || reduceMotion ? 1 : 0)
+            .offset(y: shown || reduceMotion ? 0 : 14)
+            .onAppear {
+                withAnimation(.smooth(duration: 0.55).delay(0.08 * Double(order))) { shown = true }
+            }
     }
 }
 
@@ -283,19 +344,16 @@ private struct MenuItemCard: View {
                     .labelsHidden()
                     .help(L("Show in the menu bar menu"))
             }
-            Text(item.detail)
+            Text(item.tagline)
                 .font(.callout)
                 .foregroundStyle(.secondary)
-                .lineLimit(3, reservesSpace: true)
+                .lineLimit(2, reservesSpace: true)
                 .fixedSize(horizontal: false, vertical: true)
         }
-        .padding(14)
+        .padding(16)
+        .padding(.trailing, open != nil ? 14 : 0)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: 12, style: .continuous)
-            .fill(isHovering && open != nil ? AnyShapeStyle(.quaternary) : AnyShapeStyle(.background.secondary)))
-        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(.separator, lineWidth: 0.5))
-        .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .onHover { isHovering = $0 }
+        .modifier(OpensPage(enabled: open != nil))
         .onTapGesture { open?() }
         .foregroundStyle(available ? .primary : .secondary)
     }
