@@ -11,7 +11,14 @@
         {
           "glass": false,
           "image-name": "Sirena.png",
-          "name": "Sirena"
+          "name": "Sirena",
+          "position": {
+            "scale": 1.22,
+            "translation-in-points": [
+              0,
+              0
+            ]
+          }
         }
       ],
       "shadow": {

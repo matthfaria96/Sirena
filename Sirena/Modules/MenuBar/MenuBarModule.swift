@@ -65,7 +65,6 @@ final class MenuBarModule: NSObject {
     @ObservationIgnored private let visibility: NativeVisibilityProviding = NativeVisibilityBridge()
     @ObservationIgnored private let inventory = AccessibilityMenuBarInventory()
     @ObservationIgnored private var assertion: NativeVisibilityAssertion?
-    @ObservationIgnored private var autoHideTimer: Timer?
     @ObservationIgnored private var openPage: () -> Void = {}
     @ObservationIgnored private let panel = HiddenIconsPanel()
     @ObservationIgnored private var revealWatcher: Timer?
@@ -79,14 +78,30 @@ final class MenuBarModule: NSObject {
             && !Bundle.main.bundleURL.path.hasPrefix("/Applications/")
     }
 
-    static let defaultPreferenceValues: [String: Any] = [
-        UserDefaults.Key.isAutoHide: true,
-        UserDefaults.Key.numberOfSecondForAutoHide: 10.0
-    ]
+    /// macOS 27's restriction only matches icons of apps Launch Services knows by bundle id;
+    /// agents living outside /Applications (Setapp's launcher in Application Support, for one)
+    /// are recorded by process name and hidden although they are allowed. Registering them
+    /// lets the menu bar resolve their bundle id.
+    private static var registeredURLs: Set<URL> = []
+
+    private static func registerAppsOutsideApplications() {
+        for app in NSWorkspace.shared.runningApplications where app.activationPolicy != .prohibited {
+            guard let url = app.bundleURL, url.pathExtension == "app",
+                  !url.path.hasPrefix("/Applications/"), !url.path.hasPrefix("/System/"),
+                  !registeredURLs.contains(url) else { continue }
+            registeredURLs.insert(url)
+            LSRegisterURL(url as CFURL, false)
+        }
+    }
+
+    /// Every icon owner seen in the menu bar, so helpers that aren't "running applications"
+    /// and have no remembered position are never hidden by mistake.
+    static let knownOwnersKey = "hiddenBar.knownOwners"
 
     private override init() {
         hiddenApps = Set(UserDefaults.standard.stringArray(forKey: Self.hiddenAppsKey) ?? [])
-        style = HiddenIconsStyle(rawValue: UserDefaults.standard.string(forKey: Self.styleKey) ?? "") ?? .expand
+        // The menu style is in beta and can't be picked for now: everyone expands.
+        style = .expand
         super.init()
     }
 
@@ -96,13 +111,18 @@ final class MenuBarModule: NSObject {
         guard !isRunning else { return }
         isRunning = true
         self.openPage = openPage
-        UserDefaults.standard.register(defaults: Self.defaultPreferenceValues)
         Constant.isUsingLTRLanguage = (NSApplication.shared.userInterfaceLayoutDirection == .leftToRight)
+        seedHiddenAppsOnFirstRun()
 
         arrangeMenuBar { [weak self] _ in
-            self?.createItem()
+            // The module may have been switched off while the snapshot ran.
+            guard let self, self.isRunning else { return }
+            self.createItem()
             // Like Hidden Bar, start with the chosen icons tucked away.
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { self?.collapse() }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                guard let self, self.isRunning else { return }
+                self.collapse()
+            }
         }
         applyGlobalKey()
 
@@ -113,8 +133,6 @@ final class MenuBarModule: NSObject {
     func terminate() {
         panel.close()
         revealWatcher?.invalidate()
-        autoHideTimer?.invalidate()
-        autoHideTimer = nil
         release()
         MASShortcutBinder.shared()?.breakBinding(withDefaultsKey: Self.shortcutKey)
         NSWorkspace.shared.notificationCenter.removeObserver(self)
@@ -135,7 +153,18 @@ final class MenuBarModule: NSObject {
 
     /// Hides the chosen apps' icons.
     func collapse() {
-        autoHideTimer?.invalidate()
+        // Note every icon owner visible right now before hiding anything.
+        guard inventory.isAuthorized, !isCollapsed else { return applyCollapse() }
+        inventory.snapshot { [weak self] items in
+            guard let self else { return }
+            var known = Set(UserDefaults.standard.stringArray(forKey: Self.knownOwnersKey) ?? [])
+            known.formUnion(items.compactMap(\.bundleIdentifier))
+            UserDefaults.standard.set(Array(known), forKey: Self.knownOwnersKey)
+            self.applyCollapse()
+        }
+    }
+
+    private func applyCollapse() {
         guard visibility.isAvailable else { return setCollapsed(false) }
         let running = Set(NSWorkspace.shared.runningApplications.compactMap(\.bundleIdentifier))
         let toHide = hiddenApps.intersection(running)
@@ -147,7 +176,9 @@ final class MenuBarModule: NSObject {
         // apps, plus the owners macOS remembers icons for (helpers like Setapp's agent
         // aren't "running applications", and leaving them out hid them by mistake).
         let remembered = Set(Self.menuBarPositions().keys.compactMap(Self.owner(ofPositionKey:)))
-        var allowed = running.union(remembered).subtracting(hiddenApps)
+        Self.registerAppsOutsideApplications()
+        let known = Set(UserDefaults.standard.stringArray(forKey: Self.knownOwnersKey) ?? [])
+        var allowed = running.union(remembered).union(known).subtracting(hiddenApps)
         if let own = Bundle.main.bundleIdentifier { allowed.insert(own) }
         visibility.activate(allowedSystemItems: Array(0..<64), allowedBundleIdentifiers: Array(allowed)) { [weak self] result in
             guard let self else { return }
@@ -172,7 +203,6 @@ final class MenuBarModule: NSObject {
         arrangeMenuBar { _ in }
         release()
         setCollapsed(false)
-        scheduleAutoHide()
     }
 
     private func release() {
@@ -199,18 +229,6 @@ final class MenuBarModule: NSObject {
         arrangeMenuBar { [weak self] arrowMoved in
             guard let self, arrowMoved else { return }
             self.recreateItem()
-        }
-    }
-
-    private func scheduleAutoHide() {
-        autoHideTimer?.invalidate()
-        guard Preferences.isAutoHide, style == .expand else { return }
-        autoHideTimer = Timer.scheduledTimer(withTimeInterval: Preferences.numberOfSecondForAutoHide, repeats: false) { [weak self] _ in
-            MainActor.assumeIsolated {
-                guard let self, !self.isCollapsed else { return }
-                // Not while the pointer is in the menu bar (the user is using an icon).
-                if Self.isMouseInMenuBar { self.scheduleAutoHide() } else { self.collapse() }
-            }
         }
     }
 
@@ -277,6 +295,7 @@ final class MenuBarModule: NSObject {
     // MARK: - The icon
 
     private func createItem() {
+        guard statusItem == nil else { return }
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         item.autosaveName = Self.autosaveName
         item.button?.target = self
@@ -358,18 +377,9 @@ final class MenuBarModule: NSObject {
     private func showMenu() {
         guard let statusItem else { return }
         let menu = NSMenu()
-        let toggleItem = NSMenuItem(title: isCollapsed ? L("Show Hidden Icons") : L("Hide Chosen Icons"), action: #selector(menuToggle), keyEquivalent: "")
-        toggleItem.target = self
-        toggleItem.isEnabled = !hiddenApps.isEmpty
-        menu.addItem(toggleItem)
-        let autoHide = NSMenuItem(title: L("Hide Automatically"), action: #selector(menuAutoHide), keyEquivalent: "")
-        autoHide.target = self
-        autoHide.state = Preferences.isAutoHide ? .on : .off
-        menu.addItem(autoHide)
-        menu.addItem(.separator())
-        let choose = NSMenuItem(title: L("Choose Apps to Hide…"), action: #selector(menuChoose), keyEquivalent: "")
-        choose.target = self
-        menu.addItem(choose)
+        let configure = NSMenuItem(title: L("Configure…"), action: #selector(menuChoose), keyEquivalent: "")
+        configure.target = self
+        menu.addItem(configure)
         menu.delegate = self
         statusItem.menu = menu
         DispatchQueue.main.async { statusItem.button?.performClick(nil) }
@@ -449,9 +459,10 @@ final class MenuBarModule: NSObject {
         let element = AXUIElementCreateApplication(pid)
         AXUIElementSetMessagingTimeout(element, 0.3)
         var bar: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(element, "AXExtrasMenuBar" as CFString, &bar) == .success, let bar else { return nil }
+        guard AXUIElementCopyAttributeValue(element, "AXExtrasMenuBar" as CFString, &bar) == .success,
+              let bar, CFGetTypeID(bar) == AXUIElementGetTypeID() else { return nil }
         var children: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(bar as! AXUIElement, kAXChildrenAttribute as CFString, &children) == .success else { return nil }
+        guard AXUIElementCopyAttributeValue(unsafeDowncast(bar, to: AXUIElement.self), kAXChildrenAttribute as CFString, &children) == .success else { return nil }
         return (children as? [AXUIElement])?.first
     }
 
@@ -484,8 +495,6 @@ final class MenuBarModule: NSObject {
         }
     }
 
-    @objc private func menuToggle() { toggle() }
-    @objc private func menuAutoHide() { Preferences.isAutoHide.toggle() }
     @objc private func menuChoose() { openPage() }
 
     // MARK: - Far left placement
@@ -542,6 +551,28 @@ final class MenuBarModule: NSObject {
         if let statusItem { NSStatusBar.system.removeStatusItem(statusItem) }
         statusItem = nil
         createItem()
+    }
+
+    private static let seededKey = "hiddenBar.seeded"
+
+    /// The very first time Ícones Ocultos runs, every app that has an icon in the menu bar
+    /// right now goes into the list (the user then unticks what should stay visible).
+    /// Read from macOS's own record of menu bar items, so no permission is needed yet.
+    private func seedHiddenAppsOnFirstRun() {
+        let defaults = UserDefaults.standard
+        guard !defaults.bool(forKey: Self.seededKey) else { return }
+        defaults.set(true, forKey: Self.seededKey)
+        guard defaults.object(forKey: Self.hiddenAppsKey) == nil else { return }
+        let running = Set(NSWorkspace.shared.runningApplications.compactMap(\.bundleIdentifier))
+        let own = Bundle.main.bundleIdentifier
+        let owners = Self.menuBarPositions().keys.compactMap(Self.owner(ofPositionKey:)).filter { owner in
+            owner.contains(".")                                  // a bundle id, not a process name
+                && !owner.hasPrefix("com.apple.")                 // the system's own items stay
+                && owner != own
+                && !MenuBarLayoutResolver.systemItemOwners.contains(owner)
+                && running.contains(owner)                        // only icons active right now
+        }
+        if !owners.isEmpty { hiddenApps = Set(owners) }
     }
 
     /// "status:com.app.id::name" → "com.app.id".

@@ -20,6 +20,9 @@ class AccessibilityElement {
     }
     
     convenience init?(_ position: CGPoint) {
+        // Off the main thread (event taps), never hit-test over Sirena's own windows:
+        // the request would be served in-process right here and touch UI off-main.
+        if !Thread.isMainThread, GreenButtonManager.isOwnWindow(at: position) { return nil }
         guard let element = AXUIElement.systemWide.getElementAtPosition(position) else { return nil }
         self.init(element)
     }

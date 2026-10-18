@@ -39,6 +39,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let modules = ModuleManager.shared
         modules.openPage = { [weak self] item in self?.mainWindowController.present(item) }
         modules.startEnabledModules(windowManagement: windowManagement, windowsMenu: windowsMenu)
+        // First launch, or an essential permission is missing: one page to allow it.
+        DispatchQueue.main.async { [weak self] in
+            OnboardingWindow.shared.showIfNeeded()
+            self?.hasFinishedLaunching = true
+        }
 
         // Anywhere: open Sirena on Home (⌃⌥S unless changed in Geral).
         let binder = MASShortcutBinder.shared()
@@ -72,11 +77,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         Notification.Name.appWillBecomeActive.post()
     }
 
+    /// Set at the end of launch: a reopen that arrives earlier (the app opened twice in a row)
+    /// built the main window mid-launch and crashed in AppKit layout.
+    private var hasFinishedLaunching = false
+
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
-        if Defaults.relaunchOpensMenu.enabled {
-            statusItem.openMenu()
-        } else {
-            openMainWindow(sender)
+        guard hasFinishedLaunching else { return true }
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            if Defaults.relaunchOpensMenu.enabled {
+                self.statusItem.openMenu()
+            } else {
+                self.openMainWindow(sender)
+            }
         }
         return true
     }

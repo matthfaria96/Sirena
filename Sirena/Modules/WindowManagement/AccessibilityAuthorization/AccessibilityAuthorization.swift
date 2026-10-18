@@ -9,9 +9,11 @@ class AccessibilityAuthorization: ObservableObject {
     private var timer: Timer?
     
     @discardableResult
-    public func checkAccessibility(completion: @escaping () -> Void) -> Bool {
+    /// Sirena asks for permissions from its own onboarding, one at a time: Rectangle's
+    /// window only shows when `showWindow` is set (it fought the onboarding for focus).
+    public func checkAccessibility(showWindow: Bool = false, completion: @escaping () -> Void) -> Bool {
         if !AXIsProcessTrusted() {
-            showWindow(completion: completion)
+            if showWindow { self.showWindow(completion: completion) }
             startPolling(completion: completion)
             return false
         } else {

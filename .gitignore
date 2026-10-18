@@ -4,3 +4,6 @@ build/
 DerivedData/
 .build/
 xcuserdata/
+
+# Índice do Xcode gerado por engano dentro do projeto
+Sirena.xcodeproj/-Xcc/

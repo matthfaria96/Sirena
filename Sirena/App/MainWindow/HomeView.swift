@@ -16,27 +16,29 @@ struct HomeView: View {
                         .modifier(Entrance(order: 0))
 
                     HomeSection(number: 1, title: L("Shortcuts"),
-                                subtitle: L("Tools you open with one click. Click a card for all of its settings."),
+                                subtitle: L("Tools you open with one click. Drag a card to change its place, here and in the menu."),
                                 inMenu: true) {
-                        menuGrid(BoltMenuItem.shortcuts)
+                        menuGrid(BoltMenuItem.shortcuts, group: "shortcuts")
                     }
                     .modifier(Entrance(order: 1))
 
                     HomeSection(number: 2, title: L("Controllers"),
-                                subtitle: L("Adjusted right there in the menu, without opening anything."),
+                                subtitle: L("Adjusted right there in the menu, without opening anything. Drag to reorder."),
                                 inMenu: true) {
-                        menuGrid(BoltMenuItem.controls)
+                        menuGrid(BoltMenuItem.controls, group: "controls")
                     }
                     .modifier(Entrance(order: 2))
 
                     HomeSection(number: 3, title: L("Features"),
-                                subtitle: L("They work on their own in the background, when you switch them on."),
+                                subtitle: L("They work on their own in the background, when you switch them on. Drag to reorder."),
                                 inMenu: false) {
                         VStack(alignment: .leading, spacing: 12) {
                             overview
                             LazyVGrid(columns: [GridItem(.flexible(), spacing: 14), GridItem(.flexible(), spacing: 14)], spacing: 14) {
-                                ForEach(ModuleID.featurePages) { module in
+                                let features = HomeOrder.shared.sorted(ModuleID.featurePages, group: "features", id: \.rawValue)
+                                ForEach(features) { module in
                                     ModuleCard(module: module) { router.selection = .module(module) }
+                                        .modifier(Reorderable(id: module.rawValue, group: "features", ids: features.map(\.rawValue)))
                                 }
                             }
                         }
@@ -51,13 +53,15 @@ struct HomeView: View {
         }
     }
 
-    private func menuGrid(_ items: [BoltMenuItem]) -> some View {
+    private func menuGrid(_ items: [BoltMenuItem], group: String) -> some View {
         let manager = ModuleManager.shared
+        let sorted = HomeOrder.shared.sorted(items, group: group, id: \.rawValue)
         return LazyVGrid(columns: [GridItem(.adaptive(minimum: 240), spacing: 12)], alignment: .leading, spacing: 12) {
-            ForEach(items) { item in
+            ForEach(sorted) { item in
                 MenuItemCard(item: item,
                              available: item.module.map { manager.isRunning($0) } ?? true,
                              open: item.module.map { module in { router.selection = .module(module) } })
+                    .modifier(Reorderable(id: item.rawValue, group: group, ids: sorted.map(\.rawValue)))
             }
         }
     }
@@ -426,7 +430,11 @@ struct ModuleStatusLabel: View {
         case .pinWindow: return !PinWindowController.shared.pins.isEmpty
         case .textCapture: return CGPreflightScreenCaptureAccess()
         case .tweaks: return AXIsProcessTrusted()
-        case .shelf: return !ShelfStore.shared.items.isEmpty
+        case .shelf: return true
+        case .screenCapture: return ScreenCaptureController.shared.isRunning
+        case .pomodoro: return PomodoroController.shared.isActive
+        case .colorPicker: return ColorPickerController.shared.isActive
+        case .screenBrush: return ScreenBrushController.shared.isActive
         }
     }
 
@@ -485,10 +493,14 @@ struct ModuleStatusLabel: View {
         case .shelf:
             let count = ShelfStore.shared.items.count
             switch count {
-            case 0: return L("Shelf is empty — start dragging to use it")
-            case 1: return L("1 item on the shelf")
-            default: return L("\(count) items on the shelf")
+            case 0: return L("Active · empty")
+            case 1: return L("Active · 1 item")
+            default: return L("Active · \(count) items")
             }
+        case .screenCapture: return ScreenCaptureController.shared.statusText
+        case .pomodoro: return PomodoroController.shared.statusText
+        case .colorPicker: return ColorPickerController.shared.statusText
+        case .screenBrush: return ScreenBrushController.shared.statusText
         }
     }
 }

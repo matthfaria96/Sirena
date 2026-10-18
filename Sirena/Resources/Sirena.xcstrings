@@ -10561,6 +10561,2326 @@
           }
         }
       }
+    },
+    "Configure…": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configurar…"
+          }
+        }
+      }
+    },
+    "Open History": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir histórico"
+          }
+        }
+      }
+    },
+    "Click to Confirm": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clique para confirmar"
+          }
+        }
+      }
+    },
+    "Removes every copy except the pinned ones": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apaga todas as cópias, menos as fixadas"
+          }
+        }
+      }
+    },
+    "Active · empty": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ativa · vazia"
+          }
+        }
+      }
+    },
+    "Active · 1 item": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ativa · 1 item"
+          }
+        }
+      }
+    },
+    "Active · %lld items": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ativa · %lld itens"
+          }
+        }
+      }
+    },
+    "Allow what Sirena needs to work. Everything stays on this Mac.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permita o que o Sirena precisa para funcionar. Tudo fica neste Mac."
+          }
+        }
+      }
+    },
+    "Start Using Sirena": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Começar a usar"
+          }
+        }
+      }
+    },
+    "Continue Without Everything": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuar mesmo assim"
+          }
+        }
+      }
+    },
+    "You can change these later in General.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Você pode mudar isso depois em Geral."
+          }
+        }
+      }
+    },
+    "Optional": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opcional"
+          }
+        }
+      }
+    },
+    "Short Break": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pausa curta"
+          }
+        }
+      }
+    },
+    "Long Break": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pausa longa"
+          }
+        }
+      }
+    },
+    "Ready — %lld min focus": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pronto — %lld min de foco"
+          }
+        }
+      }
+    },
+    "Paused · %@ · %@": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pausado · %@ · %@"
+          }
+        }
+      }
+    },
+    "Focus · %@ left": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Foco · faltam %@"
+          }
+        }
+      }
+    },
+    "Break · %@": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pausa · %@"
+          }
+        }
+      }
+    },
+    "Focus session complete": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sessão de foco concluída"
+          }
+        }
+      }
+    },
+    "Break is over": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A pausa acabou"
+          }
+        }
+      }
+    },
+    "Time to focus for %lld minutes.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hora de focar por %lld minutos."
+          }
+        }
+      }
+    },
+    "Take a %lld-minute break.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Faça uma pausa de %lld minutos."
+          }
+        }
+      }
+    },
+    "Start Focus": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iniciar foco"
+          }
+        }
+      }
+    },
+    "Restart this phase": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reiniciar esta etapa"
+          }
+        }
+      }
+    },
+    "Skip to the next phase": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pular para a próxima etapa"
+          }
+        }
+      }
+    },
+    "Session %lld of %lld": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sessão %lld de %lld"
+          }
+        }
+      }
+    },
+    "of %lld sessions": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "de %lld sessões"
+          }
+        }
+      }
+    },
+    "Focused": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Em foco"
+          }
+        }
+      }
+    },
+    "today": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "hoje"
+          }
+        }
+      }
+    },
+    "%lld min": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld min"
+          }
+        }
+      }
+    },
+    "Sessions before a long break": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sessões antes da pausa longa"
+          }
+        }
+      }
+    },
+    "Durations": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Durações"
+          }
+        }
+      }
+    },
+    "Start Breaks Automatically": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iniciar pausas automaticamente"
+          }
+        }
+      }
+    },
+    "A break begins as soon as a focus session ends.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A pausa começa assim que a sessão de foco termina."
+          }
+        }
+      }
+    },
+    "Start Focus Automatically": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iniciar foco automaticamente"
+          }
+        }
+      }
+    },
+    "The next focus session begins as soon as a break ends.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A próxima sessão de foco começa assim que a pausa termina."
+          }
+        }
+      }
+    },
+    "Flow": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fluxo"
+          }
+        }
+      }
+    },
+    "Play a Sound": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tocar som"
+          }
+        }
+      }
+    },
+    "Show Notifications": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar notificações"
+          }
+        }
+      }
+    },
+    "Announce the end of each focus session and break.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avisa o fim de cada sessão de foco e pausa."
+          }
+        }
+      }
+    },
+    "Daily Goal": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meta diária"
+          }
+        }
+      }
+    },
+    "%lld sessions": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld sessões"
+          }
+        }
+      }
+    },
+    "Completed Today": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Concluídas hoje"
+          }
+        }
+      }
+    },
+    "Goal": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meta"
+          }
+        }
+      }
+    },
+    "Start / pause": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iniciar / pausar"
+          }
+        }
+      }
+    },
+    "Global Shortcuts": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atalhos globais"
+          }
+        }
+      }
+    },
+    "HEX without #": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HEX sem #"
+          }
+        }
+      }
+    },
+    "CSS variable": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Variável CSS"
+          }
+        }
+      }
+    },
+    "CSS variables": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Variáveis CSS"
+          }
+        }
+      }
+    },
+    "Plain text (HEX list)": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Texto simples (lista HEX)"
+          }
+        }
+      }
+    },
+    "Picking a color…": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escolhendo uma cor…"
+          }
+        }
+      }
+    },
+    "Last: %@": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Última: %@"
+          }
+        }
+      }
+    },
+    "Ready — ⌃⌥C to pick": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pronto — ⌃⌥C para capturar"
+          }
+        }
+      }
+    },
+    "Color copied": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cor copiada"
+          }
+        }
+      }
+    },
+    "Color picked": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cor capturada"
+          }
+        }
+      }
+    },
+    "Palette %lld": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paleta %lld"
+          }
+        }
+      }
+    },
+    "Palette copied": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paleta copiada"
+          }
+        }
+      }
+    },
+    "Colors": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cores"
+          }
+        }
+      }
+    },
+    "Palettes": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paletas"
+          }
+        }
+      }
+    },
+    "Pick Color": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capturar cor"
+          }
+        }
+      }
+    },
+    "Copy as": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar como"
+          }
+        }
+      }
+    },
+    "No colors yet": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nenhuma cor ainda"
+          }
+        }
+      }
+    },
+    "Pick a color anywhere on screen. It's copied and kept here.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capture uma cor em qualquer lugar da tela. Ela é copiada e guardada aqui."
+          }
+        }
+      }
+    },
+    "Add to Palette": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adicionar à paleta"
+          }
+        }
+      }
+    },
+    "%lld colors": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld cores"
+          }
+        }
+      }
+    },
+    "Save as Palette": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salvar como paleta"
+          }
+        }
+      }
+    },
+    "No palettes": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nenhuma paleta"
+          }
+        }
+      }
+    },
+    "Group colors into named palettes and export them as JSON, CSS or text.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agrupe cores em paletas com nome e exporte como JSON, CSS ou texto."
+          }
+        }
+      }
+    },
+    "New Palette": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nova paleta"
+          }
+        }
+      }
+    },
+    "Rename Palette": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Renomear paleta"
+          }
+        }
+      }
+    },
+    "Add Color": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adicionar cor"
+          }
+        }
+      }
+    },
+    "Add": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adicionar"
+          }
+        }
+      }
+    },
+    "Type a HEX color.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Digite uma cor HEX."
+          }
+        }
+      }
+    },
+    "Add HEX Color…": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adicionar cor HEX…"
+          }
+        }
+      }
+    },
+    "Add Last Picked (%@)": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adicionar a última (%@)"
+          }
+        }
+      }
+    },
+    "Export": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exportar"
+          }
+        }
+      }
+    },
+    "Delete Palette": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apagar paleta"
+          }
+        }
+      }
+    },
+    "Empty. Add a HEX color or pick one with this palette set as the destination in Settings.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vazia. Adicione uma cor HEX ou capture uma com esta paleta como destino nos Ajustes."
+          }
+        }
+      }
+    },
+    "Remove from Palette": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remover da paleta"
+          }
+        }
+      }
+    },
+    "Rename Color": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Renomear cor"
+          }
+        }
+      }
+    },
+    "Copy format": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Formato ao copiar"
+          }
+        }
+      }
+    },
+    "Example": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exemplo"
+          }
+        }
+      }
+    },
+    "Copy to clipboard after picking": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar para a área de transferência ao capturar"
+          }
+        }
+      }
+    },
+    "Show confirmation toast": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar aviso de confirmação"
+          }
+        }
+      }
+    },
+    "Picking": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Captura"
+          }
+        }
+      }
+    },
+    "Also add picked colors to": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Também adicionar cores capturadas a"
+          }
+        }
+      }
+    },
+    "History only": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Só o histórico"
+          }
+        }
+      }
+    },
+    "Keep in history": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guardar no histórico"
+          }
+        }
+      }
+    },
+    "Collections": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coleções"
+          }
+        }
+      }
+    },
+    "Pick a color": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capturar uma cor"
+          }
+        }
+      }
+    },
+    "Pen": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Caneta"
+          }
+        }
+      }
+    },
+    "Highlighter": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marca-texto"
+          }
+        }
+      }
+    },
+    "Laser Pen": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Caneta laser"
+          }
+        }
+      }
+    },
+    "Line": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Linha"
+          }
+        }
+      }
+    },
+    "Arrow": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seta"
+          }
+        }
+      }
+    },
+    "Ellipse": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elipse"
+          }
+        }
+      }
+    },
+    "Eraser": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Borracha"
+          }
+        }
+      }
+    },
+    "Copy to Clipboard": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar para a área de transferência"
+          }
+        }
+      }
+    },
+    "Save to Desktop": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salvar na Mesa"
+          }
+        }
+      }
+    },
+    "Copy and Save to Desktop": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar e salvar na Mesa"
+          }
+        }
+      }
+    },
+    "Type…": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Digite…"
+          }
+        }
+      }
+    },
+    "Width ([ and ])": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Espessura ([ e ])"
+          }
+        }
+      }
+    },
+    "Undo (⌘Z)": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desfazer (⌘Z)"
+          }
+        }
+      }
+    },
+    "Redo (⇧⌘Z)": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refazer (⇧⌘Z)"
+          }
+        }
+      }
+    },
+    "Clear (⌘⌫)": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limpar (⌘⌫)"
+          }
+        }
+      }
+    },
+    "Spotlight (F)": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Holofote (F)"
+          }
+        }
+      }
+    },
+    "Background: none, dim, whiteboard, blackboard (B)": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fundo: nenhum, escurecido, quadro branco, lousa (B)"
+          }
+        }
+      }
+    },
+    "Click Through (G)": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clicar através (G)"
+          }
+        }
+      }
+    },
+    "Screenshot (⌘S)": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Captura de tela (⌘S)"
+          }
+        }
+      }
+    },
+    "Leave (Esc)": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sair (Esc)"
+          }
+        }
+      }
+    },
+    "Drawing — Esc to leave": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desenhando — Esc para sair"
+          }
+        }
+      }
+    },
+    "Ready — %@ to draw": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pronto — %@ para desenhar"
+          }
+        }
+      }
+    },
+    "Ready": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pronto"
+          }
+        }
+      }
+    },
+    "Start Drawing": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Começar a desenhar"
+          }
+        }
+      }
+    },
+    "Tool": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ferramenta"
+          }
+        }
+      }
+    },
+    "Fill Rectangles and Ellipses": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preencher retângulos e elipses"
+          }
+        }
+      }
+    },
+    "Brush": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pincel"
+          }
+        }
+      }
+    },
+    "Keep Drawing When Leaving": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manter o desenho ao sair"
+          }
+        }
+      }
+    },
+    "The drawing comes back the next time you start drawing.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O desenho volta na próxima vez que você começar a desenhar."
+          }
+        }
+      }
+    },
+    "Draw on All Displays": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desenhar em todas as telas"
+          }
+        }
+      }
+    },
+    "Show Toolbar": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar barra de ferramentas"
+          }
+        }
+      }
+    },
+    "Without it, use the keyboard to switch tools.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sem ela, use o teclado para trocar de ferramenta."
+          }
+        }
+      }
+    },
+    "Drawing Mode": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modo de desenho"
+          }
+        }
+      }
+    },
+    "Laser fades after": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Laser some depois de"
+          }
+        }
+      }
+    },
+    "Spotlight Size": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tamanho do holofote"
+          }
+        }
+      }
+    },
+    "Pointing": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apontar"
+          }
+        }
+      }
+    },
+    "Screenshot": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Captura de tela"
+          }
+        }
+      }
+    },
+    "Without it, screenshots contain only the drawing.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sem ela, as capturas contêm só o desenho."
+          }
+        }
+      }
+    },
+    "Leave drawing mode": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sair do modo de desenho"
+          }
+        }
+      }
+    },
+    "Switch tool": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trocar de ferramenta"
+          }
+        }
+      }
+    },
+    "Next color": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Próxima cor"
+          }
+        }
+      }
+    },
+    "Thinner / thicker": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mais fino / mais grosso"
+          }
+        }
+      }
+    },
+    "Spotlight": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Holofote"
+          }
+        }
+      }
+    },
+    "Background: none, dim, whiteboard, blackboard": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fundo: nenhum, escurecido, quadro branco, lousa"
+          }
+        }
+      }
+    },
+    "Click through to the apps below": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clicar nos apps por baixo"
+          }
+        }
+      }
+    },
+    "Undo / Redo": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desfazer / Refazer"
+          }
+        }
+      }
+    },
+    "Screenshot / Copy screenshot": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salvar captura / Copiar captura"
+          }
+        }
+      }
+    },
+    "Straight lines, squares and circles": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Linhas retas, quadrados e círculos"
+          }
+        }
+      }
+    },
+    "While Drawing": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enquanto desenha"
+          }
+        }
+      }
+    },
+    "Start or Stop Drawing": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Começar ou parar de desenhar"
+          }
+        }
+      }
+    },
+    "%lld pt": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld pt"
+          }
+        }
+      }
+    },
+    "Color Picker": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seletor de Cores"
+          }
+        }
+      }
+    },
+    "A focus timer: work in sessions, take short and long breaks, and keep track of your day.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Um timer de foco: trabalhe em sessões, faça pausas curtas e longas e acompanhe o seu dia."
+          }
+        }
+      }
+    },
+    "Pick any color on the screen and keep a library of colors in every format.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capture qualquer cor da tela e guarde uma biblioteca de cores em todos os formatos."
+          }
+        }
+      }
+    },
+    "Draw, highlight and point on top of everything on the screen, for presentations and calls.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desenhe, destaque e aponte por cima de tudo na tela, para apresentações e chamadas."
+          }
+        }
+      }
+    },
+    "Inspired by Flow, written for Sirena": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inspirado no Flow, escrito para o Sirena"
+          }
+        }
+      }
+    },
+    "Inspired by Pastel, written for Sirena": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inspirado no Pastel, escrito para o Sirena"
+          }
+        }
+      }
+    },
+    "Inspired by ScreenBrush, written for Sirena": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inspirado no ScreenBrush, escrito para o Sirena"
+          }
+        }
+      }
+    },
+    "Focus in sessions with timed breaks.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Foque em sessões com pausas cronometradas."
+          }
+        }
+      }
+    },
+    "Picks any color on the screen.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Captura qualquer cor da tela."
+          }
+        }
+      }
+    },
+    "Draw and highlight on top of the screen.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desenhe e destaque por cima da tela."
+          }
+        }
+      }
+    },
+    "Draw": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desenhar"
+          }
+        }
+      }
+    },
+    "Starts or pauses a focus session; breaks follow on their own.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inicia ou pausa uma sessão de foco; as pausas vêm sozinhas."
+          }
+        }
+      }
+    },
+    "Opens a magnifier to pick a color from anywhere on the screen and copies it.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abre uma lupa para capturar uma cor de qualquer lugar da tela e a copia."
+          }
+        }
+      }
+    },
+    "Turns the screen into a canvas to draw, highlight and point. Esc to leave.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transforma a tela numa tela de desenho para desenhar, destacar e apontar. Esc para sair."
+          }
+        }
+      }
+    },
+    "Freehand Drawing": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desenho Livre"
+          }
+        }
+      }
+    },
+    "Alerts": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alertas"
+          }
+        }
+      }
+    },
+    "Start %@": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iniciar %@"
+          }
+        }
+      }
+    },
+    "Turn on Pomodoro to use the timer.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ative o Pomodoro para usar o timer."
+          }
+        }
+      }
+    },
+    "Ready — %@ to pick": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pronto — %@ para capturar"
+          }
+        }
+      }
+    },
+    "Palette exported": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paleta exportada"
+          }
+        }
+      }
+    },
+    "Couldn't export the palette": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível exportar a paleta"
+          }
+        }
+      }
+    },
+    "Couldn't import the palette": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível importar a paleta"
+          }
+        }
+      }
+    },
+    "The file has no HEX colors.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O arquivo não tem cores HEX."
+          }
+        }
+      }
+    },
+    "Play a sound when picking": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tocar um som ao capturar"
+          }
+        }
+      }
+    },
+    "A focus timer: work in sessions and take short and long breaks on their own.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Um timer de foco: trabalhe em sessões e faça pausas curtas e longas automaticamente."
+          }
+        }
+      }
+    },
+    "Picks any color on the screen and copies it in the format you use, with history and palettes.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Captura qualquer cor da tela e copia no formato que você usa, com histórico e paletas."
+          }
+        }
+      }
+    },
+    "Draw, highlight and point on top of the screen, for presentations and calls.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desenhe, destaque e aponte por cima da tela, para apresentações e chamadas."
+          }
+        }
+      }
+    },
+    "Icons": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ícones"
+          }
+        }
+      }
+    },
+    "Island": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ilha"
+          }
+        }
+      }
+    },
+    "%@ is on — click to turn it off": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ está ativo — clique para desativar"
+          }
+        }
+      }
+    },
+    "%@ is off — click to turn it on": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ está desativado — clique para ativar"
+          }
+        }
+      }
+    },
+    "Screen Capture": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Captura de Tela"
+          }
+        }
+      }
+    },
+    "Area": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Área"
+          }
+        }
+      }
+    },
+    "Screen": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tela inteira"
+          }
+        }
+      }
+    },
+    "Record Area": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gravar área"
+          }
+        }
+      }
+    },
+    "Record Screen": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gravar tela"
+          }
+        }
+      }
+    },
+    "Select part of the screen or a window (space switches)": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selecione parte da tela ou uma janela (espaço alterna)"
+          }
+        }
+      }
+    },
+    "The whole screen under the pointer": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A tela inteira onde está o ponteiro"
+          }
+        }
+      }
+    },
+    "Drag the area to record, then stop from the red button": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arraste a área a gravar e pare pelo botão vermelho"
+          }
+        }
+      }
+    },
+    "Records the screen under the pointer until you stop": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grava a tela onde está o ponteiro até você parar"
+          }
+        }
+      }
+    },
+    "Recording — click Capture to stop": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gravando — clique em Capturar para parar"
+          }
+        }
+      }
+    },
+    "Ready — screenshots and recordings": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pronto — capturas e gravações"
+          }
+        }
+      }
+    },
+    "Drag the area to record · Esc cancels": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arraste a área a gravar · Esc cancela"
+          }
+        }
+      }
+    },
+    "at": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "às"
+          }
+        }
+      }
+    },
+    "Recording saved": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gravação salva"
+          }
+        }
+      }
+    },
+    "Stop": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parar"
+          }
+        }
+      }
+    },
+    "A custom shortcut to Apple's Screenshot app: take an area or the whole screen, or record either, starting right in the mode you pick.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Um atalho personalizado do app Captura de Tela da Apple: capture uma área ou a tela inteira, ou grave qualquer uma, já no modo que você escolher."
+          }
+        }
+      }
+    },
+    "Built on macOS's Screenshot tool": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Feito sobre a Captura de Tela do macOS"
+          }
+        }
+      }
+    },
+    "A custom shortcut to Apple's Screenshot app: an area, the whole screen or a recording, in one click.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Um atalho personalizado do app Captura de Tela da Apple: área, tela inteira ou gravação, em um clique."
+          }
+        }
+      }
+    },
+    "Screenshot of an area or the whole screen, or a recording of either, with macOS's own tool.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Captura de uma área ou da tela inteira, ou gravação de qualquer uma, com a ferramenta do próprio macOS."
+          }
+        }
+      }
+    },
+    "Uses macOS's own Screenshot tool, starting directly in the mode you pick.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usa a Captura de Tela do próprio macOS, já no modo que você escolher."
+          }
+        }
+      }
+    },
+    "Copy screenshots to the clipboard": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar capturas para a área de transferência"
+          }
+        }
+      }
+    },
+    "Instead of saving a file.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Em vez de salvar um arquivo."
+          }
+        }
+      }
+    },
+    "Include the pointer in full-screen screenshots": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Incluir o ponteiro nas capturas da tela inteira"
+          }
+        }
+      }
+    },
+    "Open in Preview or QuickTime afterwards": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir no Pré-Visualização ou QuickTime depois"
+          }
+        }
+      }
+    },
+    "Saved to": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salvo em"
+          }
+        }
+      }
+    },
+    "Screenshots": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capturas"
+          }
+        }
+      }
+    },
+    "Show clicks": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar cliques"
+          }
+        }
+      }
+    },
+    "Record the microphone": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gravar o microfone"
+          }
+        }
+      }
+    },
+    "Uses the default input.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usa a entrada padrão."
+          }
+        }
+      }
+    },
+    "Recordings": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gravações"
+          }
+        }
+      }
+    },
+    "Stop a recording from the red button at the top of the screen, or the Capture button in the ⚡ menu.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pare uma gravação pelo botão vermelho no topo da tela ou pelo botão Capturar no menu ⚡."
+          }
+        }
+      }
+    },
+    "Optional: macOS keeps ⇧⌘3, ⇧⌘4 and ⇧⌘5.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opcional: o macOS mantém ⇧⌘3, ⇧⌘4 e ⇧⌘5."
+          }
+        }
+      }
+    },
+    "Pomodoro timer": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Timer do Pomodoro"
+          }
+        }
+      }
+    },
+    "End session": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encerrar sessão"
+          }
+        }
+      }
+    },
+    "Pomodoro settings": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajustes do Pomodoro"
+          }
+        }
+      }
+    },
+    "Save to Pictures": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salvar em Imagens"
+          }
+        }
+      }
+    },
+    "Copy and Save to Pictures": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar e salvar em Imagens"
+          }
+        }
+      }
+    },
+    "Leave": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sair"
+          }
+        }
+      }
+    },
+    "Thickness": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Espessura"
+          }
+        }
+      }
+    },
+    "Screenshot to Clipboard": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Print para a área de transferência"
+          }
+        }
+      }
+    },
+    "Screenshot to Pictures": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Print em Imagens"
+          }
+        }
+      }
+    },
+    "Whole screen with the drawing (⌘S). Change where it goes on the Freehand Drawing page.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A tela inteira com o desenho (⌘S). Escolha para onde vai na página do Desenho Livre."
+          }
+        }
+      }
+    },
+    "Drag to move": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arraste para mover"
+          }
+        }
+      }
+    },
+    "Tools you open with one click. Drag a card to change its place, here and in the menu.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ferramentas que você abre com um clique. Arraste um cartão para mudar o lugar dele, aqui e no menu."
+          }
+        }
+      }
+    },
+    "Adjusted right there in the menu, without opening anything. Drag to reorder.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajustados ali mesmo no menu, sem abrir nada. Arraste para reorganizar."
+          }
+        }
+      }
+    },
+    "They work on their own in the background, when you switch them on. Drag to reorder.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Funcionam sozinhos em segundo plano, quando você os ativa. Arraste para reorganizar."
+          }
+        }
+      }
+    },
+    "Whole screen with the drawing, saved in Pictures (⌘S)": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A tela inteira com o desenho, salva em Imagens (⌘S)"
+          }
+        }
+      }
+    },
+    "Whole screen with the drawing, copied to the clipboard (⌘C)": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A tela inteira com o desenho, copiada para a área de transferência (⌘C)"
+          }
+        }
+      }
+    },
+    "Sirena already uses this shortcut for “%@”.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Sirena já usa este atalho para “%@”."
+          }
+        }
+      }
+    },
+    "Arranges windows, pastes from the history, powers ⌘ Tab and the Finder tweaks.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Organiza janelas, cola do histórico, faz o ⌘ Tab e as melhorias do Finder funcionarem."
+          }
+        }
+      }
+    },
+    "Previews in the Dock and ⌘ Tab, Capture, Text, Pin Window and screenshots of drawings.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prévias no Dock e no ⌘ Tab, Capturar, Texto, Fixar Janela e prints dos desenhos."
+          }
+        }
+      }
+    },
+    "Recording your voice with Capture and the mirror's sound level.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gravar sua voz no Capturar e o nível de som do Espelho."
+          }
+        }
+      }
+    },
+    "Pomodoro tells you when a focus session or a break ends.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Pomodoro avisa quando uma sessão de foco ou uma pausa termina."
+          }
+        }
+      }
+    },
+    "Transparent menu": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menu transparente"
+          }
+        }
+      }
+    },
+    "Liquid Glass you can see through. Off, the menu keeps a solid backing that reads over white windows.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vidro líquido que deixa ver o fundo. Desligado, o menu tem um fundo encorpado que fica legível sobre janelas brancas."
+          }
+        }
+      }
+    },
+    "Focus timer — click for pause and end": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Timer de foco — clique para pausar ou encerrar"
+          }
+        }
+      }
+    },
+    "Paused — click to resume or end": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pausado — clique para retomar ou encerrar"
+          }
+        }
+      }
+    },
+    "Beta": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beta"
+          }
+        }
+      }
+    },
+    "The menu with the hidden icons is still in beta on macOS 27 and is turned off for now. The icons come back beside the arrow.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O menu com os ícones ocultos ainda está em fase beta no macOS 27 e fica desativado por enquanto. Os ícones voltam ao lado da seta."
+          }
+        }
+      }
+    },
+    "Pomodoro tells you when a focus or a break ends. macOS asks in the top-right corner of the screen.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Pomodoro avisa quando um foco ou uma pausa termina. O macOS pergunta no canto superior direito da tela."
+          }
+        }
+      }
     }
   }
 }

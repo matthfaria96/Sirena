@@ -5,9 +5,9 @@ import SwiftUI
 struct TextCapturePage: View {
     var body: some View {
         ModulePage(module: .textCapture, tabs: [
+            PageTab("history", L("History")) { TextCaptureHistoryView() },
             PageTab("general", L("General")) { TextCaptureSettingsView() },
-            PageTab("shortcuts", L("Shortcuts")) { TextCaptureShortcutsView() },
-            PageTab("history", L("History")) { TextCaptureHistoryView() }
+            PageTab("shortcuts", L("Shortcuts")) { TextCaptureShortcutsView() }
         ]) {
             Button {
                 TextCaptureController.shared.capture(.text())

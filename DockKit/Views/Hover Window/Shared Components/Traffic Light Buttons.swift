@@ -19,40 +19,9 @@ struct TrafficLightButtons: View {
         Group {
             if displayMode != .never {
                 HStack(spacing: 6) {
-                    if enabledButtons.contains(.quit) {
-                        buttonFor(action: .quit, symbol: "power",
-                                  color: Color(red: 0.29, green: 0.01, blue: 0.10),
-                                  fillColor: Color(red: 0.88, green: 0.22, blue: 0.42))
-                    }
-                    if enabledButtons.contains(.close) {
-                        buttonFor(action: .close, symbol: "xmark",
-                                  color: Color(red: 0.49, green: 0.02, blue: 0.04),
-                                  fillColor: Color(red: 1.00, green: 0.30, blue: 0.28))
-                    }
-                    if enabledButtons.contains(.minimize) {
-                        buttonFor(action: .minimize, symbol: "minus",
-                                  color: Color(red: 0.60, green: 0.34, blue: 0.07),
-                                  fillColor: Color(red: 1.00, green: 0.80, blue: 0.20))
-                    }
-                    if enabledButtons.contains(.toggleFullScreen) {
-                        buttonFor(action: .toggleFullScreen, symbol: "arrow.up.left.and.arrow.down.right",
-                                  color: Color(red: 0.05, green: 0.40, blue: 0.05),
-                                  fillColor: Color(red: 0.26, green: 0.84, blue: 0.36))
-                    }
-                    if enabledButtons.contains(.maximize) {
-                        buttonFor(action: .maximize, symbol: "arrow.up.to.line",
-                                  color: Color(red: 0.07, green: 0.22, blue: 0.32),
-                                  fillColor: Color(red: 0.25, green: 0.52, blue: 0.72))
-                    }
-                    if enabledButtons.contains(.bringToCurrentSpace) {
-                        buttonFor(action: .bringToCurrentSpace, symbol: "arrow.right",
-                                  color: Color(red: 0.02, green: 0.24, blue: 0.32),
-                                  fillColor: Color(red: 0.08, green: 0.62, blue: 0.86))
-                    }
-                    if enabledButtons.contains(.openNewWindow) {
-                        buttonFor(action: .openNewWindow, symbol: "plus",
-                                  color: Color(red: 0.04, green: 0.16, blue: 0.40),
-                                  fillColor: Color(red: 0.42, green: 0.60, blue: 0.98))
+                    ForEach(TrafficLightStyle.order.filter(enabledButtons.contains), id: \.self) { action in
+                        let style = TrafficLightStyle.of(action)
+                        buttonFor(action: action, symbol: style.symbol, color: style.glyph, fillColor: style.fill)
                     }
                 }
                 .padding(4)
@@ -249,5 +218,58 @@ enum AppearanceSettingsView {
                 }
             }
         }
+    }
+}
+
+/// One look per window button, shared by the previews and the settings list.
+struct TrafficLightStyle {
+    let symbol: String
+    let glyph: Color
+    let fill: Color
+
+    /// Left to right, as they appear on a preview.
+    static let order: [WindowAction] = [.quit, .close, .minimize, .maximize, .toggleFullScreen, .openNewWindow, .bringToCurrentSpace]
+
+    static func of(_ action: WindowAction) -> TrafficLightStyle {
+        switch action {
+        case .quit:
+            TrafficLightStyle(symbol: "power", glyph: Color(red: 0.29, green: 0.01, blue: 0.10),
+                              fill: Color(red: 0.88, green: 0.22, blue: 0.42))
+        case .close:
+            TrafficLightStyle(symbol: "xmark", glyph: Color(red: 0.49, green: 0.02, blue: 0.04),
+                              fill: Color(red: 1.00, green: 0.30, blue: 0.28))
+        case .minimize:
+            TrafficLightStyle(symbol: "minus", glyph: Color(red: 0.60, green: 0.34, blue: 0.07),
+                              fill: Color(red: 1.00, green: 0.80, blue: 0.20))
+        case .maximize:
+            TrafficLightStyle(symbol: "arrow.up.left.and.arrow.down.right", glyph: Color(red: 0.05, green: 0.40, blue: 0.05),
+                              fill: Color(red: 0.26, green: 0.84, blue: 0.36))
+        case .toggleFullScreen:
+            TrafficLightStyle(symbol: "arrow.up.to.line", glyph: Color(red: 0.07, green: 0.22, blue: 0.32),
+                              fill: Color(red: 0.25, green: 0.52, blue: 0.72))
+        case .openNewWindow:
+            TrafficLightStyle(symbol: "plus", glyph: Color(red: 0.04, green: 0.16, blue: 0.40),
+                              fill: Color(red: 0.42, green: 0.60, blue: 0.98))
+        default:
+            TrafficLightStyle(symbol: "arrow.right", glyph: Color(red: 0.02, green: 0.24, blue: 0.32),
+                              fill: Color(red: 0.08, green: 0.62, blue: 0.86))
+        }
+    }
+}
+
+/// A single colored button as it looks on a preview, for settings.
+struct TrafficLightSwatch: View {
+    let action: WindowAction
+    var size: CGFloat = 16
+
+    var body: some View {
+        let style = TrafficLightStyle.of(action)
+        ZStack {
+            TrafficLightOrb(base: style.fill, diameter: size * 1.0385)
+            Image(systemName: "\(style.symbol).circle.fill")
+                .font(.system(size: size, weight: .bold))
+                .foregroundStyle(style.glyph, .clear)
+        }
+        .frame(width: size + 2, height: size + 2)
     }
 }

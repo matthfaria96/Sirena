@@ -190,7 +190,7 @@ private struct ShortcutChip: View {
         if editingKey == defaultsKey {
             MASShortcutViewRepresentable(
                 defaultsKey: defaultsKey,
-                validator: Defaults.allowAnyShortcut.enabled ? PassthroughShortcutValidator() : MASShortcutValidator(),
+                validator: Defaults.allowAnyShortcut.enabled ? PassthroughShortcutValidator() : SirenaShortcutValidator(ownKey: defaultsKey),
                 recordingObserver: recordingObserver,
                 recordsMouseButtons: true,
                 startsRecording: true,

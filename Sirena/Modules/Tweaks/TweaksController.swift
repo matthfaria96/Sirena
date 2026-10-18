@@ -184,14 +184,20 @@ final class TweaksEngine: @unchecked Sendable {
         return created
     }
 
+    /// Tears the tap down on its own thread: `tap` and `runLoop` are only ever touched there
+    /// once it runs, so stopping from the main thread can't race a callback.
     func stop() {
-        if let tap {
-            CGEvent.tapEnable(tap: tap, enable: false)
-            CFMachPortInvalidate(tap)
+        guard let runLoop else { return }
+        CFRunLoopPerformBlock(runLoop, CFRunLoopMode.commonModes.rawValue) { [self] in
+            if let tap {
+                CGEvent.tapEnable(tap: tap, enable: false)
+                CFMachPortInvalidate(tap)
+            }
+            tap = nil
+            self.runLoop = nil
+            CFRunLoopStop(CFRunLoopGetCurrent())
         }
-        tap = nil
-        if let runLoop { CFRunLoopStop(runLoop) }
-        runLoop = nil
+        CFRunLoopWakeUp(runLoop)
         thread = nil
     }
 
@@ -212,7 +218,10 @@ final class TweaksEngine: @unchecked Sendable {
     /// Runs `block` on the tap thread after `delay` seconds.
     private func later(_ delay: TimeInterval, _ block: @escaping () -> Void) {
         guard let runLoop else { return }
-        let timer = CFRunLoopTimerCreateWithHandler(nil, CFAbsoluteTimeGetCurrent() + delay, 0, 0, 0) { _ in block() }
+        let timer = CFRunLoopTimerCreateWithHandler(nil, CFAbsoluteTimeGetCurrent() + delay, 0, 0, 0) { [weak self] _ in
+            guard self?.tap != nil else { return }
+            block()
+        }
         CFRunLoopAddTimer(runLoop, timer, .commonModes)
     }
 

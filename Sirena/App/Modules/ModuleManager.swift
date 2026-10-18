@@ -99,6 +99,14 @@ final class ModuleManager {
             TweaksController.shared.start()
         case .shelf:
             ShelfController.shared.start(openPage: open)
+        case .screenCapture:
+            ScreenCaptureController.shared.start(openPage: open)
+        case .pomodoro:
+            PomodoroController.shared.start(openPage: open)
+        case .colorPicker:
+            ColorPickerController.shared.start(openPage: open)
+        case .screenBrush:
+            ScreenBrushController.shared.start(openPage: open)
         }
         running.insert(module)
     }
@@ -115,6 +123,10 @@ final class ModuleManager {
         if running.contains(.tweaks) { TweaksController.shared.terminate() }
         if running.contains(.shelf) { ShelfController.shared.terminate() }
         if running.contains(.menuBar) { MenuBarModule.shared.terminate() }
+        if running.contains(.screenCapture) { ScreenCaptureController.shared.terminate() }
+        if running.contains(.pomodoro) { PomodoroController.shared.terminate() }
+        if running.contains(.colorPicker) { ColorPickerController.shared.terminate() }
+        if running.contains(.screenBrush) { ScreenBrushController.shared.terminate() }
     }
 
     /// Quits and reopens Sirena.

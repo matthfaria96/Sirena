@@ -36,8 +36,13 @@ struct GeneralPage: View {
                         }
                 }
                 SettingsSeparator(indented: true)
+                SettingsRow(L("Transparent menu"), detail: L("Liquid Glass you can see through. Off, the menu keeps a solid backing that reads over white windows."), symbol: "circle.dotted.circle") {
+                    Toggle("", isOn: Binding(get: { BoltMenuSettings.shared.clearGlass },
+                                             set: { BoltMenuSettings.shared.clearGlass = $0 })).settingsSwitch()
+                }
+                SettingsSeparator(indented: true)
                 SettingsRow(L("Open Sirena on Home"), detail: L("From any app."), symbol: "keyboard") {
-                    MASShortcutViewRepresentable(defaultsKey: AppDelegate.openHomeShortcutKey, validator: nil,
+                    MASShortcutViewRepresentable(defaultsKey: AppDelegate.openHomeShortcutKey, validator: SirenaShortcutValidator(ownKey: AppDelegate.openHomeShortcutKey),
                                                  recordingObserver: recordingObserver)
                         .frame(width: 150, height: 22)
                 }
@@ -56,7 +61,7 @@ struct GeneralPage: View {
 
 @MainActor
 @Observable
-private final class PermissionsState {
+final class PermissionsState {
     struct Item: Identifiable, Equatable {
         let id: String
         let title: String
@@ -77,7 +82,7 @@ private final class PermissionsState {
                  symbol: "accessibility", granted: AXIsProcessTrusted()),
             Item(id: "screen", title: L("Screen Recording"),
                  purpose: L("Window previews in the Dock and the switcher, and capturing text from the screen."),
-                 symbol: "rectangle.dashed.badge.record", granted: DockController.hasScreenRecordingPermission),
+                 symbol: "rectangle.dashed.badge.record", granted: CGPreflightScreenCaptureAccess()),
             Item(id: "camera", title: L("Camera"),
                  purpose: L("The mirror and “Peek” from the menu."),
                  symbol: "camera", granted: AVCaptureDevice.authorizationStatus(for: .video) == .authorized),
@@ -105,10 +110,20 @@ private final class PermissionsState {
 
     /// Asks the first time; once answered, macOS only changes it in System Settings.
     private static func ask(_ media: AVMediaType, pane: String) {
-        if AVCaptureDevice.authorizationStatus(for: media) == .notDetermined {
-            AVCaptureDevice.requestAccess(for: media) { _ in }
-        } else if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?\(pane)") {
-            NSWorkspace.shared.open(url)
+        let settings = URL(string: "x-apple.systempreferences:com.apple.preference.security?\(pane)")
+        guard AVCaptureDevice.authorizationStatus(for: media) == .notDetermined else {
+            if let settings { NSWorkspace.shared.open(settings) }
+            return
+        }
+        // The system prompt can come up hidden behind (or under) Sirena's windows and hold
+        // the focus, which feels like a freeze: come forward first, and if it isn't answered
+        // shortly, open the Privacy pane where Sirena is now listed.
+        NSApp.activate(ignoringOtherApps: true)
+        AVCaptureDevice.requestAccess(for: media) { _ in }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+            if AVCaptureDevice.authorizationStatus(for: media) == .notDetermined, let settings {
+                NSWorkspace.shared.open(settings)
+            }
         }
     }
 }

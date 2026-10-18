@@ -42,6 +42,7 @@ class TitleBarManager {
             event.eventNumber != lastEventNumber,
             TitleBarManager.systemSettingDisabled,
             let action = WindowAction(rawValue: Defaults.doubleClickTitleBar.value - 1),
+            !GreenButtonManager.isOwnWindow(at: location),
             let element = AccessibilityElement(location)?.getSelfOrChildElementRecursively(location),
             let windowElement = element.windowElement,
             var titleBarFrame = windowElement.titleBarFrame

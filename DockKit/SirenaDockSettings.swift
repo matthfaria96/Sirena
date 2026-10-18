@@ -161,35 +161,61 @@ private struct EnabledButtonsGrid: View {
     @Binding var enabledButtons: Set<WindowAction>
     @Binding var visibility: TrafficLightButtonsVisibility
 
-    private let buttons: [(WindowAction, String)] = [
-        (.quit, String(localized: "Quit")),
-        (.close, String(localized: "Close")),
-        (.minimize, String(localized: "Minimize")),
-        (.toggleFullScreen, String(localized: "Fullscreen")),
-        (.maximize, String(localized: "Maximize")),
-        (.bringToCurrentSpace, String(localized: "Bring to Current Space")),
-        (.openNewWindow, String(localized: "New Window"))
-    ]
+    private func title(_ action: WindowAction) -> String {
+        switch action {
+        case .quit: String(localized: "Quit")
+        case .close: String(localized: "Close")
+        case .minimize: String(localized: "Minimize")
+        case .maximize: String(localized: "Maximize")
+        case .toggleFullScreen: String(localized: "Fullscreen")
+        case .openNewWindow: String(localized: "New Window")
+        default: String(localized: "Bring to Current Space")
+        }
+    }
+
+    private func binding(_ action: WindowAction) -> Binding<Bool> {
+        Binding(
+            get: { enabledButtons.contains(action) },
+            set: { isOn in
+                if isOn {
+                    enabledButtons.insert(action)
+                } else {
+                    enabledButtons.remove(action)
+                    if enabledButtons.isEmpty { visibility = .never }
+                }
+            }
+        )
+    }
 
     var body: some View {
-        LabeledContent("Enabled Buttons") {
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), alignment: .leading)], alignment: .leading, spacing: 6) {
-                ForEach(buttons, id: \.0) { action, label in
-                    Toggle(label, isOn: Binding(
-                        get: { enabledButtons.contains(action) },
-                        set: { isOn in
-                            if isOn {
-                                enabledButtons.insert(action)
-                            } else {
-                                enabledButtons.remove(action)
-                                if enabledButtons.isEmpty { visibility = .never }
-                            }
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("Enabled Buttons")
+                Spacer()
+                // Live preview, in the order they show on a window.
+                HStack(spacing: 6) {
+                    ForEach(TrafficLightStyle.order.filter(enabledButtons.contains), id: \.self) {
+                        TrafficLightSwatch(action: $0, size: 15)
+                    }
+                }
+                .padding(.horizontal, 8).padding(.vertical, 5)
+                .glassEffect(.regular, in: Capsule())
+                .opacity(enabledButtons.isEmpty ? 0 : 1)
+                .animation(.snappy, value: enabledButtons)
+            }
+            // Three per row, left aligned, in the same order as on a window.
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), alignment: .leading), count: 3),
+                      alignment: .leading, spacing: 10) {
+                ForEach(TrafficLightStyle.order, id: \.self) { action in
+                    Toggle(isOn: binding(action)) {
+                        HStack(spacing: 8) {
+                            TrafficLightSwatch(action: action, size: 14)
+                            Text(title(action)).lineLimit(1)
                         }
-                    ))
+                    }
                     .toggleStyle(.checkbox)
                 }
             }
-            .frame(maxWidth: 340)
         }
     }
 }

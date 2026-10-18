@@ -13,7 +13,7 @@ struct MainView: View {
                     sidebarRow(.home, title: L("Home"), symbol: "house.fill", tint: .purple)
                 }
                 Section(L("Shortcuts")) {
-                    ForEach([ModuleID.clipboard, .pinWindow, .textCapture, .mirror]) { module in
+                    ForEach([ModuleID.clipboard, .pinWindow, .textCapture, .screenCapture, .pomodoro, .colorPicker, .screenBrush, .mirror]) { module in
                         sidebarRow(.module(module), title: module.title, symbol: module.symbol, tint: module.tint)
                     }
                 }
@@ -95,6 +95,14 @@ struct MainView: View {
             TextCapturePage()
         case .module(.shelf):
             ShelfPage()
+        case .module(.screenCapture):
+            ScreenCapturePage()
+        case .module(.pomodoro):
+            PomodoroPage()
+        case .module(.colorPicker):
+            ColorPickerPage()
+        case .module(.screenBrush):
+            ScreenBrushPage()
         case .general, .about:
             GeneralPage()
         }

@@ -199,9 +199,15 @@ final class TextCaptureController {
         Task { await recognize(cgImage, rect: nil, intent: .text(), showWindow: true) }
     }
 
+    /// The same shutter sound as macOS screenshots.
+    private static let shutterSound = NSSound(contentsOfFile:
+        "/System/Library/Components/CoreAudio.component/Contents/SharedSupport/SystemSounds/system/Screen Capture.aif",
+        byReference: true) ?? NSSound(named: "Pop")
+
     private func process(rect: CGRect, intent: CaptureIntent) async {
         do {
             let image = try await SCScreenshotManager.captureImage(in: rect)
+            if settings.playSound { Self.shutterSound?.play() }
             await recognize(image, rect: rect, intent: intent, showWindow: false)
         } catch {
             fail(error.localizedDescription, rect: rect)
@@ -257,7 +263,6 @@ final class TextCaptureController {
             title = kind == .code ? L("Code copied") : L("Text copied")
         }
 
-        if settings.playSound { NSSound(named: "Pop")?.play() }
         if settings.showNotification {
             CaptureToast.shared.show(title: title, detail: text, symbol: kind == .code ? "qrcode" : "text.viewfinder", near: rect)
         }

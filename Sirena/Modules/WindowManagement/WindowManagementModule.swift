@@ -42,13 +42,18 @@ final class WindowManagementModule: NSObject {
         mainStatusMenu = menu
         menu.delegate = self
         Defaults.loadFromSupportDir()
+        // Rectangle's welcome window used to pick its recommended shortcuts (⌃⌥ + arrows…);
+        // Sirena skips that window, so the recommended set is the default here.
+        if UserDefaults.standard.object(forKey: Defaults.alternateDefaultShortcuts.key) == nil {
+            Defaults.alternateDefaultShortcuts.enabled = true
+        }
         migrateShowEighthsInMenu()
         checkVersion()
         checkLaunchOnLogin()
 
+        // No Rectangle welcome window nor its modal conflicting-apps alert: they popped up in
+        // the middle of Sirena's onboarding and froze it until answered.
         let alreadyTrusted = accessibilityAuthorization.checkAccessibility {
-            WelcomeView.show()
-            self.checkForConflictingApps()
             self.accessibilityTrusted()
         }
 
@@ -83,7 +88,12 @@ final class WindowManagementModule: NSObject {
         accessibilityAuthorization.checkAccessibility {
             self.accessibilityTrusted()
         }
-        accessibilityAuthorization.showAuthorizationWindow()
+        // The system's own prompt, then the Accessibility list where Sirena now appears.
+        let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
+        if !AXIsProcessTrustedWithOptions(options),
+           let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
+            NSWorkspace.shared.open(url)
+        }
     }
 
     private func accessibilityTrusted() {

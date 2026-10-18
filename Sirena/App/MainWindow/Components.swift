@@ -35,7 +35,8 @@ struct GlassIcon: View {
             } else if let symbol {
                 Image(systemName: symbol)
                     .symbolVariant(.fill)
-                    .font(.system(size: size * 0.48, weight: .bold))
+                    // The viewfinder glyph draws small for its box: give it more of the tile.
+                    .font(.system(size: size * (symbol.contains("viewfinder") ? 0.62 : 0.48), weight: .bold))
             }
         }
         .foregroundStyle(isOn ? .white : .secondary)
@@ -249,7 +250,7 @@ struct ShortcutRow: View {
         HStack {
             Text(title)
             Spacer(minLength: 12)
-            MASShortcutViewRepresentable(defaultsKey: defaultsKey, validator: nil, recordingObserver: recordingObserver)
+            MASShortcutViewRepresentable(defaultsKey: defaultsKey, validator: SirenaShortcutValidator(ownKey: defaultsKey), recordingObserver: recordingObserver)
                 .frame(width: 160, height: 22)
                 .fixedSize()
         }
