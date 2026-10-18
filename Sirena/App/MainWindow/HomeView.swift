@@ -196,13 +196,7 @@ private struct HomeBanner: View {
         }
         .frame(height: 280)
         .frame(maxWidth: .infinity)
-        .background {
-            ZStack {
-                LinearGradient(colors: [Color(red: 0.20, green: 0.06, blue: 0.36), Color(red: 0.42, green: 0.10, blue: 0.48)],
-                               startPoint: .leading, endPoint: .trailing)
-                RadialGradient(colors: [Color.blue.opacity(0.35), .clear], center: .bottomLeading, startRadius: 10, endRadius: 340)
-            }
-        }
+        .background { EnergyBackdrop() }
         .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).strokeBorder(.white.opacity(0.12), lineWidth: 1))
         .shadow(color: Color(red: 0.4, green: 0.1, blue: 0.5).opacity(0.25), radius: 20, y: 10)
