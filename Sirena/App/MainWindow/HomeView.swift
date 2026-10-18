@@ -11,19 +11,49 @@ struct HomeView: View {
         ScrollView {
             // One clock for the whole page: statuses (permissions, timers) refresh together.
             TimelineView(.periodic(from: .now, by: 2)) { _ in
-                VStack(alignment: .leading, spacing: 12) {
-                    BoltMenuHero(router: router)
-                        .padding(.bottom, 12)
-                    overview
-                    LazyVGrid(columns: [GridItem(.flexible(), spacing: 14), GridItem(.flexible(), spacing: 14)], spacing: 14) {
-                        ForEach(ModuleID.featurePages) { module in
-                            ModuleCard(module: module) { router.selection = .module(module) }
+                VStack(alignment: .leading, spacing: 36) {
+                    HomeBanner()
+
+                    HomeSection(number: 1, title: L("Shortcuts"),
+                                subtitle: L("Tools you open with one click. Click a card for all of its settings."),
+                                inMenu: true) {
+                        menuGrid(BoltMenuItem.shortcuts)
+                    }
+
+                    HomeSection(number: 2, title: L("Controllers"),
+                                subtitle: L("Adjusted right there in the menu, without opening anything."),
+                                inMenu: true) {
+                        menuGrid(BoltMenuItem.controls)
+                    }
+
+                    HomeSection(number: 3, title: L("Features"),
+                                subtitle: L("They work on their own in the background, when you switch them on."),
+                                inMenu: false) {
+                        VStack(alignment: .leading, spacing: 12) {
+                            overview
+                            LazyVGrid(columns: [GridItem(.flexible(), spacing: 14), GridItem(.flexible(), spacing: 14)], spacing: 14) {
+                                ForEach(ModuleID.featurePages) { module in
+                                    ModuleCard(module: module) { router.selection = .module(module) }
+                                }
+                            }
                         }
                     }
                 }
-                .padding(20)
+                .padding(.horizontal, 28)
+                .padding(.vertical, 24)
                 .frame(maxWidth: 1100, alignment: .leading)
                 .frame(maxWidth: .infinity)
+            }
+        }
+    }
+
+    private func menuGrid(_ items: [BoltMenuItem]) -> some View {
+        let manager = ModuleManager.shared
+        return LazyVGrid(columns: [GridItem(.adaptive(minimum: 240), spacing: 12)], alignment: .leading, spacing: 12) {
+            ForEach(items) { item in
+                MenuItemCard(item: item,
+                             available: item.module.map { manager.isRunning($0) } ?? true,
+                             open: item.module.map { module in { router.selection = .module(module) } })
             }
         }
     }
@@ -35,8 +65,9 @@ struct HomeView: View {
         let active = features.filter { manager.isEnabled($0) && !manager.pendingRestart.contains($0) }.count
         let needsPermission = ModuleID.featurePages.filter { ModuleStatusLabel.needsPermission($0) && manager.isEnabled($0) }
         return HStack(spacing: 10) {
-            Text(L("Features — \(active) of \(features.count) on"))
-                .font(.headline)
+            Text(L("\(active) of \(features.count) on"))
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(.secondary)
             if !needsPermission.isEmpty {
                 Label(needsPermission.count == 1 ? L("1 feature needs a permission") : L("\(needsPermission.count) features need permissions"),
                       systemImage: "exclamationmark.triangle.fill")
@@ -120,64 +151,104 @@ private struct ModuleCard: View {
 
 /// Home's first section: what Sirena's ⚡ menu shows. It's where the app's everyday
 /// reach is decided, so it gets the spotlight.
-private struct BoltMenuHero: View {
-    let router: Router
-    @State private var settings = BoltMenuSettings.shared
-    @State private var manager = ModuleManager.shared
-
+/// The welcome banner: what Sirena is, in a few words, with the mascot on the right.
+private struct HomeBanner: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack(alignment: .center, spacing: 16) {
-                Image("TrayOrb")
-                    .resizable()
-                    .renderingMode(.template)
+        HStack(alignment: .center, spacing: 24) {
+            VStack(alignment: .leading, spacing: 12) {
+                Text(L("Welcome to Sirena"))
+                    .font(.largeTitle.weight(.bold))
                     .foregroundStyle(.white)
-                    .padding(13)
-                    .frame(width: 58, height: 58)
-                    .background(
-                        LinearGradient(colors: [.purple, .indigo], startPoint: .topLeading, endPoint: .bottomTrailing),
-                        in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-                    .accessibilityHidden(true)
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(L("Your menu bar menu"))
-                        .font(.title3.weight(.semibold))
-                    Text(L("Everything you reach for, one click away in the menu bar. Choose what it shows."))
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
+                Text(L("Everything you use every day on the Mac, in one place. Sirena lives in the menu bar: click the orb to reach your shortcuts and controllers."))
+                    .font(.title3)
+                    .foregroundStyle(.white.opacity(0.85))
+                    .fixedSize(horizontal: false, vertical: true)
+                VStack(alignment: .leading, spacing: 8) {
+                    tip("1.circle.fill", L("Shortcuts and controllers: choose what appears in the menu."))
+                    tip("2.circle.fill", L("Features: switch on what should work by itself."))
+                    tip("command", L("⌃⌥S opens this window from anywhere."))
                 }
-                Spacer(minLength: 12)
-                Button {
-                    SirenaStatusItem.instance.openMenu()
-                } label: {
-                    Label(L("Try It"), systemImage: "cursorarrow.click.2")
-                }
-                .buttonStyle(.bordered)
+                .padding(.top, 4)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
 
-            group(L("Shortcuts"), L("Tools opened with one click from the menu. Click a card for all of its settings."), BoltMenuItem.shortcuts)
-            group(L("Controllers"), L("Adjusted right there in the menu, without opening anything."), BoltMenuItem.controls)
+            mascot
         }
-        .padding(20)
-        .background(.background.secondary, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(.separator, lineWidth: 0.5))
+        .padding(28)
+        .frame(minHeight: 230)
+        .background {
+            ZStack {
+                LinearGradient(colors: [Color(red: 0.32, green: 0.12, blue: 0.55), Color(red: 0.12, green: 0.08, blue: 0.30)],
+                               startPoint: .topLeading, endPoint: .bottomTrailing)
+                RadialGradient(colors: [Color.pink.opacity(0.45), .clear], center: .topTrailing, startRadius: 10, endRadius: 360)
+                RadialGradient(colors: [Color.blue.opacity(0.35), .clear], center: .bottomLeading, startRadius: 10, endRadius: 320)
+            }
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).strokeBorder(.white.opacity(0.12), lineWidth: 1))
+    }
+
+    private func tip(_ symbol: String, _ text: String) -> some View {
+        Label {
+            Text(text).foregroundStyle(.white.opacity(0.9))
+        } icon: {
+            Image(systemName: symbol).foregroundStyle(.white)
+        }
+        .font(.callout)
+    }
+
+    /// The mascot (asset "HomeMascot" when it exists; the orb meanwhile), saying hello.
+    private var mascot: some View {
+        VStack(alignment: .trailing, spacing: 8) {
+            Text(L("Hi! I'm here in the menu bar whenever you need me."))
+                .font(.callout.weight(.medium))
+                .foregroundStyle(.primary)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .frame(maxWidth: 220, alignment: .trailing)
+            Image(NSImage(named: "HomeMascot") != nil ? "HomeMascot" : "SirenaIcon")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 150, height: 150)
+                .clipShape(RoundedRectangle(cornerRadius: 34, style: .continuous))
+                .shadow(color: .black.opacity(0.35), radius: 16, y: 8)
+        }
+        .accessibilityHidden(true)
     }
 }
 
-private extension BoltMenuHero {
-    func group(_ title: String, _ subtitle: String, _ items: [BoltMenuItem]) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title).font(.headline)
-                Text(subtitle).font(.subheadline).foregroundStyle(.secondary)
-            }
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 240), spacing: 12)], alignment: .leading, spacing: 12) {
-                ForEach(items) { item in
-                    MenuItemCard(item: item,
-                                 available: item.module.map { manager.isRunning($0) } ?? true,
-                                 open: item.module.map { module in { router.selection = .module(module) } })
+/// A numbered section of Home. Sections 1 and 2 also show in the menu bar menu.
+private struct HomeSection<Content: View>: View {
+    let number: Int
+    let title: String
+    let subtitle: String
+    let inMenu: Bool
+    @ViewBuilder var content: Content
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .center, spacing: 12) {
+                Text("\(number)")
+                    .font(.headline.monospacedDigit())
+                    .foregroundStyle(.white)
+                    .frame(width: 28, height: 28)
+                    .background(Color.accentColor.gradient, in: Circle())
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title).font(.title2.weight(.semibold))
+                    Text(subtitle).font(.callout).foregroundStyle(.secondary)
+                }
+                Spacer(minLength: 12)
+                if inMenu {
+                    Label(L("Appears in the menu bar menu"), systemImage: "menubar.arrow.up.rectangle")
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(Color.accentColor)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .background(Color.accentColor.opacity(0.12), in: Capsule())
                 }
             }
+            content
         }
     }
 }

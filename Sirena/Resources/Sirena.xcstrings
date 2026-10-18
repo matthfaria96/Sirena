@@ -11541,6 +11541,106 @@
           }
         }
       }
+    },
+    "Tools you open with one click. Click a card for all of its settings.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ferramentas que você abre com um clique. Clique num cartão para ver todos os ajustes."
+          }
+        }
+      }
+    },
+    "They work on their own in the background, when you switch them on.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Funcionam sozinhos, em segundo plano, quando você liga."
+          }
+        }
+      }
+    },
+    "%lld of %lld on": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld de %lld ligados"
+          }
+        }
+      }
+    },
+    "Welcome to Sirena": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bem-vindo ao Sirena"
+          }
+        }
+      }
+    },
+    "Everything you use every day on the Mac, in one place. Sirena lives in the menu bar: click the orb to reach your shortcuts and controllers.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tudo o que você usa todo dia no Mac, num lugar só. O Sirena mora na barra de menus: clique na orbe para chegar aos seus atalhos e controladores."
+          }
+        }
+      }
+    },
+    "Shortcuts and controllers: choose what appears in the menu.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atalhos e controladores: escolha o que aparece no menu."
+          }
+        }
+      }
+    },
+    "Features: switch on what should work by itself.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recursos: ligue o que deve funcionar sozinho."
+          }
+        }
+      }
+    },
+    "⌃⌥S opens this window from anywhere.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌃⌥S abre esta janela de qualquer lugar."
+          }
+        }
+      }
+    },
+    "Hi! I'm here in the menu bar whenever you need me.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oi! Estou aqui na barra de menus sempre que precisar."
+          }
+        }
+      }
+    },
+    "Appears in the menu bar menu": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aparece no menu da barra"
+          }
+        }
+      }
     }
   }
 }
