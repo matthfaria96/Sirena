@@ -237,11 +237,13 @@ struct BoltMenuView: View {
                 showsPeek.toggle()
                 if showsPeek { showsHistory = false }
             }
+            if showsPeek { NotificationCenter.default.post(name: .sirenaMixerCollapse, object: nil) }
         case .clipboard:
             withAnimation(.snappy(duration: 0.25)) {
                 showsHistory.toggle()
                 if showsHistory { showsPeek = false }
             }
+            if showsHistory { NotificationCenter.default.post(name: .sirenaMixerCollapse, object: nil) }
         default:
             close()
             item.perform()
@@ -281,9 +283,18 @@ private struct ShortcutButton: View {
             .frame(maxWidth: .infinity)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
-        .onHover { isHovering = $0 }
+        .buttonStyle(PressableStyle())
+        .onHover { hovering in withAnimation(.snappy(duration: 0.15)) { isHovering = hovering } }
         .help(item.detail)
+    }
+}
+
+/// Shrinks a control slightly while pressed, like Control Center tiles.
+struct PressableStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.96 : 1)
+            .animation(.snappy(duration: 0.15), value: configuration.isPressed)
     }
 }
 
@@ -306,8 +317,8 @@ private struct FooterButton: View {
                     .strokeBorder((tint ?? .primary).opacity(0.25), lineWidth: 0.8))
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
-        .onHover { isHovering = $0 }
+        .buttonStyle(PressableStyle())
+        .onHover { hovering in withAnimation(.snappy(duration: 0.15)) { isHovering = hovering } }
     }
 }
 
@@ -328,7 +339,7 @@ private struct ControlRow: View {
                     Text(item.title)
                         .font(.callout.weight(.medium))
                         .lineLimit(1)
-                    Text(keepAwake.isActive ? (keepAwake.formattedTimeRemaining() ?? L("On")) : L("Off"))
+                    Text(keepAwake.isActive ? L("Turned on") : L("Turned off"))
                         .font(.caption)
                         .foregroundStyle(keepAwake.isActive ? .green : .secondary)
                 }
@@ -385,10 +396,18 @@ private struct InlinePeekPanel: View {
                 .background(.black.opacity(0.85))
                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             if failed {
-                Label(L("Camera unavailable"), systemImage: "video.slash.fill")
-                    .font(.callout)
-                    .foregroundStyle(.white.opacity(0.8))
-                    .frame(maxWidth: .infinity, minHeight: 200)
+                VStack(spacing: 10) {
+                    Label(L("Camera unavailable"), systemImage: "video.slash.fill")
+                        .font(.callout)
+                        .foregroundStyle(.white.opacity(0.85))
+                    Button(L("Open Settings")) {
+                        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Camera") {
+                            NSWorkspace.shared.open(url)
+                        }
+                    }
+                    .controlSize(.small)
+                }
+                .frame(maxWidth: .infinity, minHeight: 200)
             }
             HStack {
                 HStack(spacing: 4) {
@@ -400,6 +419,8 @@ private struct InlinePeekPanel: View {
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
                 .background(.black.opacity(0.45), in: Capsule())
+                .accessibilityLabel(L("Closes in \(remaining) seconds"))
+                .opacity(failed ? 0 : 1)
                 Spacer()
                 Button(action: close) {
                     Image(systemName: "xmark.circle.fill")
@@ -412,6 +433,7 @@ private struct InlinePeekPanel: View {
             .padding(8)
         }
         .onReceive(clock) { _ in
+            guard !failed else { return }
             withAnimation(.snappy) { remaining -= 1 }
             if remaining <= 0 { close() }
         }
@@ -516,7 +538,7 @@ private struct InlineHistoryPanel: View {
                             .foregroundStyle(.secondary)
                             .frame(width: 16)
                     }
-                    Text(entry.title.isEmpty ? L("Image") : entry.title)
+                    Text(entry.title.isEmpty ? (entry.kind == .file ? L("File") : L("Image")) : entry.title)
                         .font(.callout)
                         .lineLimit(1)
                         .truncationMode(.tail)

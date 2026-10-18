@@ -73,13 +73,6 @@ class HistoryItemDecorator: Identifiable, Hashable, HasVisibility {
 
   private(set) var item: HistoryItem
 
-  var multiSelectionIndex: Int? {
-    guard selectionIndex >= 0, AppState.shared.navigator.isMultiSelectInProgress else {
-      return nil
-    }
-    return selectionIndex
-  }
-
   // Describe the complete item independently of its potentially truncated visual content.
   var accessibilityLabel: String {
     var parts: [String] = []
@@ -100,15 +93,6 @@ class HistoryItemDecorator: Identifiable, Hashable, HasVisibility {
     }
     if isPinned {
       parts.append(NSLocalizedString("history_item_pinned_accessibility_value", comment: ""))
-    }
-    if let index = multiSelectionIndex {
-      parts.append(
-        String(
-          format: NSLocalizedString("history_item_selected_accessibility_value", comment: ""),
-          index + 1,
-          AppState.shared.navigator.selection.count
-        )
-      )
     }
     return parts.joined(separator: ", ")
   }

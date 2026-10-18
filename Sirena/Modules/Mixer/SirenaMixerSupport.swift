@@ -17,7 +17,6 @@ enum SirenaMixerDefaultsKey {
     static let mixerHeadphonesDisconnectVolumePercent = "sirenaMixer.headphonesDisconnectVolumePercent"
     static let preferredInputDevice = "sirenaMixer.preferredInputDevice" // audio input device UID
     /// Liquid Glass sliders. Off by default, as in Vorssaint.
-    static let liquidGlassEnabled = "sirenaMixer.liquidGlassSliders"
 }
 
 /// Sanitizers and defaults the mixer reads, from Vorssaint's `Defaults`.
@@ -161,13 +160,18 @@ enum SirenaMixerStrings {
     static let hiddenCountLabel = "Escondidos"
     static let hideFromList = "Esconder da lista"
     static let options = "Opções"
+    static let outputTab = "Saída"
+    static let micTab = "Microfone"
+    static let collapse = "Recolher"
+    static let expandHint = "Dispositivos e volume de cada app"
+    static let collapseAccessibility = "Recolher o mixer"
+    static let expandAccessibility = "Expandir o mixer"
     static let hideInactiveApps = "Ocultar apps inativos"
     static let pin = "Fixar no topo"
     static let unpin = "Desafixar"
     static let moveUp = "Mover para cima"
     static let moveDown = "Mover para baixo"
     static let arrange = "Segure Command e arraste para reorganizar"
-    static let glassSliders = "Controles em Liquid Glass"
 }
 
 /// The mixer's engine as one object to start and stop: per-app volume and

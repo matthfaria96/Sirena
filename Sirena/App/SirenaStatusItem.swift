@@ -13,7 +13,6 @@ final class SirenaStatusItem: NSObject {
     static let autosaveName = "sirena.main"
 
     private(set) var statusItem: NSStatusItem?
-    private var isVisibleObserver: NSKeyValueObservation?
 
     /// The right-click menu, built fresh every time it opens.
     var menuProvider: (() -> NSMenu)?
@@ -53,20 +52,8 @@ final class SirenaStatusItem: NSObject {
         item.button?.target = self
         item.button?.action = #selector(clicked)
         item.button?.sendAction(on: [.leftMouseUp, .rightMouseUp])
-        isVisibleObserver = item.observe(\.isVisible, options: [.old, .new]) { _, change in
-            if change.oldValue == true && change.newValue == false {
-                Notification.Name.menuBarIconHidden.post()
-                Defaults.hideMenuBarIcon.enabled = true
-            }
-        }
         item.isVisible = true
         statusItem = item
-    }
-
-    private func remove() {
-        isVisibleObserver = nil
-        if let statusItem { NSStatusBar.system.removeStatusItem(statusItem) }
-        statusItem = nil
     }
 
     @objc private func clicked() {
@@ -120,6 +107,8 @@ final class SirenaStatusItem: NSObject {
 extension SirenaStatusItem: NSPopoverDelegate {
     func popoverDidClose(_ notification: Notification) {
         lastClose = Date()
+        // Let the menu's views go: the mixer would otherwise keep re-rendering offscreen.
+        popover?.contentViewController = nil
     }
 }
 

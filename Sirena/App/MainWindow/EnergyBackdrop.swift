@@ -9,6 +9,7 @@ import SwiftUI
 
 struct EnergyBackdrop: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.controlActiveState) private var activeState
 
     // MacDash's purple palette.
     private static let primary = Color(red: 0.52, green: 0.12, blue: 0.74)
@@ -18,7 +19,7 @@ struct EnergyBackdrop: View {
     private static let glow = Color(red: 0.62, green: 0.20, blue: 0.95)
 
     var body: some View {
-        TimelineView(.animation(minimumInterval: 1.0 / 30, paused: reduceMotion)) { context in
+        TimelineView(.animation(minimumInterval: 1.0 / 30, paused: reduceMotion || activeState == .inactive)) { context in
             GeometryReader { proxy in
                 field(size: proxy.size, time: reduceMotion ? 0 : context.date.timeIntervalSinceReferenceDate)
             }

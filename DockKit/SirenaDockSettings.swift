@@ -217,16 +217,4 @@ enum SirenaSwitcherShortcuts {
     }
 }
 
-// MARK: - Sirena: how many of the page's options are on (Home's radial chart)
 
-public enum SirenaDockStats {
-    public static var options: (on: Int, total: Int) {
-        let flags: [Bool] = [
-            Defaults[.enableDockPreviews], Defaults[.includeHiddenWindowsInDockPreview], Defaults[.groupAppInstancesInDock],
-            Defaults[.enableCmdRightClickQuit], Defaults[.showWindowTitle], Defaults[.showMassActionButtons],
-            Defaults[.showAnimations],
-            Defaults[.uniformCardRadius], Defaults[.lockAspectRatio]
-        ]
-        return (flags.filter { $0 }.count, flags.count)
-    }
-}

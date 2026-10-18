@@ -15,7 +15,6 @@ extension Notification.Name {
     static let todoMenuToggled = Notification.Name("todoMenuToggled")
     static let appWillBecomeActive = Notification.Name("appWillBecomeActive")
     static let missionControlDragging = Notification.Name("missionControlDragging")
-    static let menuBarIconHidden = Notification.Name("menuBarIconHidden")
     static let windowTitleBar = Notification.Name("windowTitleBar")
     static let greenButtonOverride = Notification.Name("greenButtonOverride")
     static let defaultSnapAreas = Notification.Name("defaultSnapAreas")

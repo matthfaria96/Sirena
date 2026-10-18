@@ -52,13 +52,13 @@ struct KeepAwakeSettings: View {
             }
 
             Section {
-                Picker(String(localized: "Default duration:"), selection: $defaultDuration) {
+                Picker(L("Default duration"), selection: $defaultDuration) {
                     ForEach(durations, id: \.minutes) { duration in
                         Text(duration.title).tag(duration.minutes)
                     }
                 }
                 Toggle(L("Turn on when Sirena starts"), isOn: $activateAtLaunch)
-                Toggle(String(localized: "Deactivate when device goes to sleep manually"), isOn: $deactivateOnManualSleep)
+                Toggle(L("Deactivate when device goes to sleep manually"), isOn: $deactivateOnManualSleep)
             } header: {
                 Text(L("Behavior"))
             }
@@ -71,8 +71,8 @@ struct KeepAwakeSettings: View {
                         viewModel.updateActivitySimulation(enabled: newValue)
                     }
                 )) {
-                    Text(String(localized: "Keep apps active"))
-                    Text(String(localized: "Prevents apps from becoming inactive and the screen saver from starting."))
+                    Text(L("Keep apps active"))
+                    Text(L("Prevents apps from becoming inactive and the screen saver from starting."))
                 }
             } header: {
                 Text(L("Activity"))

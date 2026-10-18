@@ -218,14 +218,14 @@ final class MirrorController: NSObject {
             if let buttonFrame = anchorButton?.window?.frame {
                 origin = NSPoint(x: buttonFrame.midX - size.width / 2, y: buttonFrame.minY - size.height - 6)
             } else {
-                let screen = NSScreen.main ?? NSScreen.screens[0]
+                guard let screen = NSScreen.main ?? NSScreen.screens.first else { return }
                 origin = NSPoint(x: screen.visibleFrame.maxX - size.width - 12, y: screen.visibleFrame.maxY - size.height - 8)
             }
         case (.window, false):
             if let saved = UserDefaults.standard.string(forKey: "mirror.windowOrigin") {
                 origin = NSPointFromString(saved)
             } else {
-                let screen = NSScreen.main ?? NSScreen.screens[0]
+                guard let screen = NSScreen.main ?? NSScreen.screens.first else { return }
                 origin = NSPoint(x: screen.visibleFrame.maxX - size.width - 24, y: screen.visibleFrame.maxY - size.height - 24)
             }
         }

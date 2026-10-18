@@ -13,8 +13,6 @@ class History: ItemsContainer { // swiftlint:disable:this type_body_length
   static let shared = History()
   let logger = Logger(label: "org.p0deje.Maccy")
 
-  var pasteStack: PasteStack?
-
   var items: ConcatenatedCollection<HistoryItemDecorator> {
     switch Defaults[.pinTo] {
     case .top:
@@ -39,14 +37,6 @@ class History: ItemsContainer { // swiftlint:disable:this type_body_length
       guard searchQuery != previousSearchQuery else { return }
       throttler.throttle { [self] in
         updateSearchResults()
-
-        if searchQuery.isEmpty {
-          AppState.shared.navigator.select(item: firstUnpinnedItem)
-        } else {
-          AppState.shared.navigator.highlightFirst()
-        }
-
-        AppState.shared.popup.needsResize = true
       }
     }
   }
@@ -135,10 +125,6 @@ class History: ItemsContainer { // swiftlint:disable:this type_body_length
     limitHistorySize(to: Defaults[.size])
 
     updateShortcuts()
-    // Ensure that panel size is proper *after* loading all items.
-    Task {
-      AppState.shared.popup.needsResize = true
-    }
   }
 
   @MainActor
@@ -217,7 +203,6 @@ class History: ItemsContainer { // swiftlint:disable:this type_body_length
     } else {
       updateSearchResults()
     }
-    AppState.shared.popup.needsResize = true
     return itemDecorator
   }
 
@@ -257,10 +242,7 @@ class History: ItemsContainer { // swiftlint:disable:this type_body_length
     }
 
     Clipboard.shared.clear()
-    AppState.shared.popup.close()
-    Task {
-      AppState.shared.popup.needsResize = true
-    }
+    ClipboardController.shared.closePanel()
   }
 
   @MainActor
@@ -293,10 +275,7 @@ class History: ItemsContainer { // swiftlint:disable:this type_body_length
     }
 
     Clipboard.shared.clear()
-    AppState.shared.popup.close()
-    Task {
-      AppState.shared.popup.needsResize = true
-    }
+    ClipboardController.shared.closePanel()
   }
 
   @MainActor
@@ -317,9 +296,6 @@ class History: ItemsContainer { // swiftlint:disable:this type_body_length
     sessionLog.removeValues { $0 == item.item }
 
     updateUnpinnedShortcuts()
-    Task {
-      AppState.shared.popup.needsResize = true
-    }
   }
 
   @MainActor
@@ -352,7 +328,7 @@ class History: ItemsContainer { // swiftlint:disable:this type_body_length
     }
 
     if modifierFlags.isEmpty {
-      AppState.shared.popup.close()
+      ClipboardController.shared.closePanel()
       Clipboard.shared.copy(item.item, removeFormatting: Defaults[.removeFormattingByDefault])
       if Defaults[.pasteByDefault] {
         Clipboard.shared.paste()
@@ -360,14 +336,14 @@ class History: ItemsContainer { // swiftlint:disable:this type_body_length
     } else {
       switch HistoryItemAction(modifierFlags) {
       case .copy:
-        AppState.shared.popup.close()
+        ClipboardController.shared.closePanel()
         Clipboard.shared.copy(item.item)
       case .paste:
-        AppState.shared.popup.close()
+        ClipboardController.shared.closePanel()
         Clipboard.shared.copy(item.item)
         Clipboard.shared.paste()
       case .pasteWithoutFormatting:
-        AppState.shared.popup.close()
+        ClipboardController.shared.closePanel()
         Clipboard.shared.copy(item.item, removeFormatting: true)
         Clipboard.shared.paste()
       case .unknown:
@@ -380,91 +356,6 @@ class History: ItemsContainer { // swiftlint:disable:this type_body_length
     }
   }
 
-  @MainActor
-  func startPasteStack(selection: inout Selection<HistoryItemDecorator>, flags modifierFlags: NSEvent.ModifierFlags) {
-    guard AppState.shared.multiSelectionEnabled else { return }
-    guard let item = selection.first else { return }
-    PasteStack.initializeIfNeeded()
-
-    let stack = PasteStack(items: selection.items, modifierFlags: modifierFlags)
-    pasteStack = stack
-
-    logger.info("Initialising PasteStack with \(stack.items.count) items")
-    logger.info("Copying \(item.item.title) from PasteStack")
-
-    if modifierFlags.isEmpty {
-      AppState.shared.popup.close()
-      Clipboard.shared.copy(item.item, removeFormatting: Defaults[.removeFormattingByDefault])
-    } else {
-      switch HistoryItemAction(modifierFlags) {
-      case .copy:
-        AppState.shared.popup.close()
-        Clipboard.shared.copy(item.item)
-      case .paste:
-        AppState.shared.popup.close()
-        Clipboard.shared.copy(item.item)
-      case .pasteWithoutFormatting:
-        AppState.shared.popup.close()
-        Clipboard.shared.copy(item.item, removeFormatting: true)
-        Clipboard.shared.paste()
-      case .unknown:
-        return
-      }
-    }
-
-    Task {
-      searchQuery = ""
-    }
-  }
-
-  func handlePasteStack() {
-    guard let stack = pasteStack else {
-      return
-    }
-
-    guard let pasted = stack.items.first else {
-      pasteStack = nil
-      logger.info("PasteStack is empty")
-      return
-    }
-
-    logger.info("PasteStack pasted \(pasted.item.title)")
-
-    stack.items.removeFirst()
-
-    guard let item = stack.items.first else {
-      pasteStack = nil
-      logger.info("PasteStack is empty")
-      return
-    }
-
-    logger.info("Copying \(item.item.title) from PasteStack. \(stack.items.count) items remaining in stack.")
-
-    Task {
-      if stack.modifierFlags.isEmpty {
-        Clipboard.shared.copy(item.item, removeFormatting: Defaults[.removeFormattingByDefault])
-      } else {
-        switch HistoryItemAction(stack.modifierFlags) {
-        case .copy:
-          Clipboard.shared.copy(item.item)
-        case .paste:
-          Clipboard.shared.copy(item.item)
-        case .pasteWithoutFormatting:
-          Clipboard.shared.copy(item.item, removeFormatting: true)
-        case .unknown:
-          return
-        }
-      }
-    }
-  }
-
-  func interruptPasteStack() {
-    guard pasteStack != nil else {
-      return
-    }
-    logger.info("Interrupting PasteStack")
-    pasteStack = nil
-  }
 
   @MainActor
   func togglePin(_ item: HistoryItemDecorator?) {
@@ -482,9 +373,6 @@ class History: ItemsContainer { // swiftlint:disable:this type_body_length
 
     searchQuery = ""
     updateUnpinnedShortcuts()
-    if item.isUnpinned {
-      AppState.shared.navigator.scrollTarget = item.id
-    }
   }
 
   @MainActor

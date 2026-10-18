@@ -109,10 +109,7 @@ private struct ModuleCard: View {
                     .lineLimit(1)
                 Spacer(minLength: 0)
                 if !module.isTool {
-                    // Always shown, 0/0 included, so every feature card reads the same.
-                    let options = FeatureOptions.count(module) ?? (0, 0)
-                    OptionsRing(on: Self.isOn(module) ? options.on : 0, total: options.total,
-                                tint: module.tint)
+                    StateBadge(isOn: Self.isOn(module))
                 }
             }
             Text(module.tagline)
@@ -253,6 +250,10 @@ private struct OpensPage: ViewModifier {
                 withAnimation(.snappy(duration: 0.22)) { isHovering = hovering }
                 if enabled { hovering ? NSCursor.pointingHand.push() : NSCursor.pop() }
             }
+            .onDisappear {
+                if isHovering, enabled { NSCursor.pop() }
+                isHovering = false
+            }
             .accessibilityAddTraits(enabled ? .isButton : [])
     }
 }
@@ -336,6 +337,7 @@ private struct MenuItemCard: View {
                     .toggleStyle(.switch)
                     .controlSize(.small)
                     .labelsHidden()
+                    .disabled(!available)
                     .help(L("Show in the menu bar menu"))
             }
             Text(item.tagline)
@@ -350,75 +352,30 @@ private struct MenuItemCard: View {
         .modifier(OpensPage(enabled: open != nil))
         .onTapGesture { open?() }
         .foregroundStyle(available ? .primary : .secondary)
+        .accessibilityElement(children: .contain)
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction(named: L("Open")) { open?() }
     }
 }
 
 
-/// How many of a background feature's options are on: a small ring with "on/total".
-private struct OptionsRing: View {
-    let on: Int
-    let total: Int
-    let tint: Color
-
-    private var fraction: Double { total > 0 ? Double(on) / Double(total) : 0 }
+/// On or off, plainly: a dot and a word.
+private struct StateBadge: View {
+    let isOn: Bool
 
     var body: some View {
-        ZStack {
+        HStack(spacing: 5) {
             Circle()
-                .stroke(.quaternary, lineWidth: 4)
-            Circle()
-                .trim(from: 0, to: fraction)
-                .stroke(tint.gradient, style: StrokeStyle(lineWidth: 4, lineCap: .round))
-                .rotationEffect(.degrees(-90))
-            VStack(spacing: -1) {
-                Text("\(on)")
-                    .font(.system(size: 12, weight: .bold).monospacedDigit())
-                Text("/\(total)")
-                    .font(.caption2.monospacedDigit())
-                    .foregroundStyle(.secondary)
-            }
+                .fill(isOn ? Color.green : Color.secondary.opacity(0.45))
+                .frame(width: 7, height: 7)
+            Text(isOn ? L("Active") : L("Inactive"))
         }
-        .frame(width: 40, height: 40)
-        .help(L("\(on) of \(total) options on"))
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(L("\(on) of \(total) options on"))
-    }
-}
-
-/// Counts of a background feature's options that are switched on.
-@MainActor
-enum FeatureOptions {
-    static func count(_ module: ModuleID) -> (on: Int, total: Int)? {
-        switch module {
-        case .windows:
-            // Window actions with a keyboard shortcut, plus snapping by dragging.
-            let actions: [WindowAction] = [.leftHalf, .rightHalf, .centerHalf, .topHalf, .bottomHalf,
-                                           .topLeft, .topRight, .bottomLeft, .bottomRight,
-                                           .maximize, .almostMaximize, .maximizeHeight, .larger, .smaller, .center, .restore,
-                                           .nextDisplay, .previousDisplay]
-            let withShortcut = actions.filter { UserDefaults.standard.object(forKey: $0.name) != nil }.count
-            let snapping = Defaults.windowSnapping.userDisabled ? 0 : 1
-            return (withShortcut + snapping, actions.count + 1)
-        case .dock:
-            return SirenaDockStats.options
-        case .tweaks:
-            let t = TweaksSettings.shared
-            let flags = [t.finderCutAndPaste, t.finderCutSound, t.finderDeleteMovesToTrash, t.finderCopyPath,
-                         t.installFromDMG, t.screenshotsShowPointer]
-            return (flags.filter { $0 }.count, flags.count)
-        case .menuBar:
-            // Running apps whose icons are hidden, out of the apps chosen to hide.
-            let module = MenuBarModule.shared
-            let running = Set(NSWorkspace.shared.runningApplications.compactMap(\.bundleIdentifier))
-            return (module.hiddenApps.intersection(running).count, module.hiddenApps.count)
-        case .shelf:
-            let s = ShelfSettings.shared
-            let flags = [s.showAtCursor, s.showOnlyAtEdge, s.suppressKey != .none, !s.ignoredApps.isEmpty,
-                         s.showPreviews, s.removeAfterDragOut, s.resolveAliases]
-            return (flags.filter { $0 }.count, flags.count)
-        default:
-            return nil
-        }
+        .font(.caption.weight(.medium))
+        .foregroundStyle(isOn ? Color.green : Color.secondary)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 3)
+        .background((isOn ? Color.green : Color.secondary).opacity(0.12), in: Capsule())
+        .accessibilityLabel(isOn ? L("Active") : L("Inactive"))
     }
 }
 

@@ -94,9 +94,14 @@ final class ShelfContentView: NSView {
 
     // The shelf's menu (add from clipboard or iPhone, stacks, restore…) on right-click.
     override func rightMouseDown(with event: NSEvent) {
-        ShelfController.shared.importsToShelf = true
+        let controller = ShelfController.shared
+        controller.importsToShelf = true
+        controller.importGeneration += 1
+        let generation = controller.importGeneration
         NSMenu.popUpContextMenu(ShelfActions.shelfMenu(), with: event, for: self)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 180) { ShelfController.shared.importsToShelf = false }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 180) {
+            if controller.importGeneration == generation { controller.importsToShelf = false }
+        }
     }
 
     // Keys

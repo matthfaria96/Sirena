@@ -98,21 +98,23 @@ struct SirenaMixerView: View {
 
     private var compactControls: some View {
         VStack(alignment: .leading, spacing: 10) {
+            // Collapses when something else (the inline camera or history) needs the room.
+            let _ = expanded
             // Two tiles, side by side: the Mac's volume and the microphone.
             HStack(alignment: .top, spacing: 8) {
-                miniTile(title: "Saída",
+                miniTile(title: SirenaMixerStrings.outputTab,
                          symbol: (mixer.systemOutputMuted == true || (mixer.systemOutputVolume ?? 0) <= 0.001)
                              ? "speaker.slash.fill" : "speaker.wave.2.fill",
                          tint: .purple,
                          value: systemOutputVolumeBinding,
                          percent: mixer.systemOutputVolume.map { SirenaMixerRoutingSupport.displayPercent(forVolume: $0) },
                          label: SirenaMixerStrings.systemOutputTitle)
-                miniTile(title: "Microfone",
+                miniTile(title: SirenaMixerStrings.micTab,
                          symbol: "mic.fill",
-                         tint: .red,
+                         tint: .orange,
                          value: inputVolumeBinding,
                          percent: SirenaMixerRoutingSupport.displayPercent(forVolume: inputVolumeBinding.wrappedValue),
-                         label: "Microfone")
+                         label: SirenaMixerStrings.micTab)
             }
 
             // Everything else unrolls downward.
@@ -123,7 +125,8 @@ struct SirenaMixerView: View {
                     Image(systemName: "chevron.down")
                         .font(.caption2.weight(.bold))
                         .rotationEffect(.degrees(expanded ? 180 : 0))
-                    Text(expanded ? "Recolher" : "Dispositivos e volume de cada app")
+                    Text(expanded ? SirenaMixerStrings.collapse : SirenaMixerStrings.expandHint)
+                        .contentTransition(.opacity)
                         .font(.caption.weight(.medium))
                 }
                 .foregroundStyle(.secondary)
@@ -133,7 +136,7 @@ struct SirenaMixerView: View {
                 .contentShape(Capsule())
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(expanded ? "Recolher o mixer" : "Expandir o mixer")
+            .accessibilityLabel(expanded ? SirenaMixerStrings.collapseAccessibility : SirenaMixerStrings.expandAccessibility)
 
             if expanded {
                 VStack(alignment: .leading, spacing: 8) {
@@ -154,6 +157,9 @@ struct SirenaMixerView: View {
                 }
                 .transition(.opacity.combined(with: .move(edge: .top)))
             }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .sirenaMixerCollapse)) { _ in
+            withAnimation(.snappy(duration: 0.25)) { expanded = false }
         }
     }
 
@@ -1362,7 +1368,6 @@ private struct SirenaMixerGlassSlider: View {
                     .offset(x: (width - knobWidth) * amount)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-            .animation(.easeOut(duration: 0.16), value: amount)
             .contentShape(Rectangle())
             .gesture(
                 DragGesture(minimumDistance: 0)
@@ -1428,3 +1433,8 @@ private struct SirenaMixerGlassSlider: View {
     }
 }
 #endif
+
+extension Notification.Name {
+    /// Posted by the menu when an inline panel opens: the compact mixer folds up.
+    static let sirenaMixerCollapse = Notification.Name("sirena.mixerCollapse")
+}

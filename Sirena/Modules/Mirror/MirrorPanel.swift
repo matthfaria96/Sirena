@@ -142,7 +142,7 @@ struct MirrorView: View {
 
     private var controls: some View {
         HStack(spacing: 4) {
-            ControlButton(symbol: "plus.magnifyingglass", help: L("Zoom")) {
+            ControlButton(symbol: settings.zoom >= 2 ? "minus.magnifyingglass" : "plus.magnifyingglass", help: L("Zoom")) {
                 settings.zoom = settings.zoom >= 2 ? 1 : settings.zoom + 0.5
             }
             .overlay(alignment: .topTrailing) {
@@ -181,6 +181,7 @@ private struct ControlButton: View {
     let help: String
     var prominent = false
     let action: () -> Void
+    @State private var isHovering = false
 
     var body: some View {
         Button(action: action) {
@@ -188,9 +189,11 @@ private struct ControlButton: View {
                 .font(.system(size: prominent ? 15 : 13, weight: .semibold))
                 .foregroundStyle(.white)
                 .frame(width: 30, height: 30)
-                .background(prominent ? Color.white.opacity(0.18) : .clear, in: Circle())
+                .background(isHovering ? Color.white.opacity(0.22) : prominent ? Color.white.opacity(0.18) : .clear, in: Circle())
                 .contentShape(Circle())
+                .animation(.snappy(duration: 0.15), value: isHovering)
         }
+        .onHover { isHovering = $0 }
         .buttonStyle(.plain)
         .help(help)
         .accessibilityLabel(help)

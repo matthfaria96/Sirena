@@ -26,6 +26,8 @@ final class ShelfController {
     /// The shelf's own menu is open: a Continuity Camera import goes to the shelf, not
     /// to Text Capture (both use the same system mechanism, answered by AppDelegate).
     @ObservationIgnored var importsToShelf = false
+    /// Which import request armed the flag, so an older timer never cancels a newer one.
+    @ObservationIgnored var importGeneration = 0
 
     @ObservationIgnored let panel = ShelfPanel()
     @ObservationIgnored private var monitors: [Any] = []

@@ -13,13 +13,6 @@ final class AppSettingsViewModel {
         }
     }
 
-     var hideMenuBarIcon: Bool {
-        didSet {
-            Defaults.hideMenuBarIcon.enabled = hideMenuBarIcon
-            SirenaStatusItem.instance.refreshVisibility()
-        }
-    }
-
      var versionString: String = ""
 
      var allowAnyShortcut: Bool {
@@ -32,7 +25,6 @@ final class AppSettingsViewModel {
     // MARK: - Initialization
     init() {
         self.launchOnLogin = Defaults.launchOnLogin.enabled
-        self.hideMenuBarIcon = Defaults.hideMenuBarIcon.enabled
         self.allowAnyShortcut = Defaults.allowAnyShortcut.enabled
 
         let appVersion = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
@@ -43,10 +35,6 @@ final class AppSettingsViewModel {
     }
 
     private func setupObservers() {
-        Notification.Name.menuBarIconHidden.onPost { [weak self] _ in
-            self?.hideMenuBarIcon = true
-        }
-
         Notification.Name.configImported.onPost { [weak self] _ in
             self?.reloadFromDefaults()
         }
@@ -54,7 +42,6 @@ final class AppSettingsViewModel {
 
     func reloadFromDefaults() {
         self.launchOnLogin = Defaults.launchOnLogin.enabled
-        self.hideMenuBarIcon = Defaults.hideMenuBarIcon.enabled
         self.allowAnyShortcut = Defaults.allowAnyShortcut.enabled
     }
 

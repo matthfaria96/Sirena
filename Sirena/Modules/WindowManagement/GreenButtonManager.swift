@@ -33,6 +33,16 @@ class GreenButtonManager {
     private func filter(_ event: NSEvent) -> Bool {
         switch event.type {
         case .leftMouseDown:
+            guard AXIsProcessTrusted() else { return false }
+            return autoreleasepool { filterMouseDown(event) }
+        case .leftMouseUp:
+            return filterMouseUp(event)
+        default:
+            return false
+        }
+    }
+
+    private func filterMouseDown(_ event: NSEvent) -> Bool {
             guard
                 event.modifierFlags.intersection(.deviceIndependentFlagsMask).isEmpty,
                 let location = event.cgEvent?.location,
@@ -47,22 +57,21 @@ class GreenButtonManager {
             self.windowElement = windowElement
             self.buttonFrame = buttonFrame
             return true
-        case .leftMouseUp:
-            guard let windowElement = windowElement, let buttonFrame = buttonFrame else {
-                return false
-            }
-            self.windowElement = nil
-            self.buttonFrame = nil
-            // Releasing outside the button cancels the click, matching native button behavior
-            if let location = event.cgEvent?.location, buttonFrame.contains(location) {
-                DispatchQueue.main.async {
-                    GreenButtonManager.executeAction(windowElement)
-                }
-            }
-            return true
-        default:
+    }
+
+    private func filterMouseUp(_ event: NSEvent) -> Bool {
+        guard let windowElement = windowElement, let buttonFrame = buttonFrame else {
             return false
         }
+        self.windowElement = nil
+        self.buttonFrame = nil
+        // Releasing outside the button cancels the click, matching native button behavior
+        if let location = event.cgEvent?.location, buttonFrame.contains(location) {
+            DispatchQueue.main.async {
+                GreenButtonManager.executeAction(windowElement)
+            }
+        }
+        return true
     }
 
     private static func executeAction(_ windowElement: AccessibilityElement) {

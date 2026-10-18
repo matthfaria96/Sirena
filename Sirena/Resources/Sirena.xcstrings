@@ -2,16 +2,6 @@
   "sourceLanguage": "en",
   "version": "1.0",
   "strings": {
-    "%@ is turned off": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ está desativado"
-          }
-        }
-      }
-    },
     "%lld items in history": {
       "localizations": {
         "pt-BR": {
@@ -38,16 +28,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "1 minuto"
-          }
-        }
-      }
-    },
-    "A floating circular camera mirror to check how you look before a call.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Um espelho circular flutuante com a sua câmera, para conferir o visual antes de uma chamada."
           }
         }
       }
@@ -82,16 +62,6 @@
         }
       }
     },
-    "Acknowledgements": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Agradecimentos"
-          }
-        }
-      }
-    },
     "Active": {
       "localizations": {
         "pt-BR": {
@@ -112,62 +82,12 @@
         }
       }
     },
-    "Allow Access…": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Permitir Acesso…"
-          }
-        }
-      }
-    },
     "Allowed": {
       "localizations": {
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
             "value": "Permitido"
-          }
-        }
-      }
-    },
-    "Almond Eye": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Olho Amendoado"
-          }
-        }
-      }
-    },
-    "Always hidden": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sempre oculto"
-          }
-        }
-      }
-    },
-    "Always shown": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sempre visível"
-          }
-        }
-      }
-    },
-    "Authorize…": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Autorizar…"
           }
         }
       }
@@ -188,16 +108,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ocultação automática"
-          }
-        }
-      }
-    },
-    "Based on %@": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Baseado no %@"
           }
         }
       }
@@ -242,42 +152,12 @@
         }
       }
     },
-    "Cannot configure camera.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Não foi possível configurar a câmera."
-          }
-        }
-      }
-    },
     "Choose…": {
       "localizations": {
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
             "value": "Escolher…"
-          }
-        }
-      }
-    },
-    "Click the cup in the menu bar to switch it on, or use the button here.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ative pelo botão ao lado ou pelo menu do Sirena."
-          }
-        }
-      }
-    },
-    "Click to record hotkey...": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Clique para gravar o atalho…"
           }
         }
       }
@@ -302,32 +182,12 @@
         }
       }
     },
-    "Concentric Rings": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Anéis Concêntricos"
-          }
-        }
-      }
-    },
     "Copy": {
       "localizations": {
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
             "value": "Copiar"
-          }
-        }
-      }
-    },
-    "Could not register hotkey. It may be in use by another application.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Não foi possível registrar o atalho. Ele pode estar em uso por outro app."
           }
         }
       }
@@ -352,32 +212,12 @@
         }
       }
     },
-    "Drag the circle to move it, drag its edge to resize. Right-click it for options.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Arraste o círculo para movê-lo e a borda para redimensionar. Clique com o botão direito para ver opções."
-          }
-        }
-      }
-    },
     "Edit": {
       "localizations": {
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
             "value": "Editar"
-          }
-        }
-      }
-    },
-    "Enable always-hidden section": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ativar seção sempre oculta"
           }
         }
       }
@@ -392,72 +232,12 @@
         }
       }
     },
-    "Enabled (%@)": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ativado (%@)"
-          }
-        }
-      }
-    },
     "Error": {
       "localizations": {
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
             "value": "Erro"
-          }
-        }
-      }
-    },
-    "Everything you need to work better on your Mac, in one place.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tudo o que você precisa para trabalhar melhor no Mac, num só lugar."
-          }
-        }
-      }
-    },
-    "Eye Circle (SF Symbol)": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Olho em Círculo (SF Symbol)"
-          }
-        }
-      }
-    },
-    "Eye of Horus": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Olho de Hórus"
-          }
-        }
-      }
-    },
-    "Failed to configure camera session.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Falha ao configurar a sessão da câmera."
-          }
-        }
-      }
-    },
-    "Failed to switch camera: %@": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Falha ao trocar de câmera: %@"
           }
         }
       }
@@ -512,32 +292,12 @@
         }
       }
     },
-    "Hide Window": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ocultar Espelho"
-          }
-        }
-      }
-    },
     "Hide after": {
       "localizations": {
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
             "value": "Ocultar após"
-          }
-        }
-      }
-    },
-    "Hide icons automatically": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ocultar ícones automaticamente"
           }
         }
       }
@@ -552,26 +312,6 @@
         }
       }
     },
-    "Hide the Sirena icon in the menu bar": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ocultar o ícone do Sirena na barra de menus"
-          }
-        }
-      }
-    },
-    "Hold ⌘ and drag menu bar icons to the left of the separator to hide them. Click the arrow to show or hide them.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Segure ⌘ e arraste os ícones da barra de menus para a esquerda do separador para ocultá-los. Clique na seta para mostrar ou ocultar."
-          }
-        }
-      }
-    },
     "Home": {
       "localizations": {
         "pt-BR": {
@@ -582,42 +322,12 @@
         }
       }
     },
-    "How it works": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Como funciona"
-          }
-        }
-      }
-    },
-    "Icon Style": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Estilo do Ícone"
-          }
-        }
-      }
-    },
     "Info": {
       "localizations": {
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
             "value": "Informações"
-          }
-        }
-      }
-    },
-    "Iris needs camera access. Enable it in System Settings > Privacy & Security > Camera.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "O Sirena precisa de acesso à câmera. Ative em Ajustes do Sistema > Privacidade e Segurança > Câmera."
           }
         }
       }
@@ -652,16 +362,6 @@
         }
       }
     },
-    "Libraries": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bibliotecas"
-          }
-        }
-      }
-    },
     "Mac can sleep normally": {
       "localizations": {
         "pt-BR": {
@@ -678,16 +378,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Barra de Menus"
-          }
-        }
-      }
-    },
-    "Menu bar & shortcut": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Barra de menus e atalho"
           }
         }
       }
@@ -762,42 +452,12 @@
         }
       }
     },
-    "Mirror — click to show or hide, right-click for options": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Espelho — clique para mostrar ou ocultar, botão direito para opções"
-          }
-        }
-      }
-    },
-    "Needed to move windows, paste from the clipboard history and keep apps active.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Necessária para mover janelas, colar do histórico da área de transferência e manter apps ativos."
-          }
-        }
-      }
-    },
     "Needs Accessibility permission": {
       "localizations": {
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
             "value": "Precisa da permissão de Acessibilidade"
-          }
-        }
-      }
-    },
-    "Neural Web": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Teia Neural"
           }
         }
       }
@@ -822,42 +482,12 @@
         }
       }
     },
-    "Not Authorized to Control Your Computer": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sem autorização para controlar o computador"
-          }
-        }
-      }
-    },
     "Off": {
       "localizations": {
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
             "value": "Desligado"
-          }
-        }
-      }
-    },
-    "Open History": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Abrir Histórico"
-          }
-        }
-      }
-    },
-    "Open Sirena again from Finder or Spotlight to see this window.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Abra o Sirena de novo pelo Finder ou Spotlight para ver esta janela."
           }
         }
       }
@@ -912,52 +542,12 @@
         }
       }
     },
-    "Press a key combination:": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pressione uma combinação de teclas:"
-          }
-        }
-      }
-    },
-    "Press shortcut…": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pressione o atalho…"
-          }
-        }
-      }
-    },
     "Quit Sirena": {
       "localizations": {
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
             "value": "Encerrar Sirena"
-          }
-        }
-      }
-    },
-    "Record Hotkey": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Gravar Atalho"
-          }
-        }
-      }
-    },
-    "Record Hotkey...": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Gravar Atalho…"
           }
         }
       }
@@ -972,16 +562,6 @@
         }
       }
     },
-    "Record…": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Gravar…"
-          }
-        }
-      }
-    },
     "Redo": {
       "localizations": {
         "pt-BR": {
@@ -992,32 +572,12 @@
         }
       }
     },
-    "Remove shortcut": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Remover atalho"
-          }
-        }
-      }
-    },
     "Restart Now": {
       "localizations": {
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
             "value": "Reiniciar Agora"
-          }
-        }
-      }
-    },
-    "Right-click (or ⌃-click) the cup in the menu bar for more options.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mais opções ficam no menu do Sirena, no ícone da barra de menus."
           }
         }
       }
@@ -1092,36 +652,6 @@
         }
       }
     },
-    "Show / Hide Icons": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mostrar / Ocultar Ícones"
-          }
-        }
-      }
-    },
-    "Show / hide icons": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mostrar / ocultar ícones"
-          }
-        }
-      }
-    },
-    "Show / hide with a keyboard shortcut": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mostrar / ocultar com um atalho de teclado"
-          }
-        }
-      }
-    },
     "Show Mirror": {
       "localizations": {
         "pt-BR": {
@@ -1138,16 +668,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Mostrar Espelho"
-          }
-        }
-      }
-    },
-    "Show icons hidden behind the notch": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mostrar ícones escondidos atrás do notch"
           }
         }
       }
@@ -1182,16 +702,6 @@
         }
       }
     },
-    "Some features stop completely after Sirena restarts.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Alguns recursos só param por completo depois que o Sirena reinicia."
-          }
-        }
-      }
-    },
     "Stop your Mac from sleeping or dimming the screen, for as long as you want.": {
       "localizations": {
         "pt-BR": {
@@ -1207,7 +717,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Esta função só para por completo depois que o Sirena reiniciar."
+            "value": "Para desligar por completo, reinicie o Sirena."
           }
         }
       }
@@ -1282,16 +792,6 @@
         }
       }
     },
-    "Use the full menu bar when expanding": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Usar a barra de menus inteira ao expandir"
-          }
-        }
-      }
-    },
     "Version %@ (%@)": {
       "localizations": {
         "pt-BR": {
@@ -1302,32 +802,12 @@
         }
       }
     },
-    "View Logging…": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ver Registros…"
-          }
-        }
-      }
-    },
     "Window": {
       "localizations": {
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
             "value": "Janela"
-          }
-        }
-      }
-    },
-    "Window Management": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Gerenciar Janelas"
           }
         }
       }
@@ -1392,16 +872,6 @@
         }
       }
     },
-    "Allow Screen Recording…": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Permitir Gravação de Tela…"
-          }
-        }
-      }
-    },
     "Needed to show window thumbnails. Without it, previews show only titles and icons.": {
       "localizations": {
         "pt-BR": {
@@ -1432,32 +902,12 @@
         }
       }
     },
-    "Needed to show window thumbnails in Dock previews and the window switcher.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Necessária para mostrar miniaturas das janelas nas prévias do Dock e no alternador de janelas."
-          }
-        }
-      }
-    },
     "See repository": {
       "localizations": {
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
             "value": "Ver repositório"
-          }
-        }
-      }
-    },
-    "Hold ⌘ and drag menu bar icons to the left of the arrow to hide them. Click the arrow to show or hide them. Sirena's own icons always stay visible.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Segure ⌘ e arraste os ícones da barra de menus para a esquerda da seta para ocultá-los. Clique na seta para mostrar ou ocultar. Os ícones do próprio Sirena ficam sempre visíveis."
           }
         }
       }
@@ -1662,16 +1112,6 @@
         }
       }
     },
-    "Show / Hide Mirror": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mostrar / Ocultar Espelho"
-          }
-        }
-      }
-    },
     "Show microphone level": {
       "localizations": {
         "pt-BR": {
@@ -1752,26 +1192,6 @@
         }
       }
     },
-    "Move Sirena to the Applications folder. On macOS 27, hiding icons only works from there; elsewhere Sirena's own icons and the arrow get hidden too.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mova o Sirena para a pasta Aplicativos. No macOS 27, esconder ícones só funciona a partir de lá; em outro lugar, os ícones do próprio Sirena e a seta também somem."
-          }
-        }
-      }
-    },
-    "Allow Accessibility Access…": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Permitir Acesso de Acessibilidade…"
-          }
-        }
-      }
-    },
     "Clipboard History": {
       "localizations": {
         "pt-BR": {
@@ -1812,82 +1232,12 @@
         }
       }
     },
-    "Hide Icons After Sirena": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ocultar Ícones Após o Sirena"
-          }
-        }
-      }
-    },
-    "Keep Mac Awake": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Manter o Mac Acordado"
-          }
-        }
-      }
-    },
-    "Pause Copying": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pausar Histórico"
-          }
-        }
-      }
-    },
     "Show Hidden Icons": {
       "localizations": {
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
             "value": "Mostrar Ícones Ocultos"
-          }
-        }
-      }
-    },
-    "Sirena — click ✨ for the menu, click ‹ to hide the icons after it": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sirena — clique no ✨ para o menu, clique em ‹ para ocultar os ícones depois dele"
-          }
-        }
-      }
-    },
-    "Sirena — click ✨ for the menu, click › to show the hidden icons": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sirena — clique no ✨ para o menu, clique em › para mostrar os ícones ocultos"
-          }
-        }
-      }
-    },
-    "Sirena's item always sits at the far left of the app icons. Click its arrow to hide every icon that comes after it, and click again to bring them back. While icons are hidden, the arrow sits in a filled pill with the number of hidden apps.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "O item do Sirena fica sempre na ponta esquerda dos ícones de apps. Clique na seta dele para ocultar todos os ícones que vêm depois, e clique de novo para trazê-los de volta. Enquanto houver ícones ocultos, a seta fica dentro de uma pílula preenchida com o número de apps ocultos."
-          }
-        }
-      }
-    },
-    "Stop Keeping Awake": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Parar de Manter Acordado"
           }
         }
       }
@@ -2218,16 +1568,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Janela fixada"
-          }
-        }
-      }
-    },
-    "Bring Window to Front": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Trazer janela para a frente"
           }
         }
       }
@@ -2582,56 +1922,6 @@
         }
       }
     },
-    "Show the pin button": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mostrar o botão de alfinete"
-          }
-        }
-      }
-    },
-    "Button Position": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Posição do botão"
-          }
-        }
-      }
-    },
-    "Only while the pointer is over the window": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Só quando o ponteiro estiver sobre a janela"
-          }
-        }
-      }
-    },
-    "Pin button": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Botão de alfinete"
-          }
-        }
-      }
-    },
-    "The pin button opens a menu to change the opacity, schedule unpinning or unpin.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "O botão de alfinete abre um menu para mudar a opacidade, agendar ou desafixar."
-          }
-        }
-      }
-    },
     "Shake Window to Pin": {
       "localizations": {
         "pt-BR": {
@@ -2742,42 +2032,12 @@
         }
       }
     },
-    "Unpin %@": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Desafixar %@"
-          }
-        }
-      }
-    },
-    "Pin %@": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fixar %@"
-          }
-        }
-      }
-    },
     "Click to unpin": {
       "localizations": {
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
             "value": "Clique para desafixar"
-          }
-        }
-      }
-    },
-    "Pick a Window…": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Escolher janela…"
           }
         }
       }
@@ -3482,16 +2742,6 @@
         }
       }
     },
-    "To read a photo or document scan from your iPhone, use “Import from iPhone” in the Sirena menu.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Para ler uma foto ou digitalização do iPhone, use “Importar do iPhone” no menu do Sirena."
-          }
-        }
-      }
-    },
     "Captures from this session appear here.": {
       "localizations": {
         "pt-BR": {
@@ -3552,32 +2802,12 @@
         }
       }
     },
-    "Clear Clipboard History (%lld)": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Limpar histórico cumulativo (%lld)"
-          }
-        }
-      }
-    },
     "Maximize": {
       "localizations": {
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
             "value": "Maximizar"
-          }
-        }
-      }
-    },
-    "Enter Full Screen": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tela cheia"
           }
         }
       }
@@ -3622,16 +2852,6 @@
         }
       }
     },
-    "Small fixes for windows, the Dock and the Finder: fill with the green button, cut and paste files and more.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pequenas melhorias para janelas, Dock e Finder: preencher a tela com o botão verde, recortar e colar arquivos e mais."
-          }
-        }
-      }
-    },
     "Inspired by Supercharge, written for Sirena": {
       "localizations": {
         "pt-BR": {
@@ -3672,32 +2892,12 @@
         }
       }
     },
-    "Needed to change what clicks and keys do in the Dock, the Finder and windows.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Necessária para mudar o que cliques e teclas fazem no Dock, no Finder e nas janelas."
-          }
-        }
-      }
-    },
     "Fill window when clicking green traffic light button": {
       "localizations": {
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
             "value": "Preencher a janela ao clicar no botão verde"
-          }
-        }
-      }
-    },
-    "Instead of full screen. Click again to restore the size; ⌥-click keeps the usual behavior.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Em vez de tela cheia. Clique de novo para voltar ao tamanho anterior; ⌥-clique mantém o comportamento normal."
           }
         }
       }
@@ -3852,66 +3052,6 @@
         }
       }
     },
-    "Left Edge, Top": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Borda esquerda, em cima"
-          }
-        }
-      }
-    },
-    "Left Edge, Center": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Borda esquerda, no centro"
-          }
-        }
-      }
-    },
-    "Left Edge, Bottom": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Borda esquerda, embaixo"
-          }
-        }
-      }
-    },
-    "Right Edge, Top": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Borda direita, em cima"
-          }
-        }
-      }
-    },
-    "Right Edge, Center": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Borda direita, no centro"
-          }
-        }
-      }
-    },
-    "Right Edge, Bottom": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Borda direita, embaixo"
-          }
-        }
-      }
-    },
     "Smallest": {
       "localizations": {
         "pt-BR": {
@@ -4008,16 +3148,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Imagem"
-          }
-        }
-      }
-    },
-    "More…": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mais…"
           }
         }
       }
@@ -4228,16 +3358,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Adicionar da área de transferência"
-          }
-        }
-      }
-    },
-    "Import from iPhone or iPad…": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Importar do iPhone ou iPad…"
           }
         }
       }
@@ -4682,16 +3802,6 @@
         }
       }
     },
-    "More actions": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mais ações"
-          }
-        }
-      }
-    },
     "Extra": {
       "localizations": {
         "pt-BR": {
@@ -4912,36 +4022,6 @@
         }
       }
     },
-    "Read Text from iPhone…": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ler Texto do iPhone…"
-          }
-        }
-      }
-    },
-    "Small improvements for windows, the Dock and the Finder, plus keeping your Mac awake and tidying the menu bar.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pequenas melhorias para janelas, Dock e Finder, além de manter o Mac acordado e organizar a barra de menus."
-          }
-        }
-      }
-    },
-    "%lld of %lld features on": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld de %lld recursos ligados"
-          }
-        }
-      }
-    },
     "1 feature needs a permission": {
       "localizations": {
         "pt-BR": {
@@ -5002,46 +4082,6 @@
         }
       }
     },
-    "Let Mac Sleep": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Deixar Dormir"
-          }
-        }
-      }
-    },
-    "Allow Accessibility…": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Permitir Acessibilidade…"
-          }
-        }
-      }
-    },
-    "Pinned Windows (%lld)": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Janelas Fixadas (%lld)"
-          }
-        }
-      }
-    },
-    "Keep Awake For": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Manter Acordado Por"
-          }
-        }
-      }
-    },
     "Open %@": {
       "localizations": {
         "pt-BR": {
@@ -5078,46 +4118,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ferramentas"
-          }
-        }
-      }
-    },
-    "Features — %lld of %lld on": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Recursos — %lld de %lld ligados"
-          }
-        }
-      }
-    },
-    "%lld of %lld options on": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld de %lld opções ativas"
-          }
-        }
-      }
-    },
-    "Small improvements for windows, the Dock and the Finder, and a tidier menu bar.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pequenas melhorias para janelas, Dock e Finder, e uma barra de menus mais organizada."
-          }
-        }
-      }
-    },
-    "Small improvements for windows, the Dock and the Finder.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pequenas melhorias para janelas, Dock e Finder."
           }
         }
       }
@@ -5572,16 +4572,6 @@
         }
       }
     },
-    "Like a double-click on the title bar, instead of full screen. Click again to restore the size. Needs the Windows feature on.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Como um duplo clique no título, em vez de tela cheia. Clique de novo para voltar ao tamanho anterior. Precisa do recurso Janelas ligado."
-          }
-        }
-      }
-    },
     "Click an app to bring its icon back for a moment and use it.": {
       "localizations": {
         "pt-BR": {
@@ -5632,76 +4622,6 @@
         }
       }
     },
-    "Outputs, per-app volume and the microphone": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Saídas, volume por app e microfone"
-          }
-        }
-      }
-    },
-    "Turn Cafeína on or off": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ligar ou desligar o Não desligar tela"
-          }
-        }
-      }
-    },
-    "Show or hide the mirror": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mostrar ou ocultar o espelho"
-          }
-        }
-      }
-    },
-    "Choose a window to pin": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Escolher uma janela para fixar"
-          }
-        }
-      }
-    },
-    "Select text on screen": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Selecionar texto na tela"
-          }
-        }
-      }
-    },
-    "Show or hide the shelf": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mostrar ou ocultar a prateleira"
-          }
-        }
-      }
-    },
-    "Show or hide the chosen icons": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mostrar ou ocultar os ícones escolhidos"
-          }
-        }
-      }
-    },
     "Nothing here yet": {
       "localizations": {
         "pt-BR": {
@@ -5722,42 +4642,12 @@
         }
       }
     },
-    "Your ⚡ menu": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Seu menu ⚡"
-          }
-        }
-      }
-    },
-    "Everything you reach for, one click away in the menu bar. Choose what it shows.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tudo o que você usa, a um clique na barra de menus. Escolha o que aparece nele."
-          }
-        }
-      }
-    },
-    "Try It": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Experimentar"
-          }
-        }
-      }
-    },
     "Feature turned off": {
       "localizations": {
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recurso desligado"
+            "value": "Desligado — ative na página do recurso"
           }
         }
       }
@@ -5828,26 +4718,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Apps"
-          }
-        }
-      }
-    },
-    "Use the Sirena switcher": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Usar o alternador do Sirena"
-          }
-        }
-      }
-    },
-    "Switch between apps and windows, including minimized windows and multiple windows from the same app.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Troque de app ou janela, inclusive janelas minimizadas e várias janelas do mesmo app."
           }
         }
       }
@@ -10452,32 +9322,12 @@
         }
       }
     },
-    "Halves, corners, maximize, center and moving to another display.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Metades, cantos, maximizar, centralizar e mover para outra tela."
-          }
-        }
-      }
-    },
     "Advanced mode": {
       "localizations": {
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
             "value": "Modo avançado"
-          }
-        }
-      }
-    },
-    "More window actions, snap areas, and importing or exporting the settings.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mais ações de janela, áreas de encaixe e importar ou exportar os ajustes."
           }
         }
       }
@@ -10712,16 +9562,6 @@
         }
       }
     },
-    "Esc cancels. The ✕ in the field removes the shortcut.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Esc cancela. O ✕ no campo remove o atalho."
-          }
-        }
-      }
-    },
     "Snap areas: what each edge and corner of the screen does when you drag a window there.": {
       "localizations": {
         "pt-BR": {
@@ -10762,16 +9602,6 @@
         }
       }
     },
-    "Settings and turning features on or off": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ajustes e ativação dos recursos"
-          }
-        }
-      }
-    },
     "Type the new shortcut. Esc cancels, ⌫ removes it.": {
       "localizations": {
         "pt-BR": {
@@ -10792,52 +9622,12 @@
         }
       }
     },
-    "Can sleep": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pode dormir"
-          }
-        }
-      }
-    },
     "Showing": {
       "localizations": {
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
             "value": "Aparecendo"
-          }
-        }
-      }
-    },
-    "1 pinned": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "1 fixada"
-          }
-        }
-      }
-    },
-    "%lld pinned": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld fixadas"
-          }
-        }
-      }
-    },
-    "None pinned": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nenhuma fixada"
           }
         }
       }
@@ -10862,42 +9652,12 @@
         }
       }
     },
-    "Display Brightness": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Brilho das telas"
-          }
-        }
-      }
-    },
-    "Keyboard Light": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Luz do teclado"
-          }
-        }
-      }
-    },
     "Peek Camera": {
       "localizations": {
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
             "value": "Espiar câmera"
-          }
-        }
-      }
-    },
-    "Per-App Mixer": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mixer por app"
           }
         }
       }
@@ -10932,46 +9692,6 @@
         }
       }
     },
-    "The Mac's sound volume, with a click on the speaker to mute.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "O volume do Mac; clique no alto-falante para silenciar."
-          }
-        }
-      }
-    },
-    "Mutes or unmutes the microphone for every app at once. Green: on; red: muted.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Silencia ou liga o microfone para todos os apps de uma vez. Verde: ligado; vermelho: mudo."
-          }
-        }
-      }
-    },
-    "Brightness of the built-in display and Apple displays, one slider each.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Brilho da tela do Mac e de monitores Apple, um controle para cada."
-          }
-        }
-      }
-    },
-    "The keyboard backlight, on Macs that have one.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "A luz do teclado, nos Macs que têm."
-          }
-        }
-      }
-    },
     "Keeps the Mac and the display from sleeping, for the time you choose or indefinitely. The time is remembered.": {
       "localizations": {
         "pt-BR": {
@@ -10982,62 +9702,12 @@
         }
       }
     },
-    "Opens the camera below the menu bar for a quick look at yourself. Click it again to close.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Abre a câmera abaixo da barra de menus para você dar uma olhadinha. Clique de novo para fechar."
-          }
-        }
-      }
-    },
-    "Outputs, volume of each app and the microphone, in detail.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Saídas de som, volume de cada app e o microfone, em detalhes."
-          }
-        }
-      }
-    },
     "Muted": {
       "localizations": {
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
             "value": "Mudo"
-          }
-        }
-      }
-    },
-    "No display here can change brightness.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nenhuma tela aqui permite mudar o brilho."
-          }
-        }
-      }
-    },
-    "This Mac has no keyboard light.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Este Mac não tem luz no teclado."
-          }
-        }
-      }
-    },
-    "Awake indefinitely": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sem limite de tempo"
           }
         }
       }
@@ -11058,26 +9728,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Duração"
-          }
-        }
-      }
-    },
-    "How long Cafeína keeps the Mac awake. Remembered for next time.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Por quanto tempo a Cafeína mantém o Mac acordado. Fica salvo para a próxima vez."
-          }
-        }
-      }
-    },
-    "Quick look at yourself": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Uma olhadinha rápida"
           }
         }
       }
@@ -11132,52 +9782,12 @@
         }
       }
     },
-    "Your menu bar menu": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Seu menu na barra de menus"
-          }
-        }
-      }
-    },
     "Controllers": {
       "localizations": {
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
             "value": "Controladores"
-          }
-        }
-      }
-    },
-    "Programs opened with one click from the menu.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Programas abertos com um clique a partir do menu."
-          }
-        }
-      }
-    },
-    "Adjusted right there in the menu: sound, microphone, brightness, Cafeína and a peek through the camera.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ajustados ali mesmo no menu."
-          }
-        }
-      }
-    },
-    "Open its page": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Abrir a página"
           }
         }
       }
@@ -11192,22 +9802,12 @@
         }
       }
     },
-    "Sleep allowed": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Suspensão permitida"
-          }
-        }
-      }
-    },
     "Quit": {
       "localizations": {
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Desligar"
+            "value": "Encerrar"
           }
         }
       }
@@ -11272,16 +9872,6 @@
         }
       }
     },
-    "Tools opened with one click from the menu. Click a card for all its settings; the switch puts it in the menu or takes it out.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ferramentas abertas com um clique pelo menu. Clique no cartão para ver todos os ajustes; o botão coloca ou tira do menu."
-          }
-        }
-      }
-    },
     "In the menu": {
       "localizations": {
         "pt-BR": {
@@ -11298,16 +9888,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Fora do menu"
-          }
-        }
-      }
-    },
-    "Tools opened with one click from the menu. Click a card for all of its settings.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ferramentas abertas com um clique pelo menu. Clique no cartão para ver todos os ajustes."
           }
         }
       }
@@ -11358,36 +9938,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Voltar para Início"
-          }
-        }
-      }
-    },
-    "Needed for the mirror and “Peek” from the menu.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Necessária para o Espelho e o “Espiar” do menu."
-          }
-        }
-      }
-    },
-    "Needed for the microphone level in the mirror and the microphone controls.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Necessário para o nível do microfone no Espelho e os controles de microfone."
-          }
-        }
-      }
-    },
-    "Sirena only asks for what its features need. Everything stays on this Mac.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "O Sirena só pede o que os recursos precisam. Tudo fica neste Mac."
           }
         }
       }
@@ -11582,56 +10132,6 @@
         }
       }
     },
-    "Everything you use every day on the Mac, in one place. Sirena lives in the menu bar: click the orb to reach your shortcuts and controllers.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tudo o que você usa todo dia no Mac, num lugar só. O Sirena mora na barra de menus: clique na orbe para chegar aos seus atalhos e controladores."
-          }
-        }
-      }
-    },
-    "Shortcuts and controllers: choose what appears in the menu.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Atalhos e controladores: escolha o que aparece no menu."
-          }
-        }
-      }
-    },
-    "Features: switch on what should work by itself.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Recursos: ligue o que deve funcionar sozinho."
-          }
-        }
-      }
-    },
-    "⌃⌥S opens this window from anywhere.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "⌃⌥S abre esta janela de qualquer lugar."
-          }
-        }
-      }
-    },
-    "Hi! I'm here in the menu bar whenever you need me.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Oi! Estou aqui na barra de menus sempre que precisar."
-          }
-        }
-      }
-    },
     "Appears in the menu bar menu": {
       "localizations": {
         "pt-BR": {
@@ -11788,6 +10288,86 @@
           "stringUnit": {
             "state": "translated",
             "value": "Câmera indisponível"
+          }
+        }
+      }
+    },
+    "Turned on": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ativado"
+          }
+        }
+      }
+    },
+    "Turned off": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desativado"
+          }
+        }
+      }
+    },
+    "Inactive": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inativo"
+          }
+        }
+      }
+    },
+    "Closes in %lld seconds": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fecha em %lld segundos"
+          }
+        }
+      }
+    },
+    "Default duration": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duração padrão"
+          }
+        }
+      }
+    },
+    "Deactivate when device goes to sleep manually": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desativar ao pôr o Mac em repouso manualmente"
+          }
+        }
+      }
+    },
+    "Keep apps active": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manter os apps ativos"
+          }
+        }
+      }
+    },
+    "Prevents apps from becoming inactive and the screen saver from starting.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impede que os apps fiquem inativos e que o protetor de tela comece."
           }
         }
       }

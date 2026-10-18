@@ -24,8 +24,8 @@ final class CaptureToast {
         panel.contentView = hosting
         let size = hosting.fittingSize
         let screen = rect.flatMap { rect in NSScreen.screens.first { $0.frame.intersects(PinGeometry.cocoaRect(fromCG: rect)) } }
-            ?? NSScreen.main ?? NSScreen.screens[0]
-        let visible = screen.visibleFrame
+            ?? NSScreen.main ?? NSScreen.screens.first
+        guard let visible = screen?.visibleFrame else { return }
         panel.setFrame(CGRect(x: visible.midX - size.width / 2, y: visible.minY + 80, width: size.width, height: size.height), display: true)
         panel.alphaValue = 1
         panel.orderFrontRegardless()

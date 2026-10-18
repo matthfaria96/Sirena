@@ -85,15 +85,17 @@ final class MirrorCamera: NSObject {
         use(device)
     }
 
+    /// Reconfigured on the session's own queue, never racing startRunning/stopRunning.
     private func use(_ device: AVCaptureDevice) {
-        session.beginConfiguration()
-        if let input { session.removeInput(input) }
-        if let newInput = try? AVCaptureDeviceInput(device: device), session.canAddInput(newInput) {
-            session.addInput(newInput)
-            input = newInput
-            currentDevice = device
+        let newInput = try? AVCaptureDeviceInput(device: device)
+        let old = input
+        queue.sync { [session] in
+            session.beginConfiguration()
+            if let old { session.removeInput(old) }
+            if let newInput, session.canAddInput(newInput) { session.addInput(newInput) }
+            session.commitConfiguration()
         }
-        session.commitConfiguration()
+        if let newInput { input = newInput; currentDevice = device }
     }
 
     @objc private func devicesChanged(_ notification: Notification) {

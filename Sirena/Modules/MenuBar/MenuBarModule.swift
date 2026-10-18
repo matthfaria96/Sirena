@@ -500,28 +500,20 @@ final class MenuBarModule: NSObject {
     private func arrangeMenuBar(then done: @escaping (_ arrowMoved: Bool) -> Void = { _ in }) {
         guard #available(macOS 27, *), inventory.isAuthorized else { return done(false) }
         let hidden = hiddenApps
-        inventory.snapshot { items in
+        inventory.snapshot { _ in
             let own = Bundle.main.bundleIdentifier ?? ""
-            let present = Set(items.compactMap(\.bundleIdentifier)).subtracting(MenuBarLayoutResolver.systemItemOwners)
-                .union(hidden).union([own])
             let positions = Self.menuBarPositions()
             let arrowKey = "status:\(own)::\(Self.autosaveName)"
-
-            func bundle(of key: String) -> String? {
-                guard key.hasPrefix("status:"), let end = key.range(of: "::") else { return nil }
-                return String(key[key.index(key.startIndex, offsetBy: 7)..<end.lowerBound])
-            }
 
             // Icons that stay visible: every icon not chosen to hide, detected or not. Some
             // apps (Setapp and others) put their icon up from a helper the inventory can't
             // see; leaving them out put the arrow before them, so they got hidden too.
-            _ = present
             let visible = positions.filter { key, _ in
                 guard key != arrowKey else { return false }
-                guard let owner = bundle(of: key) else { return true }
+                guard let owner = Self.owner(ofPositionKey: key) else { return true }
                 return !hidden.contains(owner)
             }
-            let hiddenItems = positions.filter { key, _ in bundle(of: key).map(hidden.contains) ?? false }
+            let hiddenItems = positions.filter { key, _ in Self.owner(ofPositionKey: key).map(hidden.contains) ?? false }
                 .sorted { $0.value < $1.value }
 
             let arrow = ((visible.values.max() ?? 0) + 40).rounded()

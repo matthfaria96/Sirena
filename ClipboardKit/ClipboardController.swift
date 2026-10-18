@@ -14,7 +14,6 @@ public final class ClipboardController: NSObject {
   public var onOpenSettings: (() -> Void)?
   public var onOpenAbout: (() -> Void)?
 
-  var panel: FloatingPanel<ContentView>!
   private var started = false
 
   /// Sirena groups every feature behind one menu bar item, so the clipboard does not
@@ -55,9 +54,6 @@ public final class ClipboardController: NSObject {
     guard !started else { return }
     started = true
 
-    // Bridge FloatingPanel via the controller.
-    AppState.shared.appDelegate = self
-
     Clipboard.shared.onNewCopy { History.shared.add($0) }
     Clipboard.shared.start()
 
@@ -74,13 +70,10 @@ public final class ClipboardController: NSObject {
     migrateUserDefaults()
     disableUnusedGlobalHotkeys()
 
-    panel = FloatingPanel(
-      contentRect: NSRect(origin: .zero, size: Defaults[.windowSize]),
-      identifier: (Bundle.main.bundleIdentifier ?? "com.matheusfaria.Sirena") + ".clipboard",
-      statusBarButton: showsStatusItem ? statusItem.button : anchorButton,
-      onClose: { AppState.shared.popup.reset() }
-    ) {
-      ContentView()
+    KeyboardShortcuts.onKeyDown(for: .popup) {
+      Task { @MainActor in
+        ClipboardController.shared.togglePanel()
+      }
     }
   }
 
@@ -134,7 +127,12 @@ public final class ClipboardController: NSObject {
   /// Opens or closes the clipboard history panel.
   public func togglePanel() {
     guard started else { return }
-    panel.toggle(height: AppState.shared.popup.height)
+    SirenaHistoryPanelController.shared.toggle()
+  }
+
+  /// Closes the clipboard history panel if it is open.
+  public func closePanel() {
+    SirenaHistoryPanelController.shared.close()
   }
 
   public func terminate() {
@@ -204,7 +202,7 @@ public final class ClipboardController: NSObject {
       return
     }
 
-    panel.toggle(height: AppState.shared.popup.height, at: .statusItem)
+    SirenaHistoryPanelController.shared.toggle(at: .statusItem)
   }
 
   private func synchronizeMenuIconText() {

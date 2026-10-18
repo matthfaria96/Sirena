@@ -384,6 +384,10 @@ final class TweaksEngine: @unchecked Sendable {
                   $0.bundleURL?.standardizedFileURL == url.standardizedFileURL
               }) else { return event }
 
+        // Never against Sirena itself: AX calls into one's own process run AppKit
+        // synchronously on this tap thread, which crashes. macOS handles the click.
+        guard app.processIdentifier != Self.ownPID else { return event }
+
         let windows = Self.standardWindows(of: app.processIdentifier)
         let minimized = windows.filter(PinAX.isMinimized)
         let visible = windows.count - minimized.count
