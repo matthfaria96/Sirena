@@ -32,15 +32,17 @@ struct EnergyBackdrop: View {
         // Out-of-phase swings: each light wanders on its own slow loop, never in step.
         func swing(_ period: Double, _ phase: Double) -> CGFloat { CGFloat(sin(time * .pi * 2 / period + phase)) }
         func point(_ x: CGFloat, _ y: CGFloat, _ seed: Double, _ reach: CGFloat) -> UnitPoint {
-            UnitPoint(x: x + swing(9 + seed * 2.3, seed) * reach, y: y + swing(7 + seed * 1.7, seed * 1.9) * reach * 0.8)
+            UnitPoint(x: x + swing(5 + seed * 1.4, seed) * reach, y: y + swing(4 + seed * 1.1, seed * 1.9) * reach * 0.9)
         }
-        let pulse = 0.85 + 0.15 * Double(swing(5.5, 0.4))
+        let pulse = 0.75 + 0.25 * Double(swing(3.2, 0.4))
+        let flare = 0.6 + 0.4 * Double(swing(4.4, 2.1))
         return ZStack {
             Self.secondary
-            bloom(Self.primary, at: point(0.18, 0.25, 0, 0.18), radius: span * 0.75, opacity: 0.95)
-            bloom(Self.glow, at: point(0.62, 0.70, 1, 0.22), radius: span * 0.55, opacity: 0.75 * pulse)
-            bloom(Self.accent, at: point(0.88, 0.15, 2, 0.16), radius: span * 0.45, opacity: 0.55 * pulse)
-            bloom(Self.accent, at: point(0.35, 0.95, 3, 0.20), radius: span * 0.35, opacity: 0.35)
+            bloom(Self.primary, at: point(0.18, 0.25, 0, 0.30), radius: span * 0.80, opacity: 1.0)
+            bloom(Self.glow, at: point(0.62, 0.70, 1, 0.34), radius: span * 0.60, opacity: 0.95 * pulse)
+            bloom(Self.accent, at: point(0.88, 0.15, 2, 0.28), radius: span * 0.50, opacity: 0.80 * pulse)
+            bloom(Self.accent, at: point(0.35, 0.95, 3, 0.32), radius: span * 0.42, opacity: 0.60 * flare)
+            bloom(Color(red: 0.35, green: 0.45, blue: 1.0), at: point(0.45, 0.30, 6, 0.36), radius: span * 0.38, opacity: 0.45 * flare)
             bloom(Self.deep, at: point(0.05, 0.95, 4, 0.10), radius: span * 0.55, opacity: 0.85)
             bloom(Self.deep, at: point(0.55, 0.05, 5, 0.12), radius: span * 0.30, opacity: 0.55)
         }

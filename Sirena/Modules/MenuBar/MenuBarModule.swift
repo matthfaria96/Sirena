@@ -143,7 +143,11 @@ final class MenuBarModule: NSObject {
             release()
             return setCollapsed(false)
         }
-        var allowed = running.subtracting(hiddenApps)
+        // Allowed: every owner of a menu bar icon except the ones chosen to hide — running
+        // apps, plus the owners macOS remembers icons for (helpers like Setapp's agent
+        // aren't "running applications", and leaving them out hid them by mistake).
+        let remembered = Set(Self.menuBarPositions().keys.compactMap(Self.owner(ofPositionKey:)))
+        var allowed = running.union(remembered).subtracting(hiddenApps)
         if let own = Bundle.main.bundleIdentifier { allowed.insert(own) }
         visibility.activate(allowedSystemItems: Array(0..<64), allowedBundleIdentifiers: Array(allowed)) { [weak self] result in
             guard let self else { return }
@@ -508,9 +512,13 @@ final class MenuBarModule: NSObject {
                 return String(key[key.index(key.startIndex, offsetBy: 7)..<end.lowerBound])
             }
 
-            // Icons that stay visible: every other running app's, and Sirena's own (the globe).
+            // Icons that stay visible: every icon not chosen to hide, detected or not. Some
+            // apps (Setapp and others) put their icon up from a helper the inventory can't
+            // see; leaving them out put the arrow before them, so they got hidden too.
+            _ = present
             let visible = positions.filter { key, _ in
-                guard key != arrowKey, let owner = bundle(of: key), present.contains(owner) else { return false }
+                guard key != arrowKey else { return false }
+                guard let owner = bundle(of: key) else { return true }
                 return !hidden.contains(owner)
             }
             let hiddenItems = positions.filter { key, _ in bundle(of: key).map(hidden.contains) ?? false }
@@ -542,6 +550,12 @@ final class MenuBarModule: NSObject {
         if let statusItem { NSStatusBar.system.removeStatusItem(statusItem) }
         statusItem = nil
         createItem()
+    }
+
+    /// "status:com.app.id::name" → "com.app.id".
+    private static func owner(ofPositionKey key: String) -> String? {
+        guard key.hasPrefix("status:"), let end = key.range(of: "::") else { return nil }
+        return String(key[key.index(key.startIndex, offsetBy: 7)..<end.lowerBound])
     }
 
     private static func menuBarPositions() -> [String: Double] {

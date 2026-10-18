@@ -31,7 +31,7 @@ struct GlassIcon: View {
         Group {
             if let image {
                 Image(image).resizable().renderingMode(.template).scaledToFit()
-                    .padding(size * 0.25)
+                    .padding(size * 0.14)
             } else if let symbol {
                 Image(systemName: symbol)
                     .font(.system(size: size * 0.46, weight: .semibold))

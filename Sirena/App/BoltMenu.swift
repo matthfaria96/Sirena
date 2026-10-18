@@ -184,11 +184,13 @@ struct BoltMenuView: View {
             if visible.contains(.sound) {
                 // Vorssaint's volume mixer; scrolls when many apps are playing.
                 ScrollView(.vertical) {
-                    SirenaMixerView(width: 316)
+                    SirenaMixerView(width: 296, compact: true)
+                        .padding(10)
                 }
                 .scrollIndicators(.automatic)
                 .frame(maxHeight: 460)
                 .fixedSize(horizontal: false, vertical: true)
+                .background(.quaternary.opacity(0.6), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
             }
             if visible.isEmpty {
                 ContentUnavailableView(L("Nothing here yet"), systemImage: "circle.hexagongrid",
@@ -282,38 +284,41 @@ private struct ControlRow: View {
     var body: some View {
         switch item {
         case .keepAwake:
-            HStack(spacing: 10) {
-                icon(keepAwake.isActive)
-                VStack(alignment: .leading, spacing: 1) {
-                    HStack(spacing: 4) {
-                        Text(item.title).font(.system(size: 12, weight: .medium))
-                    }
-                    Text(keepAwake.isActive ? (keepAwake.formattedTimeRemaining() ?? L("Awake indefinitely")) : L("Sleep allowed"))
-                        .font(.system(size: 10))
+            HStack(alignment: .center, spacing: 10) {
+                GlassIcon(symbol: item.symbol, tint: item.tint, size: 32, isOn: keepAwake.isActive)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(item.title)
+                        .font(.callout.weight(.medium))
+                        .lineLimit(1)
+                    Text(keepAwake.isActive ? (keepAwake.formattedTimeRemaining() ?? L("On")) : L("Off"))
+                        .font(.caption)
                         .foregroundStyle(keepAwake.isActive ? .green : .secondary)
                 }
-                Spacer(minLength: 4)
-                Menu {
-                    Picker(L("Duration"), selection: $defaultDuration) {
-                        ForEach(Self.durations, id: \.minutes) { Text($0.title).tag($0.minutes) }
+                Spacer(minLength: 6)
+                // The switch, with how long it lasts right below it.
+                VStack(alignment: .trailing, spacing: 4) {
+                    Toggle(item.title, isOn: Binding(get: { keepAwake.isActive },
+                                                     set: { $0 ? keepAwake.activate() : keepAwake.deactivate() }))
+                        .toggleStyle(.switch)
+                        .controlSize(.small)
+                        .labelsHidden()
+                    Menu {
+                        Picker(L("Duration"), selection: $defaultDuration) {
+                            ForEach(Self.durations, id: \.minutes) { Text($0.title).tag($0.minutes) }
+                        }
+                        .pickerStyle(.inline)
+                    } label: {
+                        Text(Self.durations.first { $0.minutes == defaultDuration }?.title ?? L("Indefinitely"))
+                            .font(.caption)
                     }
-                    .pickerStyle(.inline)
-                } label: {
-                    Text(Self.durations.first { $0.minutes == defaultDuration }?.title ?? L("Indefinitely"))
-                        .font(.system(size: 11))
+                    .menuStyle(.borderlessButton)
+                    .fixedSize()
+                    .help(L("How long the display stays on. Remembered for next time."))
+                    .onChange(of: defaultDuration) { _, _ in
+                        // Already on: restart with the new time.
+                        if keepAwake.isActive { keepAwake.activate() }
+                    }
                 }
-                .menuStyle(.borderlessButton)
-                .fixedSize()
-                .help(L("How long the display stays on. Remembered for next time."))
-                .onChange(of: defaultDuration) { _, _ in
-                    // Already on: restart with the new time.
-                    if keepAwake.isActive { keepAwake.activate() }
-                }
-                Toggle(item.title, isOn: Binding(get: { keepAwake.isActive },
-                                         set: { $0 ? keepAwake.activate() : keepAwake.deactivate() }))
-                    .toggleStyle(.switch)
-                    .controlSize(.small)
-                    .labelsHidden()
             }
             .help(item.detail)
         default:
@@ -322,16 +327,5 @@ private struct ControlRow: View {
     }
 
     static var durations: [(minutes: Int, title: String)] { KeepAwakeModule.durations }
-
-    private func icon(_ on: Bool) -> some View {
-        Image(systemName: item.symbol)
-            .font(.system(size: 12, weight: .semibold))
-            .foregroundStyle(on ? .white : .secondary)
-            .frame(width: 26, height: 26)
-            .background {
-                RoundedRectangle(cornerRadius: 7, style: .continuous)
-                    .fill(on ? AnyShapeStyle(item.tint.gradient) : AnyShapeStyle(Color.primary.opacity(0.08)))
-            }
-    }
 
 }

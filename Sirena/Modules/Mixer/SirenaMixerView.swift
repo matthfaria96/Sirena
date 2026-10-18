@@ -11,7 +11,6 @@ import SwiftUI
 struct SirenaMixerView: View {
     @ObservedObject private var mixer = SirenaAppVolumeMixer.shared
     @ObservedObject private var inputManager = SirenaMixerInputManager.shared
-    @AppStorage(SirenaMixerDefaultsKey.liquidGlassEnabled) private var glassSetting = false
     @AppStorage(SirenaMixerDefaultsKey.mixerAppArrangement)
     private var arrangementValue = ""
     @AppStorage(SirenaMixerDefaultsKey.mixerHideInactiveApps)
@@ -27,14 +26,22 @@ struct SirenaMixerView: View {
     var showsTitle = false
     /// Width that fits Sirena's menu bar popover.
     var width: CGFloat? = 320
+    /// The menu bar version: one volume row, expanding into two tabs (Saída, Microfone).
+    var compact = false
+    @State private var expanded = false
+    @State private var tab = Tab.output
 
-    init(showsTitle: Bool = false, width: CGFloat? = 320) {
+    private enum Tab: Hashable { case output, input }
+
+    init(showsTitle: Bool = false, width: CGFloat? = 320, compact: Bool = false) {
         self.showsTitle = showsTitle
         self.width = width
+        self.compact = compact
     }
 
+    /// Sirena always uses the Liquid Glass sliders (no setting).
     private var glassEnabled: Bool {
-        if #available(macOS 26.0, *) { return glassSetting }
+        if #available(macOS 26.0, *) { return true }
         return false
     }
 
@@ -46,7 +53,11 @@ struct SirenaMixerView: View {
                     .kerning(0.5)
                     .foregroundStyle(.secondary)
             }
-            mixerControls.sirenaMixerCard()
+            if compact {
+                compactControls
+            } else {
+                mixerControls.sirenaMixerCard()
+            }
         }
         .frame(width: width)
         .onReceive(NSApplication.shared.publisher(for: \.effectiveAppearance, options: [.new])) { _ in
@@ -83,6 +94,79 @@ struct SirenaMixerView: View {
 
             Divider()
             optionsDisclosure
+        }
+    }
+
+    // MARK: Compact (menu bar)
+
+    private var compactControls: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            // Collapsed: just the Mac's volume, and a chevron to open the rest.
+            HStack(spacing: 10) {
+                Image(systemName: (mixer.systemOutputMuted == true || (mixer.systemOutputVolume ?? 0) <= 0.001)
+                      ? "speaker.slash.fill" : "speaker.wave.2.fill")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(width: 26, height: 26)
+                    .background(Color.purple.gradient, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
+                    .glassEffect(.regular.tint(Color.purple.opacity(0.25)), in: RoundedRectangle(cornerRadius: 7, style: .continuous))
+                if let volume = mixer.systemOutputVolume {
+                    SirenaMixerVolumeSlider(value: systemOutputVolumeBinding, normalTint: normalSliderTint, boostTint: normalSliderTint,
+                                            isBoosting: false, accentRevision: accentRevision, glassEnabled: glassEnabled,
+                                            maximum: 1, accessibilityLabel: SirenaMixerStrings.systemOutputTitle)
+                    Text("\(SirenaMixerRoutingSupport.displayPercent(forVolume: volume))%")
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                        .frame(width: 34, alignment: .trailing)
+                } else {
+                    Text(SirenaMixerStrings.outputUnavailable).font(.caption).foregroundStyle(.secondary)
+                    Spacer()
+                }
+                Button {
+                    withAnimation(.snappy(duration: 0.25)) { expanded.toggle() }
+                } label: {
+                    Image(systemName: "chevron.down")
+                        .font(.caption.weight(.semibold))
+                        .rotationEffect(.degrees(expanded ? 180 : 0))
+                        .frame(width: 22, height: 22)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.secondary)
+                .help(expanded ? "Recolher" : "Saída, microfone e volume de cada app")
+                .accessibilityLabel(expanded ? "Recolher o mixer" : "Expandir o mixer")
+            }
+
+            if expanded {
+                Picker("", selection: $tab) {
+                    Text("Saída").tag(Tab.output)
+                    Text("Microfone").tag(Tab.input)
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+
+                Group {
+                    if tab == .output {
+                        VStack(alignment: .leading, spacing: 8) {
+                            universalOutputPicker
+                            systemSoundOutputPicker
+                            if SirenaAppVolumeMixer.isSupported {
+                                Divider()
+                                if mixer.needsPermission {
+                                    permissionHint
+                                } else if visibleApps.isEmpty {
+                                    emptyLabel(SirenaMixerStrings.empty)
+                                } else {
+                                    mixerRows
+                                }
+                            }
+                        }
+                    } else {
+                        microphonePicker
+                    }
+                }
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            }
         }
     }
 
@@ -546,8 +630,6 @@ struct SirenaMixerOptionsControls: View {
     private var lowerOnHeadphonesDisconnect = false
     @AppStorage(SirenaMixerDefaultsKey.mixerHeadphonesDisconnectVolumePercent)
     private var headphonesDisconnectVolumePercent = SirenaMixerDefaults.defaultMixerHeadphonesDisconnectVolumePercent
-    @AppStorage(SirenaMixerDefaultsKey.liquidGlassEnabled)
-    private var glassSliders = false
     @State private var showListChooser = false
 
     var body: some View {
@@ -556,9 +638,6 @@ struct SirenaMixerOptionsControls: View {
                 inactiveAppsVisibilityToggle
             }
             headphoneDisconnectProtectionToggle
-            if #available(macOS 26.0, *) {
-                glassSlidersToggle
-            }
             if SirenaAppVolumeMixer.isSupported, !listChoices.isEmpty {
                 listVisibilityFooter
             }
@@ -616,23 +695,6 @@ struct SirenaMixerOptionsControls: View {
         SirenaMixerDefaults.sanitizedMixerHeadphonesDisconnectVolumePercent(headphonesDisconnectVolumePercent)
     }
 
-    private var glassSlidersToggle: some View {
-        HStack(spacing: 8) {
-            Text(SirenaMixerStrings.glassSliders)
-                .font(.system(size: 10))
-                .foregroundStyle(.secondary)
-            Spacer(minLength: 6)
-            Toggle(SirenaMixerStrings.glassSliders, isOn: $glassSliders)
-                .labelsHidden()
-                .toggleStyle(.switch)
-                .controlSize(.mini)
-                .accessibilityLabel(SirenaMixerStrings.glassSliders)
-        }
-    }
-
-    /// One entry per app the list knows about: visible rows checked, hidden
-    /// apps unchecked, everything in one alphabetical run so the menu reads
-    /// like the list itself.
     private struct MixerListChoice: Identifiable {
         let id: String
         let name: String

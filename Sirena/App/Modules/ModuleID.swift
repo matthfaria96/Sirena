@@ -100,10 +100,10 @@ enum ModuleID: String, CaseIterable, Identifiable {
         case .keepAwake: return Color(red: 0.55, green: 0.30, blue: 0.10)
         case .mixer: return .purple
         case .mirror: return .pink
-        case .pinWindow: return .mint
+        case .pinWindow: return Color(red: 0.0, green: 0.52, blue: 0.42)
         case .textCapture: return .green
         case .tweaks: return .red
-        case .shelf: return .cyan
+        case .shelf: return Color(red: 0.05, green: 0.42, blue: 0.78)
         }
     }
 
