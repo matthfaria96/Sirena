@@ -9,7 +9,6 @@ import SwiftUI
 
 struct GeneralPage: View {
     @State private var launchOnLogin = Defaults.launchOnLogin.enabled
-    @State private var hideMenuBarIcon = Defaults.hideMenuBarIcon.enabled
     @State private var recordingObserver = ShortcutRecordingObserver()
     @State private var permissions = PermissionsState()
 
@@ -34,16 +33,6 @@ struct GeneralPage: View {
                         .onChange(of: launchOnLogin) {
                             LaunchOnLogin.isEnabled = launchOnLogin
                             Defaults.launchOnLogin.enabled = launchOnLogin
-                        }
-                }
-                SettingsSeparator(indented: true)
-                SettingsRow(L("Hide the Sirena icon in the menu bar"),
-                            detail: hideMenuBarIcon ? L("Open Sirena again from Finder or Spotlight to see this window.") : nil,
-                            symbol: "menubar.rectangle") {
-                    Toggle("", isOn: $hideMenuBarIcon).settingsSwitch()
-                        .onChange(of: hideMenuBarIcon) {
-                            Defaults.hideMenuBarIcon.enabled = hideMenuBarIcon
-                            SirenaStatusItem.instance.refreshVisibility()
                         }
                 }
                 SettingsSeparator(indented: true)

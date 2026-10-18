@@ -12,6 +12,7 @@ enum ModuleID: String, CaseIterable, Identifiable {
     case clipboard
     case menuBar
     case keepAwake
+    case mixer
     case mirror
     case pinWindow
     case textCapture
@@ -29,6 +30,7 @@ enum ModuleID: String, CaseIterable, Identifiable {
         case .clipboard: return L("Clipboard")
         case .menuBar: return L("Hidden Icons")
         case .keepAwake: return L("Keep Awake")
+        case .mixer: return L("Sound Mixer")
         case .mirror: return L("Mirror")
         case .pinWindow: return L("Pin Window")
         case .textCapture: return L("Text Capture")
@@ -46,6 +48,7 @@ enum ModuleID: String, CaseIterable, Identifiable {
         case .clipboard: return L("Keep a searchable history of everything you copy and paste it back anywhere.")
         case .menuBar: return L("Hide menu bar icons you don't need and reveal them with one click.")
         case .keepAwake: return L("Stop your Mac from sleeping or dimming the screen, for as long as you want.")
+        case .mixer: return L("The volume of the Mac and of each app, where each one plays, and the microphone.")
         case .mirror: return L("A hand mirror in your menu bar: click it to check how you look before a call.")
         case .pinWindow: return L("Keep any window floating above all the others, with adjustable transparency.")
         case .textCapture: return L("Select any part of the screen and copy its text, QR codes and barcodes, even from images and videos.")
@@ -63,6 +66,7 @@ enum ModuleID: String, CaseIterable, Identifiable {
         case .clipboard: return "doc.on.clipboard"
         case .menuBar: return "menubar.rectangle"
         case .keepAwake: return "cup.and.saucer.fill"
+        case .mixer: return "slider.vertical.3"
         case .mirror: return "person.crop.circle"
         case .pinWindow: return "pin.fill"
         case .textCapture: return "text.viewfinder"
@@ -70,6 +74,9 @@ enum ModuleID: String, CaseIterable, Identifiable {
         case .shelf: return "tray.and.arrow.down.fill"
         }
     }
+
+    /// A custom template image used instead of the SF Symbol (the camera shutter).
+    var imageName: String? { self == .mirror ? "CameraShutter" : nil }
 
     var tint: Color {
         switch self {
@@ -79,7 +86,8 @@ enum ModuleID: String, CaseIterable, Identifiable {
         case .island: return .gray
         case .clipboard: return .orange
         case .menuBar: return .indigo
-        case .keepAwake: return .brown
+        case .keepAwake: return Color(red: 0.55, green: 0.30, blue: 0.10)
+        case .mixer: return .purple
         case .mirror: return .pink
         case .pinWindow: return .mint
         case .textCapture: return .green
@@ -98,6 +106,7 @@ enum ModuleID: String, CaseIterable, Identifiable {
         case .clipboard: return ("Maccy", "Alex Rodionov", "MIT", "https://github.com/p0deje/Maccy")
         case .menuBar: return ("Hidden Bar", "Dwarves Foundation", "MIT", "https://github.com/dwarvesf/hidden")
         case .keepAwake: return ("Caffeine", "Tomas Franzén, Michael Jones, Dominic Rodemer", "MIT", "https://github.com/domzilla/Caffeine")
+        case .mixer: return ("Vorssaint", "Vorssaint", "GPL-3.0", "https://github.com/vorssaint/vorssaint-utils")
         case .mirror: return ("Iris", "Ahmet Alp Balkan", "MIT", "https://github.com/ahmetb/Iris")
         // Floaty is closed source: Pin Window is written from scratch after its feature list.
         case .pinWindow: return ("Floaty", L("Inspired by Floaty, written for Sirena"), L("Original"), "https://floatytool.com")
@@ -131,7 +140,7 @@ enum ModuleID: String, CaseIterable, Identifiable {
 
     /// Tools are used now and then (pin a window, check the mirror): always available,
     /// never switched on or off, and listed apart from the background features.
-    var isTool: Bool { [.mirror, .pinWindow, .clipboard, .textCapture, .keepAwake].contains(self) }
+    var isTool: Bool { [.mirror, .pinWindow, .clipboard, .textCapture, .keepAwake, .mixer].contains(self) }
 
     static var tools: [ModuleID] { allCases.filter(\.isTool) }
 

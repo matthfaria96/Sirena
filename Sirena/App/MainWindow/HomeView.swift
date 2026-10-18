@@ -195,7 +195,7 @@ private struct MenuItemCard: View {
         let isOn = settings.isOn(item)
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 10) {
-                GlassIcon(symbol: item.symbol, tint: item.tint, size: 32, isOn: isOn)
+                GlassIcon(symbol: item.symbol, image: item == .mirror ? "CameraShutter" : nil, tint: item.tint, size: 32, isOn: isOn)
                 VStack(alignment: .leading, spacing: 1) {
                     Text(item.title)
                         .font(.headline)
@@ -341,6 +341,7 @@ struct ModuleStatusLabel: View {
         case .clipboard: return !ClipboardController.shared.isPaused
         case .menuBar: return true
         case .keepAwake: return KeepAwakeModule.shared.viewModel.isActive
+        case .mixer: return SirenaMixer.shared.isRunning
         case .mirror: return MirrorController.shared.isVisible
         case .pinWindow: return !PinWindowController.shared.pins.isEmpty
         case .textCapture: return CGPreflightScreenCaptureAccess()
@@ -380,6 +381,8 @@ struct ModuleStatusLabel: View {
             let module = MenuBarModule.shared
             if module.hiddenApps.isEmpty { return L("Choose which apps to hide") }
             return module.isCollapsed ? L("\(module.hiddenApps.count) apps hidden") : L("Icons showing")
+        case .mixer:
+            return L("Volume of each app")
         case .keepAwake:
             let viewModel = KeepAwakeModule.shared.viewModel
             return viewModel.formattedTimeRemaining() ?? L("Mac can sleep normally")

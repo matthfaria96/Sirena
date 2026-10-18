@@ -18,8 +18,9 @@ struct MainView: View {
                     }
                 }
                 Section(L("Controllers")) {
-                    sidebarRow(.module(.keepAwake), title: ModuleID.keepAwake.title,
-                               symbol: ModuleID.keepAwake.symbol, tint: ModuleID.keepAwake.tint)
+                    ForEach([ModuleID.keepAwake, .mixer]) { module in
+                        sidebarRow(.module(module), title: module.title, symbol: module.symbol, tint: module.tint)
+                    }
                 }
                 Section(L("Features")) {
                     ForEach(ModuleID.featurePages) { module in
@@ -50,9 +51,14 @@ struct MainView: View {
         Label {
             Text(title)
         } icon: {
-            GlassIcon(symbol: symbol, tint: tint, size: 22, glass: false)
+            GlassIcon(symbol: symbol, image: Self.image(for: item), tint: tint, size: 22, glass: false)
         }
         .tag(item)
+    }
+
+    private static func image(for item: SidebarItem) -> String? {
+        if case .module(let module) = item { return module.imageName }
+        return nil
     }
 
     private func title(for item: SidebarItem) -> String {
@@ -77,6 +83,8 @@ struct MainView: View {
             ClipboardPage()
         case .module(.menuBar):
             MenuBarPage()
+        case .module(.mixer):
+            MixerPage()
         case .module(.keepAwake):
             KeepAwakePage(viewModel: KeepAwakeModule.shared.viewModel)
         case .module(.mirror):

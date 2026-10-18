@@ -86,6 +86,9 @@ final class ModuleManager {
             MenuBarModule.shared.start(openPage: open)
         case .keepAwake:
             KeepAwakeModule.shared.start()
+        case .mixer:
+            // Started at launch by the app delegate (per-app volumes apply right away).
+            SirenaMixer.shared.start()
         case .mirror:
             MirrorController.shared.start(openSettings: open)
         case .pinWindow:

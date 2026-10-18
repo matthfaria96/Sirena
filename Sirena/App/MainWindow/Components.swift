@@ -12,7 +12,7 @@ struct ModuleIcon: View {
     var size: CGFloat = 44
 
     var body: some View {
-        GlassIcon(symbol: module.symbol, tint: module.tint, size: size)
+        GlassIcon(symbol: module.symbol, image: module.imageName, tint: module.tint, size: size)
     }
 }
 

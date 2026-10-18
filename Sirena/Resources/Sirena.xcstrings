@@ -287,7 +287,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Área de Transferência"
+            "value": "Histórico"
           }
         }
       }
@@ -627,7 +627,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cafeína"
+            "value": "Não desligar tela"
           }
         }
       }
@@ -717,7 +717,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Espelho"
+            "value": "Espiar câmera"
           }
         }
       }
@@ -5647,7 +5647,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ligar ou desligar a Cafeína"
+            "value": "Ligar ou desligar o Não desligar tela"
           }
         }
       }
@@ -11167,7 +11167,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ajustados ali mesmo no menu: som, microfone, brilho, Cafeína e uma espiada pela câmera."
+            "value": "Ajustados ali mesmo no menu."
           }
         }
       }
@@ -11498,6 +11498,46 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ligue aqui ou no menu da barra, em “Não desligar tela”."
+          }
+        }
+      }
+    },
+    "Mixer": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mixer"
+          }
+        }
+      }
+    },
+    "The volume of the Mac and of each app, where each one plays, and the microphone.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O volume do Mac e de cada app, onde cada um toca, e o microfone."
+          }
+        }
+      }
+    },
+    "How long the display stays on. Remembered for next time.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Por quanto tempo a tela fica ligada. Fica salvo para a próxima vez."
+          }
+        }
+      }
+    },
+    "Volume of each app": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Volume de cada app"
           }
         }
       }

@@ -94,6 +94,7 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
         case .textCapture: return .textCapture
         case .keepAwake: return .keepAwake
         case .mirror: return .mirror
+        case .sound: return .mixer
         default: return nil
         }
     }
@@ -291,7 +292,7 @@ private struct ControlRow: View {
                 }
                 .menuStyle(.borderlessButton)
                 .fixedSize()
-                .help(L("How long Cafeína keeps the Mac awake. Remembered for next time."))
+                .help(L("How long the display stays on. Remembered for next time."))
                 .onChange(of: defaultDuration) { _, _ in
                     // Already on: restart with the new time.
                     if keepAwake.isActive { keepAwake.activate() }
