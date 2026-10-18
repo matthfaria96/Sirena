@@ -12,6 +12,8 @@ enum SirenaMixerDefaultsKey {
     static let mixerShowFinder = "sirenaMixer.showFinder"
     static let mixerAppArrangement = "sirenaMixer.appArrangement"
     static let mixerHideInactiveApps = "sirenaMixer.hideInactiveApps"
+    /// Menu bar sliders: Liquid Glass (default) or the standard macOS slider.
+    static let glassSliders = "sirenaMixer.glassSliders"
     static let mixerHiddenApps = "sirenaMixer.hiddenApps"             // [persistence id: display name]
     static let mixerLowerVolumeOnHeadphonesDisconnect = "sirenaMixer.lowerVolumeOnHeadphonesDisconnect"
     static let mixerHeadphonesDisconnectVolumePercent = "sirenaMixer.headphonesDisconnectVolumePercent"

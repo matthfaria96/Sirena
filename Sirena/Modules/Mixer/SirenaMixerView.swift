@@ -36,9 +36,11 @@ struct SirenaMixerView: View {
         self.compact = compact
     }
 
-    /// Sirena always uses the Liquid Glass sliders (no setting).
+    @AppStorage(SirenaMixerDefaultsKey.glassSliders) private var glassSetting = true
+
+    /// Liquid Glass sliders unless "Básico" is chosen on the Mixer page.
     private var glassEnabled: Bool {
-        if #available(macOS 26.0, *) { return true }
+        if #available(macOS 26.0, *) { return glassSetting }
         return false
     }
 

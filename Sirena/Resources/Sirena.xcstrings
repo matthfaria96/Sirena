@@ -5877,7 +5877,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reativar som"
+            "value": "Ativar som"
           }
         }
       }
@@ -10368,6 +10368,196 @@
           "stringUnit": {
             "state": "translated",
             "value": "Impede que os apps fiquem inativos e que o protetor de tela comece."
+          }
+        }
+      }
+    },
+    "Glass": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vidro"
+          }
+        }
+      }
+    },
+    "Basic": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Básico"
+          }
+        }
+      }
+    },
+    "Control style": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estilo dos controles"
+          }
+        }
+      }
+    },
+    "How the volume sliders look in the menu bar menu.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Como as barras de volume aparecem no menu da barra."
+          }
+        }
+      }
+    },
+    "Hide apps that aren't playing": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esconder apps que não estão tocando"
+          }
+        }
+      }
+    },
+    "Only apps making sound right now appear in the list.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Só aparecem na lista os apps com som agora."
+          }
+        }
+      }
+    },
+    "Lower the volume when headphones disconnect": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Baixar o volume quando o fone desconectar"
+          }
+        }
+      }
+    },
+    "So the sound doesn't blast through the speakers when you unplug or the Bluetooth drops.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Para o som não estourar nos alto-falantes quando você tira o fone ou o Bluetooth cai."
+          }
+        }
+      }
+    },
+    "Lower to": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Baixar para"
+          }
+        }
+      }
+    },
+    "Play sound on": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tocar o som em"
+          }
+        }
+      }
+    },
+    "System sounds on": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sons do sistema em"
+          }
+        }
+      }
+    },
+    "Input volume": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Volume de entrada"
+          }
+        }
+      }
+    },
+    "System default": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Padrão do sistema"
+          }
+        }
+      }
+    },
+    "Audio access needed": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Precisa de acesso ao áudio"
+          }
+        }
+      }
+    },
+    "Needed to change each app's volume.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Necessário para mudar o volume de cada app."
+          }
+        }
+      }
+    },
+    "Apps playing sound show up here.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Os apps tocando som aparecem aqui."
+          }
+        }
+      }
+    },
+    "Up to 200%. Above 100% the sound is boosted.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Até 200%. Acima de 100% o som é amplificado."
+          }
+        }
+      }
+    },
+    "Managed by the app": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Controlado pelo próprio app"
+          }
+        }
+      }
+    },
+    "Playing now": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tocando agora"
           }
         }
       }
