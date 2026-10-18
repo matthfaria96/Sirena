@@ -7,6 +7,7 @@
 ///   Mac's volume, each app's and the microphone).
 
 import AppKit
+import AVFoundation
 import ClipboardKit
 import SwiftUI
 
@@ -159,6 +160,9 @@ final class BoltMenuSettings {
 struct BoltMenuView: View {
     @State private var settings = BoltMenuSettings.shared
     let close: () -> Void
+    /// Inline panels under the shortcut row (camera peek and the last copies).
+    @State private var showsPeek = false
+    @State private var showsHistory = false
 
     var body: some View {
         let visible = settings.visibleItems
@@ -168,11 +172,16 @@ struct BoltMenuView: View {
             if !shortcuts.isEmpty {
                 HStack(alignment: .top, spacing: 6) {
                     ForEach(shortcuts) { item in
-                        ShortcutButton(item: item) {
-                            close()
-                            item.perform()
-                        }
+                        ShortcutButton(item: item, isActive: isInlineOpen(item)) { tap(item) }
                     }
+                }
+                if showsHistory {
+                    InlineHistoryPanel(closeMenu: close)
+                        .transition(.opacity.combined(with: .move(edge: .top)))
+                }
+                if showsPeek {
+                    InlinePeekPanel { withAnimation(.snappy(duration: 0.25)) { showsPeek = false } }
+                        .transition(.opacity.combined(with: .move(edge: .top)))
                 }
                 Divider()
             }
@@ -212,12 +221,38 @@ struct BoltMenuView: View {
         }
         .padding(14)
         .frame(width: 344)
+        .animation(.snappy(duration: 0.28), value: showsPeek)
+        .animation(.snappy(duration: 0.28), value: showsHistory)
+    }
+
+    private func isInlineOpen(_ item: BoltMenuItem) -> Bool {
+        item == .mirror ? showsPeek : item == .clipboard ? showsHistory : false
+    }
+
+    /// Histórico and Espiar unroll inside the menu; the others run and close it.
+    private func tap(_ item: BoltMenuItem) {
+        switch item {
+        case .mirror:
+            withAnimation(.snappy(duration: 0.25)) {
+                showsPeek.toggle()
+                if showsPeek { showsHistory = false }
+            }
+        case .clipboard:
+            withAnimation(.snappy(duration: 0.25)) {
+                showsHistory.toggle()
+                if showsHistory { showsPeek = false }
+            }
+        default:
+            close()
+            item.perform()
+        }
     }
 }
 
 /// A shortcut at the top: a quiet rounded square with the icon, the name below.
 private struct ShortcutButton: View {
     let item: BoltMenuItem
+    var isActive = false
     let action: () -> Void
     @State private var isHovering = false
 
@@ -227,14 +262,17 @@ private struct ShortcutButton: View {
                 Group {
                     if item == .mirror {
                         Image("CameraShutter").resizable().renderingMode(.template).scaledToFit()
-                            .frame(width: 18, height: 18)
+                            .frame(width: 22, height: 22)
                     } else {
-                        Image(systemName: item.symbol).font(.system(size: 16, weight: .regular))
+                        Image(systemName: item.symbol)
+                            .symbolVariant(.fill)
+                            .font(.system(size: 17, weight: .semibold))
                     }
                 }
-                .foregroundStyle(.primary)
+                .foregroundStyle(isActive ? AnyShapeStyle(Color.white) : AnyShapeStyle(.primary))
                 .frame(width: 44, height: 44)
-                .background(isHovering ? AnyShapeStyle(.tertiary) : AnyShapeStyle(.quaternary),
+                .background(isActive ? AnyShapeStyle(item.tint.gradient)
+                            : isHovering ? AnyShapeStyle(.tertiary) : AnyShapeStyle(.quaternary),
                             in: RoundedRectangle(cornerRadius: 12, style: .continuous))
                 Text(item.shortTitle)
                     .font(.system(size: 11))
@@ -328,4 +366,181 @@ private struct ControlRow: View {
 
     static var durations: [(minutes: Int, title: String)] { KeepAwakeModule.durations }
 
+}
+
+// MARK: - Inline panels (inside the menu)
+
+/// Espiar inside the menu: the camera unrolls below the shortcuts, with the countdown.
+private struct InlinePeekPanel: View {
+    let close: () -> Void
+    @State private var remaining = max(MirrorSettings.shared.peekSeconds, 3)
+    @State private var failed = false
+    private let clock = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+
+    var body: some View {
+        ZStack(alignment: .top) {
+            InlineCameraView(failed: $failed)
+                .frame(height: 200)
+                .frame(maxWidth: .infinity)
+                .background(.black.opacity(0.85))
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            if failed {
+                Label(L("Camera unavailable"), systemImage: "video.slash.fill")
+                    .font(.callout)
+                    .foregroundStyle(.white.opacity(0.8))
+                    .frame(maxWidth: .infinity, minHeight: 200)
+            }
+            HStack {
+                HStack(spacing: 4) {
+                    Image(systemName: "timer")
+                    Text("\(remaining)s").monospacedDigit().contentTransition(.numericText(countsDown: true))
+                }
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.white)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(.black.opacity(0.45), in: Capsule())
+                Spacer()
+                Button(action: close) {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 16))
+                        .foregroundStyle(.white.opacity(0.85))
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(L("Close"))
+            }
+            .padding(8)
+        }
+        .onReceive(clock) { _ in
+            withAnimation(.snappy) { remaining -= 1 }
+            if remaining <= 0 { close() }
+        }
+    }
+}
+
+/// The live camera, started on appear and stopped when the panel goes away
+/// (unless the mirror window is also using it).
+private struct InlineCameraView: NSViewRepresentable {
+    @Binding var failed: Bool
+
+    func makeNSView(context: Context) -> NSView {
+        let view = NSView()
+        view.wantsLayer = true
+        let preview = AVCaptureVideoPreviewLayer(session: MirrorCamera.shared.session)
+        preview.videoGravity = .resizeAspectFill
+        preview.frame = view.bounds
+        preview.autoresizingMask = [.layerWidthSizable, .layerHeightSizable]
+        view.layer?.addSublayer(preview)
+        Task { @MainActor in
+            do {
+                try await MirrorCamera.shared.start()
+                if let connection = preview.connection, connection.isVideoMirroringSupported {
+                    connection.automaticallyAdjustsVideoMirroring = false
+                    connection.isVideoMirrored = MirrorSettings.shared.mirrored
+                }
+            } catch {
+                failed = true
+            }
+        }
+        return view
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {}
+
+    static func dismantleNSView(_ nsView: NSView, coordinator: ()) {
+        Task { @MainActor in
+            if !MirrorState.shared.isVisible { MirrorCamera.shared.stop() }
+        }
+    }
+}
+
+/// Histórico inside the menu: the last copies, one click puts one back on the clipboard.
+private struct InlineHistoryPanel: View {
+    let closeMenu: () -> Void
+    @State private var controller = ClipboardController.shared
+    @State private var copied: ObjectIdentifier?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            let entries = Array(controller.entries.prefix(6))
+            if entries.isEmpty {
+                Label(L("Nothing copied yet"), systemImage: "doc.on.clipboard")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+            } else {
+                ForEach(entries) { entry in
+                    HistoryRow(entry: entry, isCopied: copied == entry.id) {
+                        controller.copy(entry.id)
+                        withAnimation(.snappy) { copied = entry.id }
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.1) {
+                            if copied == entry.id { withAnimation(.easeOut) { copied = nil } }
+                        }
+                    }
+                }
+            }
+            Divider().padding(.vertical, 4)
+            Button {
+                closeMenu()
+                ClipboardController.shared.togglePanel()
+            } label: {
+                Label(L("Open Full History"), systemImage: "list.bullet.rectangle")
+                    .font(.caption.weight(.medium))
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 3)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(Color.accentColor)
+        }
+        .padding(10)
+        .background(.quaternary.opacity(0.6), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+
+    private struct HistoryRow: View {
+        let entry: ClipboardEntry
+        let isCopied: Bool
+        let copy: () -> Void
+        @State private var isHovering = false
+        private var controller: ClipboardController { .shared }
+
+        var body: some View {
+            Button(action: copy) {
+                HStack(spacing: 8) {
+                    if let icon = controller.appIcon(for: entry.id) {
+                        Image(nsImage: icon).resizable().frame(width: 16, height: 16)
+                    } else {
+                        Image(systemName: "doc.on.clipboard.fill")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .frame(width: 16)
+                    }
+                    Text(entry.title.isEmpty ? L("Image") : entry.title)
+                        .font(.callout)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                    Spacer(minLength: 6)
+                    if isCopied {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(.green)
+                            .transition(.scale.combined(with: .opacity))
+                    } else if isHovering {
+                        Image(systemName: "doc.on.doc")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 5)
+                .background(isHovering ? AnyShapeStyle(.tertiary) : AnyShapeStyle(.clear),
+                            in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .onHover { isHovering = $0 }
+            .help(entry.title)
+            .accessibilityLabel(entry.title)
+        }
+    }
 }

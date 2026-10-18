@@ -34,7 +34,8 @@ struct GlassIcon: View {
                     .padding(size * 0.14)
             } else if let symbol {
                 Image(systemName: symbol)
-                    .font(.system(size: size * 0.46, weight: .semibold))
+                    .symbolVariant(.fill)
+                    .font(.system(size: size * 0.48, weight: .bold))
             }
         }
         .foregroundStyle(isOn ? .white : .secondary)

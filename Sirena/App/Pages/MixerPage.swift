@@ -10,9 +10,9 @@ struct MixerPage: View {
         ModulePage(module: .mixer, tabs: [
             PageTab("mixer", L("Mixer")) {
                 ScrollView {
-                    SirenaMixerView(showsTitle: false, width: 520)
+                    SirenaMixerView(showsTitle: false, width: 460)
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 20)
+                        .padding(.vertical, 24)
                 }
                 .scrollIndicators(.automatic)
             }

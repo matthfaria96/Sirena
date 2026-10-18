@@ -59,17 +59,17 @@ enum ModuleID: String, CaseIterable, Identifiable {
 
     var symbol: String {
         switch self {
-        case .windows: return "macwindow.on.rectangle"
+        case .windows: return "rectangle.split.2x2.fill"
         case .dock: return "dock.rectangle"
         case .switcher: return "rectangle.stack.fill"
-        case .island: return "capsule.portrait"
-        case .clipboard: return "doc.on.clipboard"
-        case .menuBar: return "menubar.rectangle"
+        case .island: return "capsule.portrait.fill"
+        case .clipboard: return "doc.on.clipboard.fill"
+        case .menuBar: return "eye.slash.fill"
         case .keepAwake: return "cup.and.saucer.fill"
         case .mixer: return "slider.vertical.3"
         case .mirror: return "person.crop.circle"
         case .pinWindow: return "pin.fill"
-        case .textCapture: return "text.viewfinder"
+        case .textCapture: return "doc.text.viewfinder"
         case .tweaks: return "wand.and.stars"
         case .shelf: return "tray.and.arrow.down.fill"
         }

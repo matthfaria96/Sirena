@@ -11771,6 +11771,26 @@
           }
         }
       }
+    },
+    "Open Full History": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir o histórico completo"
+          }
+        }
+      }
+    },
+    "Camera unavailable": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Câmera indisponível"
+          }
+        }
+      }
     }
   }
 }

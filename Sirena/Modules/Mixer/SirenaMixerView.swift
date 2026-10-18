@@ -26,12 +26,9 @@ struct SirenaMixerView: View {
     var showsTitle = false
     /// Width that fits Sirena's menu bar popover.
     var width: CGFloat? = 320
-    /// The menu bar version: one volume row, expanding into two tabs (Saída, Microfone).
+    /// The menu bar version: output and microphone side by side, the rest expanding below.
     var compact = false
     @State private var expanded = false
-    @State private var tab = Tab.output
-
-    private enum Tab: Hashable { case output, input }
 
     init(showsTitle: Bool = false, width: CGFloat? = 320, compact: Bool = false) {
         self.showsTitle = showsTitle
@@ -101,73 +98,92 @@ struct SirenaMixerView: View {
 
     private var compactControls: some View {
         VStack(alignment: .leading, spacing: 10) {
-            // Collapsed: just the Mac's volume, and a chevron to open the rest.
-            HStack(spacing: 10) {
-                Image(systemName: (mixer.systemOutputMuted == true || (mixer.systemOutputVolume ?? 0) <= 0.001)
-                      ? "speaker.slash.fill" : "speaker.wave.2.fill")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .frame(width: 26, height: 26)
-                    .background(Color.purple.gradient, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
-                    .glassEffect(.regular.tint(Color.purple.opacity(0.25)), in: RoundedRectangle(cornerRadius: 7, style: .continuous))
-                if let volume = mixer.systemOutputVolume {
-                    SirenaMixerVolumeSlider(value: systemOutputVolumeBinding, normalTint: normalSliderTint, boostTint: normalSliderTint,
-                                            isBoosting: false, accentRevision: accentRevision, glassEnabled: glassEnabled,
-                                            maximum: 1, accessibilityLabel: SirenaMixerStrings.systemOutputTitle)
-                    Text("\(SirenaMixerRoutingSupport.displayPercent(forVolume: volume))%")
-                        .font(.caption.monospacedDigit())
-                        .foregroundStyle(.secondary)
-                        .frame(width: 34, alignment: .trailing)
-                } else {
-                    Text(SirenaMixerStrings.outputUnavailable).font(.caption).foregroundStyle(.secondary)
-                    Spacer()
-                }
-                Button {
-                    withAnimation(.snappy(duration: 0.25)) { expanded.toggle() }
-                } label: {
-                    Image(systemName: "chevron.down")
-                        .font(.caption.weight(.semibold))
-                        .rotationEffect(.degrees(expanded ? 180 : 0))
-                        .frame(width: 22, height: 22)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .foregroundStyle(.secondary)
-                .help(expanded ? "Recolher" : "Saída, microfone e volume de cada app")
-                .accessibilityLabel(expanded ? "Recolher o mixer" : "Expandir o mixer")
+            // Two tiles, side by side: the Mac's volume and the microphone.
+            HStack(alignment: .top, spacing: 8) {
+                miniTile(title: "Saída",
+                         symbol: (mixer.systemOutputMuted == true || (mixer.systemOutputVolume ?? 0) <= 0.001)
+                             ? "speaker.slash.fill" : "speaker.wave.2.fill",
+                         tint: .purple,
+                         value: systemOutputVolumeBinding,
+                         percent: mixer.systemOutputVolume.map { SirenaMixerRoutingSupport.displayPercent(forVolume: $0) },
+                         label: SirenaMixerStrings.systemOutputTitle)
+                miniTile(title: "Microfone",
+                         symbol: "mic.fill",
+                         tint: .red,
+                         value: inputVolumeBinding,
+                         percent: SirenaMixerRoutingSupport.displayPercent(forVolume: inputVolumeBinding.wrappedValue),
+                         label: "Microfone")
             }
 
-            if expanded {
-                Picker("", selection: $tab) {
-                    Text("Saída").tag(Tab.output)
-                    Text("Microfone").tag(Tab.input)
+            // Everything else unrolls downward.
+            Button {
+                withAnimation(.snappy(duration: 0.28)) { expanded.toggle() }
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "chevron.down")
+                        .font(.caption2.weight(.bold))
+                        .rotationEffect(.degrees(expanded ? 180 : 0))
+                    Text(expanded ? "Recolher" : "Dispositivos e volume de cada app")
+                        .font(.caption.weight(.medium))
                 }
-                .pickerStyle(.segmented)
-                .labelsHidden()
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 5)
+                .background(.quaternary.opacity(0.7), in: Capsule())
+                .contentShape(Capsule())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(expanded ? "Recolher o mixer" : "Expandir o mixer")
 
-                Group {
-                    if tab == .output {
-                        VStack(alignment: .leading, spacing: 8) {
-                            universalOutputPicker
-                            systemSoundOutputPicker
-                            if SirenaAppVolumeMixer.isSupported {
-                                Divider()
-                                if mixer.needsPermission {
-                                    permissionHint
-                                } else if visibleApps.isEmpty {
-                                    emptyLabel(SirenaMixerStrings.empty)
-                                } else {
-                                    mixerRows
-                                }
-                            }
+            if expanded {
+                VStack(alignment: .leading, spacing: 8) {
+                    universalOutputPicker
+                    systemSoundOutputPicker
+                    Divider()
+                    microphonePicker
+                    if SirenaAppVolumeMixer.isSupported {
+                        Divider()
+                        if mixer.needsPermission {
+                            permissionHint
+                        } else if visibleApps.isEmpty {
+                            emptyLabel(SirenaMixerStrings.empty)
+                        } else {
+                            mixerRows
                         }
-                    } else {
-                        microphonePicker
                     }
                 }
                 .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
+    }
+
+    /// One compact tile: icon, name, slider and percent.
+    private func miniTile(title: String, symbol: String, tint: Color,
+                          value: Binding<Double>, percent: Int?, label: String) -> some View {
+        VStack(alignment: .leading, spacing: 7) {
+            HStack(spacing: 6) {
+                Image(systemName: symbol)
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundStyle(.white)
+                    .frame(width: 20, height: 20)
+                    .background(tint.gradient, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+                Text(title)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                Spacer(minLength: 0)
+                if let percent {
+                    Text("\(percent)%")
+                        .font(.caption2.monospacedDigit())
+                        .foregroundStyle(.tertiary)
+                }
+            }
+            SirenaMixerVolumeSlider(value: value, normalTint: normalSliderTint, boostTint: normalSliderTint,
+                                    isBoosting: false, accentRevision: accentRevision, glassEnabled: glassEnabled,
+                                    maximum: 1, accessibilityLabel: label)
+        }
+        .padding(9)
+        .frame(maxWidth: .infinity)
+        .background(.quaternary.opacity(0.55), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
     }
 
     private var audioDevicesSection: some View {
