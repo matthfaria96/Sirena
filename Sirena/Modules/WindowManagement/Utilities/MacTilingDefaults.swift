@@ -36,78 +36,19 @@ enum MacTilingDefaults: String {
         NSWorkspace.shared.open(URL(string:"x-apple.systempreferences:com.apple.preference.Desktop-Settings.extension")!)
     }
     
+    /// Sirena is always the window manager: while its snapping is on, macOS's own tiling
+    /// (edge drag, ⌥ accelerator and top edge) is switched off silently, so the two never
+    /// fight and no conflict alert is shown. The user can turn it back on in System
+    /// Settings → Desktop & Dock → Windows after disabling snapping in Sirena.
     static func checkForBuiltInTiling(skipIfAlreadyNotified: Bool) {
-        guard #available(macOS 15, *), !Defaults.windowSnapping.userDisabled
-        else { return }
-
-        let isStandardTilingConflicting = (tilingByEdgeDrag.enabled || tilingOptionAccelerator.enabled)
-        
-        let shouldSkipStandardCheck = skipIfAlreadyNotified && Defaults.internalTilingNotified.enabled
-        
-        if isStandardTilingConflicting && !shouldSkipStandardCheck {
-            resolveStandardTilingConflict()
-        } else if isTopTilingConflicting {
-            resolveTopTilingConflict()
-        }
+        guard #available(macOS 15, *), !Defaults.windowSnapping.userDisabled else { return }
+        let isConflicting = tilingByEdgeDrag.enabled || tilingOptionAccelerator.enabled || topTilingByEdgeDrag.enabled
+        guard isConflicting else { return }
+        Logger.log("Disabling macOS tiling so Sirena manages window snapping.")
+        disableMacTiling()
         Defaults.internalTilingNotified.enabled = true
     }
-    
-    private static func resolveTopTilingConflict() {
-        Logger.log("Automatically disabling macOS top edge tiling to resolve conflict with macOS.")
-        
-        topTilingByEdgeDrag.disable()
-        
-        if !Defaults.internalTilingNotified.enabled {
-            // First time running Rectangle & only has drag to top enabled in macOS
-            let result = AlertUtil.twoButtonAlert(
-                question: String(localized: "Top screen edge tiling in macOS is now disabled"),
-                text: String(localized: "To adjust macOS tiling, go to System Settings → Desktop & Dock → Windows"),
-                cancelText: String(localized: "Open System Settings"))
-            if result == .alertSecondButtonReturn {
-                openSystemSettings()
-            }
-        }
-    }
-    
-    private static var isTopTilingConflicting: Bool {
-        guard #available(macOS 15.1, *) else { return false }
-        return topTilingByEdgeDrag.enabled && SnapAreaModel.instance.isTopConfigured
-    }
-    
-    private static func resolveStandardTilingConflict() {
-        let result = AlertUtil.threeButtonAlert(
-            question: String(localized: "Conflict with macOS tiling"),
-            text: String(localized: "Drag to screen edge tiling is enabled in both Sirena and macOS."),
-            buttonOneText: String(localized: "Disable in macOS"),
-            buttonTwoText: String(localized: "Disable in Sirena"),
-            buttonThreeText: String(localized: "Dismiss"))
-        switch result {
-        case .alertFirstButtonReturn:
-            disableMacTiling()
 
-            let result = AlertUtil.twoButtonAlert(
-                question: String(localized: "Tiling in macOS has been disabled"),
-                text: String(localized: "To re-enable it, go to System Settings → Desktop & Dock → Windows"),
-                cancelText: String(localized: "Open System Settings"))
-            if result == .alertSecondButtonReturn {
-                openSystemSettings()
-            }
-        case .alertSecondButtonReturn:
-            Defaults.windowSnapping.enabled = false
-            Notification.Name.windowSnapping.post(object: false)
-
-            let result = AlertUtil.twoButtonAlert(
-                question: String(localized: "Tiling in Sirena has been disabled"),
-                text: String(localized: "To adjust macOS tiling, go to System Settings → Desktop & Dock → Windows"),
-                cancelText: String(localized: "Open System Settings"))
-            if result == .alertSecondButtonReturn {
-                openSystemSettings()
-            }
-        default:
-            break
-        }
-    }
-    
     private static func disableMacTiling() {
         tilingByEdgeDrag.disable()
         tilingOptionAccelerator.disable()
