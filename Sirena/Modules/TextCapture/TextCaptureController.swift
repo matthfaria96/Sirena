@@ -234,6 +234,9 @@ final class TextCaptureController {
                 if settings.language != TextCaptureLanguage.automatic {
                     options.languages = [settings.language]
                 }
+                if let rect {
+                    options.pixelScale = CGFloat(image.width) / max(1, rect.width)
+                }
                 let text = try await TextRecognizer.recognizeText(in: image, options: options)
                 guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
                     fail(L("No text found"), rect: rect)

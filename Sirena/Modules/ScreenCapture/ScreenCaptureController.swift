@@ -143,7 +143,9 @@ final class ScreenCaptureController {
         let url = Self.nextFile(prefix: L("Screenshot"), ext: "png")
         var args: [String] = []
         if interactive {
-            args.append("-i")
+            // Apple's Screenshot toolbar (photo or video, area, window or screen), always in
+            // selection mode so it never opens on Visual Intelligence's text highlighting.
+            args += ["-i", "-U", "-Jselection"]
         } else {
             args.append("-D\(Self.displayIndexUnderMouse())")
             if showsCursor { args.append("-C") }
