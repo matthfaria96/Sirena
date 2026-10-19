@@ -18,7 +18,7 @@ struct MainView: View {
                     }
                 }
                 Section(L("Controllers")) {
-                    ForEach([ModuleID.keepAwake, .mixer]) { module in
+                    ForEach([ModuleID.keepAwake, .displayOff, .mixer]) { module in
                         sidebarRow(.module(module), title: module.title, symbol: module.symbol, tint: module.tint)
                     }
                 }
@@ -87,6 +87,8 @@ struct MainView: View {
             MixerPage()
         case .module(.keepAwake):
             KeepAwakePage(viewModel: KeepAwakeModule.shared.viewModel)
+        case .module(.displayOff):
+            DisplayOffPage()
         case .module(.mirror):
             MirrorPage()
         case .module(.pinWindow):

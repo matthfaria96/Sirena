@@ -1,8 +1,8 @@
 # Sirena
 
-Um app de barra de menus para macOS 26+ que junta, num lugar só, as ferramentas do dia a dia: organizar janelas, ⌘ Tab com prévias, histórico da área de transferência, captura de texto, Pomodoro, seletor de cores, desenho na tela e mais.
+Um app de barra de menus para macOS 15 ou mais novo que junta, num lugar só, as ferramentas do dia a dia: organizar janelas, ⌘ Tab com prévias, histórico da área de transferência, captura de texto, Pomodoro, seletor de cores, desenho na tela e mais.
 
-*A macOS menu bar app (macOS 26+) that brings window management, a ⌘ Tab switcher with previews, clipboard history, text capture, a Pomodoro timer, a color picker, screen drawing and more into one place. UI in Brazilian Portuguese.*
+*A macOS menu bar app (macOS 15 or later) that brings window management, a ⌘ Tab switcher with previews, clipboard history, text capture, a Pomodoro timer, a color picker, screen drawing and more into one place. UI in Brazilian Portuguese.*
 
 ## Recursos
 
@@ -16,9 +16,13 @@ Um app de barra de menus para macOS 26+ que junta, num lugar só, as ferramentas
 - **Desenho Livre** — desenhe, destaque e aponte por cima da tela; print com o desenho.
 - **Espelho** — uma olhada rápida na câmera antes de uma chamada.
 
-**Controles** — Não desligar tela e mixer de som (volume por app, saída e microfone).
+**Controles** — Não desligar tela, Desligar monitor (apaga a tela após uma contagem que dá para cancelar) e mixer de som (volume por app, saída e microfone).
 
 **Recursos em segundo plano** — Janela e Dock (atalhos de janela, prévias no Dock, ⌘ Tab), Ícones Ocultos, Prateleira (arraste e solte) e Ilha Dinâmica.
+
+## Compatibilidade
+
+Funciona do **macOS 15 (Sequoia)** em diante. No macOS 26+ o visual usa Liquid Glass; nas versões anteriores o Sirena detecta a versão e usa os materiais translúcidos e botões clássicos do sistema, e os Ícones Ocultos usam a técnica do separador do Hidden Bar no lugar do recurso nativo do macOS 27.
 
 ## Instalação
 
@@ -32,7 +36,7 @@ Um app de barra de menus para macOS 26+ que junta, num lugar só, as ferramentas
 
 ## Compilar
 
-Requer Xcode 27 e macOS 26+.
+Requer Xcode 27. O app gerado roda no macOS 15 ou mais novo.
 
 ```sh
 xcodebuild -scheme Sirena -configuration Release -derivedDataPath build/DerivedData \

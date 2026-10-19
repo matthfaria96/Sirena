@@ -12881,6 +12881,236 @@
           }
         }
       }
+    },
+    "Turn Off Display": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desligar monitor"
+          }
+        }
+      }
+    },
+    "Turn the screen off with one click, after a short countdown you can cancel.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apague a tela com um clique, depois de uma contagem curta que dá para cancelar."
+          }
+        }
+      }
+    },
+    "Turns the screen off with one click, after a countdown.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apaga a tela com um clique, depois de uma contagem."
+          }
+        }
+      }
+    },
+    "Click to start the countdown; you can cancel before the screen goes dark.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clique para iniciar a contagem; é possível cancelar antes de apagar."
+          }
+        }
+      }
+    },
+    "Click to start the countdown; you can cancel before the screen goes dark. Moving the mouse or pressing a key turns it back on.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clique para iniciar a contagem; é possível cancelar antes de apagar. Mexer o mouse ou apertar uma tecla acende a tela de novo."
+          }
+        }
+      }
+    },
+    "Built on macOS's power management": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Feito sobre o gerenciamento de energia do macOS"
+          }
+        }
+      }
+    },
+    "Right away": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Na hora"
+          }
+        }
+      }
+    },
+    "3 seconds": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3 segundos"
+          }
+        }
+      }
+    },
+    "5 seconds": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "5 segundos"
+          }
+        }
+      }
+    },
+    "10 seconds": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "10 segundos"
+          }
+        }
+      }
+    },
+    "30 seconds": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 segundos"
+          }
+        }
+      }
+    },
+    "Turns the screen off right away.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apaga a tela na hora."
+          }
+        }
+      }
+    },
+    "Turns the screen off after %lld seconds.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apaga a tela após %lld segundos."
+          }
+        }
+      }
+    },
+    "Cancel (%lld s)": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelar (%lld s)"
+          }
+        }
+      }
+    },
+    "Turn Off Now": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desligar agora"
+          }
+        }
+      }
+    },
+    "Turn off in %lld s": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desligar em %lld s"
+          }
+        }
+      }
+    },
+    "Turning off in %lld s": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apagando em %lld s"
+          }
+        }
+      }
+    },
+    "The screen is about to turn off": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A tela vai apagar"
+          }
+        }
+      }
+    },
+    "Turn off the display": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desligar o monitor"
+          }
+        }
+      }
+    },
+    "Wait before turning off": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Espera antes de apagar"
+          }
+        }
+      }
+    },
+    "Turns off right away": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apaga na hora"
+          }
+        }
+      }
+    },
+    "Turns off after %lld s": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apaga após %lld s"
+          }
+        }
+      }
+    },
+    "A translucent menu you can see through. Off, the menu keeps a solid backing that reads over white windows.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Um menu translúcido que dá para ver através. Desligado, o menu mantém um fundo sólido que fica legível sobre janelas brancas."
+          }
+        }
+      }
     }
   }
 }

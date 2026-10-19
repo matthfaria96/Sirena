@@ -86,6 +86,8 @@ final class ModuleManager {
             MenuBarModule.shared.start(openPage: open)
         case .keepAwake:
             KeepAwakeModule.shared.start()
+        case .displayOff:
+            DisplayOffController.shared.start()
         case .mixer:
             // Started at launch by the app delegate (per-app volumes apply right away).
             SirenaMixer.shared.start()
@@ -117,6 +119,7 @@ final class ModuleManager {
         if running.contains(.switcher) { WindowSwitcherController.shared.terminate() }
         if running.contains(.island) { IslandController.shared.terminate() }
         if running.contains(.keepAwake) { KeepAwakeModule.shared.terminate() }
+        if running.contains(.displayOff) { DisplayOffController.shared.terminate() }
         if running.contains(.mirror) { MirrorController.shared.terminate() }
         if running.contains(.pinWindow) { PinWindowController.shared.terminate() }
         if running.contains(.textCapture) { TextCaptureController.shared.terminate() }

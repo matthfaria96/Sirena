@@ -11,6 +11,7 @@ enum ModuleID: String, CaseIterable, Identifiable {
     case clipboard
     case menuBar
     case keepAwake
+    case displayOff
     case mixer
     case mirror
     case pinWindow
@@ -34,6 +35,7 @@ enum ModuleID: String, CaseIterable, Identifiable {
         case .clipboard: return L("Clipboard")
         case .menuBar: return L("Hidden Icons")
         case .keepAwake: return L("Keep Awake")
+        case .displayOff: return L("Turn Off Display")
         case .mixer: return L("Sound Mixer")
         case .mirror: return L("Mirror")
         case .pinWindow: return L("Pin Window")
@@ -56,6 +58,7 @@ enum ModuleID: String, CaseIterable, Identifiable {
         case .clipboard: return L("Keep a searchable history of everything you copy and paste it back anywhere.")
         case .menuBar: return L("Hide menu bar icons you don't need and reveal them with one click.")
         case .keepAwake: return L("Stop your Mac from sleeping or dimming the screen, for as long as you want.")
+        case .displayOff: return L("Turn the screen off with one click, after a short countdown you can cancel.")
         case .mixer: return L("The volume of the Mac and of each app, where each one plays, and the microphone.")
         case .mirror: return L("A hand mirror in your menu bar: click it to check how you look before a call.")
         case .pinWindow: return L("Keep any window floating above all the others, with adjustable transparency.")
@@ -78,6 +81,7 @@ enum ModuleID: String, CaseIterable, Identifiable {
         case .clipboard: return "doc.on.clipboard.fill"
         case .menuBar: return "eye.slash.fill"
         case .keepAwake: return "cup.and.saucer.fill"
+        case .displayOff: return "display"
         case .mixer: return "slider.vertical.3"
         case .mirror: return "person.crop.circle"
         case .pinWindow: return "pin.fill"
@@ -114,6 +118,7 @@ enum ModuleID: String, CaseIterable, Identifiable {
         case .clipboard: return .orange
         case .menuBar: return .indigo
         case .keepAwake: return Color(red: 0.55, green: 0.30, blue: 0.10)
+        case .displayOff: return Color(red: 0.24, green: 0.40, blue: 0.62)
         case .mixer: return .purple
         case .mirror: return .pink
         case .pinWindow: return Color(red: 0.0, green: 0.52, blue: 0.42)
@@ -136,6 +141,7 @@ enum ModuleID: String, CaseIterable, Identifiable {
         case .island: return ("Vorssaint", "Vorssaint", "GPL-3.0", "https://github.com/vorssaint/vorssaint-utils")
         case .clipboard: return ("Maccy", "Alex Rodionov", "MIT", "https://github.com/p0deje/Maccy")
         case .menuBar: return ("Hidden Bar", "Dwarves Foundation", "MIT", "https://github.com/dwarvesf/hidden")
+        case .displayOff: return ("pmset", L("Built on macOS's power management"), L("Original"), "https://ss64.com/mac/pmset.html")
         case .keepAwake: return ("Caffeine", "Tomas Franzén, Michael Jones, Dominic Rodemer", "MIT", "https://github.com/domzilla/Caffeine")
         case .mixer: return ("Vorssaint", "Vorssaint", "GPL-3.0", "https://github.com/vorssaint/vorssaint-utils")
         case .mirror: return ("Iris", "Ahmet Alp Balkan", "MIT", "https://github.com/ahmetb/Iris")
@@ -176,7 +182,7 @@ enum ModuleID: String, CaseIterable, Identifiable {
 
     /// Tools are used now and then (pin a window, check the mirror): always available,
     /// never switched on or off, and listed apart from the background features.
-    var isTool: Bool { [.mirror, .pinWindow, .clipboard, .textCapture, .keepAwake, .mixer, .screenCapture, .pomodoro, .colorPicker, .screenBrush].contains(self) }
+    var isTool: Bool { [.mirror, .pinWindow, .clipboard, .textCapture, .keepAwake, .displayOff, .mixer, .screenCapture, .pomodoro, .colorPicker, .screenBrush].contains(self) }
 
     static var tools: [ModuleID] { allCases.filter(\.isTool) }
 

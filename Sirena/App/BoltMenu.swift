@@ -15,7 +15,7 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
     // Atalhos
     case clipboard, pinWindow, textCapture, screenCapture, pomodoro, colorPicker, screenBrush, mirror
     // Controladores
-    case keepAwake, sound
+    case keepAwake, displayOff, sound
 
     var id: String { rawValue }
 
@@ -38,6 +38,7 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
         case .textCapture: return ModuleID.textCapture.title
         case .screenCapture, .pomodoro, .colorPicker, .screenBrush: return module?.title ?? ""
         case .keepAwake: return L("Keep Display On")
+        case .displayOff: return ModuleID.displayOff.title
         case .mirror: return L("Peek Camera")
         case .sound: return L("Sound Mixer")
         }
@@ -55,6 +56,7 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
         case .screenBrush: return L("Draw, highlight and point on top of the screen, for presentations and calls.")
         case .mirror: return L("A quick look at yourself before a call.")
         case .keepAwake: return L("Keeps the display on for as long as you want.")
+        case .displayOff: return L("Turns the screen off with one click, after a countdown.")
         case .sound: return L("Each app's volume and where the sound goes.")
         }
     }
@@ -85,6 +87,7 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
         case .colorPicker: return L("Opens a magnifier to pick a color from anywhere on the screen and copies it.")
         case .screenBrush: return L("Turns the screen into a canvas to draw, highlight and point. Esc to leave.")
         case .keepAwake: return L("Keeps the Mac and the display from sleeping, for the time you choose or indefinitely. The time is remembered.")
+        case .displayOff: return L("Click to start the countdown; you can cancel before the screen goes dark.")
         case .mirror: return L("Opens the camera below the menu bar for a quick look at yourself, with a countdown. It closes by itself after 10 seconds (changeable on its page).")
         case .sound: return L("Volume of the Mac and of each app, the sound output and the microphone, all in one place.")
         }
@@ -97,6 +100,7 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
         case .textCapture: return ModuleID.textCapture.symbol
         case .screenCapture, .pomodoro, .colorPicker, .screenBrush: return module?.symbol ?? "circle"
         case .keepAwake: return "cup.and.saucer.fill"
+        case .displayOff: return ModuleID.displayOff.symbol
         case .mirror: return "camera.fill"
         case .sound: return "slider.vertical.3"
         }
@@ -109,6 +113,7 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
         case .textCapture: return ModuleID.textCapture.tint
         case .screenCapture, .pomodoro, .colorPicker, .screenBrush: return module?.tint ?? .accentColor
         case .keepAwake: return ModuleID.keepAwake.tint
+        case .displayOff: return ModuleID.displayOff.tint
         case .mirror: return ModuleID.mirror.tint
         case .sound: return .purple
         }
@@ -125,6 +130,7 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
         case .colorPicker: return .colorPicker
         case .screenBrush: return .screenBrush
         case .keepAwake: return .keepAwake
+        case .displayOff: return .displayOff
         case .mirror: return .mirror
         case .sound: return .mixer
         default: return nil
@@ -166,6 +172,10 @@ final class BoltMenuSettings {
         if !UserDefaults.standard.bool(forKey: "boltMenu.addedFocusColorBrush") {
             items.formUnion([.pomodoro, .colorPicker, .screenBrush])
             UserDefaults.standard.set(true, forKey: "boltMenu.addedFocusColorBrush")
+        }
+        if !UserDefaults.standard.bool(forKey: "boltMenu.addedDisplayOff") {
+            items.insert(.displayOff)
+            UserDefaults.standard.set(true, forKey: "boltMenu.addedDisplayOff")
         }
         if !UserDefaults.standard.bool(forKey: "boltMenu.addedScreenCapture") {
             items.insert(.screenCapture)
@@ -624,6 +634,8 @@ private struct ControlRow: View {
                 }
             }
             .help(item.detail)
+        case .displayOff:
+            DisplayOffRow(item: item)
         default:
             EmptyView()
         }
@@ -631,6 +643,43 @@ private struct ControlRow: View {
 
     static var durations: [(minutes: Int, title: String)] { KeepAwakeModule.durations }
 
+}
+
+/// Turn the display off: icon, what it does, and the countdown button.
+private struct DisplayOffRow: View {
+    let item: BoltMenuItem
+    @ObservedObject private var controller = DisplayOffController.shared
+    @AppStorage(DisplayOffController.delayKey) private var delay = DisplayOffController.defaultDelay
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 10) {
+            GlassIcon(symbol: item.symbol, tint: item.tint, size: 32, isOn: controller.isCounting)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(item.title)
+                    .font(.callout.weight(.medium))
+                    .lineLimit(1)
+                Text(controller.isCounting ? controller.statusText : controller.shortSummary)
+                    .font(.caption)
+                    .foregroundStyle(controller.isCounting ? .orange : .secondary)
+                    .lineLimit(1)
+                    .contentTransition(.numericText(countsDown: true))
+            }
+            Spacer(minLength: 6)
+            Button {
+                withAnimation(.snappy) { controller.toggle() }
+            } label: {
+                Text(controller.buttonTitle)
+                    .font(.caption.weight(.semibold))
+                    .monospacedDigit()
+                    .contentTransition(.numericText(countsDown: true))
+            }
+            .controlSize(.small)
+            .fixedSize()
+            // Keeps the label in step with a wait changed on the page.
+            .id(delay)
+        }
+        .help(item.detail)
+    }
 }
 
 // MARK: - Inline panels (inside the menu)

@@ -425,6 +425,7 @@ struct ModuleStatusLabel: View {
         case .clipboard: return !ClipboardController.shared.isPaused
         case .menuBar: return true
         case .keepAwake: return KeepAwakeModule.shared.viewModel.isActive
+        case .displayOff: return DisplayOffController.shared.isCounting
         case .mixer: return SirenaMixer.shared.isRunning
         case .mirror: return MirrorController.shared.isVisible
         case .pinWindow: return !PinWindowController.shared.pins.isEmpty
@@ -471,6 +472,8 @@ struct ModuleStatusLabel: View {
             return module.isCollapsed ? L("\(module.hiddenApps.count) apps hidden") : L("Icons showing")
         case .mixer:
             return L("Volume of each app")
+        case .displayOff:
+            return DisplayOffController.shared.statusText
         case .keepAwake:
             let viewModel = KeepAwakeModule.shared.viewModel
             return viewModel.formattedTimeRemaining() ?? L("Mac can sleep normally")
