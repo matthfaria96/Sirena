@@ -86,9 +86,6 @@ final class DockObserver {
     // Dock click behavior state
     var currentClickedAppPID: pid_t?
     var lastHoveredPID: pid_t?
-    var lastHoveredAppWasFrontmost: Bool = false
-    var lastHoveredAppNeedsRestore: Bool = false
-    var lastHoveredAppHadWindows: Bool = false
 
     // Scroll gesture state
     private var lastDockScrollActionTime: Date = .distantPast
@@ -428,9 +425,6 @@ final class DockObserver {
         }
 
         lastHoveredPID = currentApp.processIdentifier
-        lastHoveredAppWasFrontmost = NSWorkspace.shared.frontmostApplication?.processIdentifier == currentApp.processIdentifier
-        lastHoveredAppNeedsRestore = currentApp.isHidden || cachedWindows.contains(where: \.isMinimized)
-        lastHoveredAppHadWindows = !cachedWindows.isEmpty
 
         if Defaults[.ignoreAppsWithSingleWindow], cachedWindows.count <= 1 {
             cachedWindows = []
@@ -924,7 +918,11 @@ final class DockObserver {
                 return nil
             }
 
-            if type == .leftMouseDown, !previewCoordinator.mouseIsWithinPreviewWindow {
+            // Clicks over the preview already returned above (containsQuartzPoint). Don't also gate
+            // on mouseIsWithinPreviewWindow: it relies on mouseExited, which never arrives when the
+            // preview is ordered out under the cursor, and a stuck `true` silently disabled every
+            // dock click action until the next preview hover.
+            if type == .leftMouseDown {
                 let shouldIntercept = handleDockClick(app: app)
                 if shouldIntercept {
                     return nil
@@ -1023,44 +1021,36 @@ final class DockObserver {
 
         currentClickedAppPID = pid
 
-        let isFrontmost = NSWorkspace.shared.frontmostApplication?.processIdentifier == pid
-        let hasValidHoverState = lastHoveredPID == pid
-        let wasFrontmostOnHover = hasValidHoverState ? lastHoveredAppWasFrontmost : isFrontmost
+        // Everything below is read at click time. A hover-time snapshot goes stale whenever the app
+        // gains focus, minimizes or restores windows while the cursor stays on its icon (via a
+        // preview click, ⌘Tab or the window itself), and the stale values made clicks on the active
+        // app intermittently fall through to the native Dock.
+        let wasFrontmost = NSWorkspace.shared.frontmostApplication?.processIdentifier == pid
 
         guard Defaults[.shouldHideOnDockItemClick] else { return false }
 
+        var hasMinimizedWindowsAtClickTime = false
+        var hadAnyWindowsAtClickTime = false
+        let axApp = AXUIElementCreateApplication(pid)
+        if let windowList = try? axApp.windows() {
+            hadAnyWindowsAtClickTime = !windowList.isEmpty
+            hasMinimizedWindowsAtClickTime = windowList.contains { (try? $0.isMinimized()) == true }
+        }
+
+        let restorationNeededAtClickTime = hasMinimizedWindowsAtClickTime || app.isHidden
+
         // Defer to native behavior for simple activation
-        if hasValidHoverState, !lastHoveredAppWasFrontmost, !lastHoveredAppNeedsRestore {
+        if !wasFrontmost, !restorationNeededAtClickTime {
             lastHoveredPID = nil
             return false
         }
 
-        // The hover state comes from the window cache, which can be empty for a window that
-        // is new, on another Space or not read yet. Trusting it left the click to macOS,
-        // which does nothing for the frontmost app: ask the app itself instead.
-        let hoverCacheIsEmpty = hasValidHoverState && !lastHoveredAppHadWindows && !app.isHidden
-
-        // Without a usable hover state, query AX directly at click time
-        var hasMinimizedWindowsAtClickTime = false
-        var hadAnyWindowsAtClickTime = true
-        if !hasValidHoverState || hoverCacheIsEmpty {
-            let axApp = AXUIElementCreateApplication(pid)
-            if let windowList = try? axApp.windows() {
-                hadAnyWindowsAtClickTime = !windowList.isEmpty
-                for window in windowList {
-                    if (try? window.isMinimized()) == true {
-                        hasMinimizedWindowsAtClickTime = true
-                        break
-                    }
-                }
-            } else {
-                hadAnyWindowsAtClickTime = false
-            }
+        // If app had no windows, defer to native behavior
+        // This prevents minimizing newly created windows when clicking an app with no windows
+        if !hadAnyWindowsAtClickTime, !app.isHidden {
+            lastHoveredPID = nil
+            return false
         }
-
-        // Capture restoration need from hover state OR from AX query at click time
-        let restorationNeededFromHover = hasValidHoverState && lastHoveredAppNeedsRestore
-        let restorationNeededAtClickTime = restorationNeededFromHover || hasMinimizedWindowsAtClickTime || app.isHidden
 
         lastHoveredPID = nil
         DispatchQueue.main.async { [weak self] in self?.previewCoordinator.cancelPendingShow() }
@@ -1073,14 +1063,10 @@ final class DockObserver {
             _ = Task { @MainActor [weak self] in
                 guard let self else { return }
 
-                if !hadAnyWindowsAtClickTime {
-                    return
-                }
-
                 let windows = try await WindowUtil.getActiveWindows(of: app, ignoreSingleWindowFilter: true)
-                // The window list can still miss windows macOS has (same cache): the app
-                // itself can always be hidden.
-                if windows.isEmpty, wasFrontmostOnHover || app.isActive, Defaults[.dockClickAction] == .hide {
+                // The window list comes from a cache that can miss windows macOS has (new, on
+                // another Space, not read yet): the frontmost app itself can always be hidden.
+                if windows.isEmpty, wasFrontmost, !restorationNeededAtClickTime, Defaults[.dockClickAction] == .hide {
                     DebugLogger.log("DockClick", details: "\(appName): hiding (no cached windows)")
                     app.hide()
                     return
@@ -1094,7 +1080,7 @@ final class DockObserver {
                 if needsRestore, Defaults[.restoreAllMinimizedWindowsOnDockClick] {
                     DebugLogger.log("DockClick", details: "\(appName): restoring (needsRestore=true, minimized=\(currentlyHasMinimizedWindows))")
                     restoreAppWindows(windows: windows, app: app, appName: appName)
-                } else if wasFrontmostOnHover, !windows.isEmpty {
+                } else if wasFrontmost, !windows.isEmpty {
                     DebugLogger.log("DockClick", details: "\(appName): hiding (wasFrontmost=true, windows=\(windows.count))")
                     hideAppWindows(windows: windows, app: app, appName: appName)
                 }

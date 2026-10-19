@@ -192,6 +192,7 @@ final class SharedPreviewWindowCoordinator: NSPanel {
         // Always restore dock auto-hide state, even if the preview isn't visible.
         restoreDockAutoHideState()
         hideFullPreviewWindow()
+        mouseIsWithinPreviewWindow = false
 
         guard isVisible else { return }
 
