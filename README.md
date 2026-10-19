@@ -49,5 +49,6 @@ O Sirena é distribuído sob a **GPL-3.0** (veja [LICENSE](LICENSE)), porque inc
 | Não desligar tela | [Caffeine](https://github.com/domzilla/Caffeine) | MIT |
 | Espelho | [Iris](https://github.com/ahmetb/Iris) | MIT |
 | Som | [Fader](https://github.com/pantafive/fader) | MIT |
+| Ajustes do reconhecimento em Capturar Texto | [TRex](https://github.com/amebalabs/TRex) | MIT |
 
 Fixar Janela, Capturar Texto, Melhorias, Prateleira, Pomodoro, Seletor de Cores e Desenho Livre foram escritos do zero, inspirados na lista de recursos de Floaty, TextSniper, Supercharge, Yoink, Flow, Pastel e ScreenBrush. Nenhum código desses apps comerciais foi usado.
