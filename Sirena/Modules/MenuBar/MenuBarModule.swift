@@ -5,7 +5,8 @@
 /// Which apps are hidden is picked from a list in Sirena's settings — no ⌘-dragging.
 ///
 /// Hiding uses macOS 27's menu bar visibility restriction through Hidden Bar's native
-/// bridge (MIT, © Dwarves Foundation). Sirena itself is never hidden.
+/// bridge (MIT, © Dwarves Foundation). Older macOS versions fall back to the classic
+/// separator technique (LegacyMenuBarHider). Sirena itself is never hidden.
 
 import AppKit
 import MASShortcut
@@ -68,8 +69,12 @@ final class MenuBarModule: NSObject {
     @ObservationIgnored private var openPage: () -> Void = {}
     @ObservationIgnored private let panel = HiddenIconsPanel()
     @ObservationIgnored private var revealWatcher: Timer?
+    @ObservationIgnored private let legacy = LegacyMenuBarHider()
 
-    var isAvailable: Bool { visibility.isAvailable }
+    /// macOS 27+ uses the native restriction; anything older uses the separator.
+    private var usesLegacy: Bool { LegacyMenuBarHider.isNeeded || !visibility.isAvailable }
+
+    var isAvailable: Bool { usesLegacy || visibility.isAvailable }
 
     /// On macOS 27 the restriction only recognises Sirena's own icons when the app runs
     /// from /Applications; anywhere else it hides them too.
@@ -136,6 +141,7 @@ final class MenuBarModule: NSObject {
         release()
         MASShortcutBinder.shared()?.breakBinding(withDefaultsKey: Self.shortcutKey)
         NSWorkspace.shared.notificationCenter.removeObserver(self)
+        legacy.uninstall()
         if let statusItem { NSStatusBar.system.removeStatusItem(statusItem) }
         statusItem = nil
         isRunning = false
@@ -165,13 +171,13 @@ final class MenuBarModule: NSObject {
     }
 
     private func applyCollapse() {
-        guard visibility.isAvailable else { return setCollapsed(false) }
         let running = Set(NSWorkspace.shared.runningApplications.compactMap(\.bundleIdentifier))
         let toHide = hiddenApps.intersection(running)
         guard !toHide.isEmpty else {
             release()
             return setCollapsed(false)
         }
+        if usesLegacy { return applyLegacyCollapse(toHide) }
         // Allowed: every owner of a menu bar icon except the ones chosen to hide — running
         // apps, plus the owners macOS remembers icons for (helpers like Setapp's agent
         // aren't "running applications", and leaving them out hid them by mistake).
@@ -197,6 +203,20 @@ final class MenuBarModule: NSObject {
         }
     }
 
+    /// Before macOS 27: move the chosen icons behind the separator and stretch it.
+    private func applyLegacyCollapse(_ toHide: Set<String>) {
+        guard inventory.isAuthorized else {
+            inventory.requestAuthorization()
+            return setCollapsed(false)
+        }
+        legacy.install()
+        legacy.collapse(hiding: toHide, arrow: statusItem) { [weak self] hidden in
+            guard let self else { return }
+            if !hidden { NSLog("Sirena menu bar: legacy hiding failed") }
+            self.setCollapsed(hidden)
+        }
+    }
+
     /// Brings every icon back.
     func expand() {
         // Hidden icons come back after the arrow, not in between the other apps.
@@ -206,6 +226,7 @@ final class MenuBarModule: NSObject {
     }
 
     private func release() {
+        legacy.expand()
         assertion?.invalidate()
         assertion = nil
     }
@@ -304,6 +325,8 @@ final class MenuBarModule: NSObject {
         item.button?.setAccessibilityLabel(L("Hidden icons"))
         item.isVisible = true
         statusItem = item
+        // The separator must be created after the arrow so it lands on its left.
+        if usesLegacy { legacy.install() }
         updateIcon()
     }
 
@@ -548,6 +571,7 @@ final class MenuBarModule: NSObject {
 
     /// Re-creates the arrow so macOS reads its new place.
     private func recreateItem() {
+        legacy.uninstall()
         if let statusItem { NSStatusBar.system.removeStatusItem(statusItem) }
         statusItem = nil
         createItem()
