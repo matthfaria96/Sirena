@@ -36,7 +36,7 @@ struct GeneralPage: View {
                         }
                 }
                 SettingsSeparator(indented: true)
-                SettingsRow(L("Transparent menu"), detail: L("Liquid Glass you can see through. Off, the menu keeps a solid backing that reads over white windows."), symbol: "circle.dotted.circle") {
+                SettingsRow(L("Transparent menu"), detail: supportsLiquidGlass ? L("Liquid Glass you can see through. Off, the menu keeps a solid backing that reads over white windows.") : L("A translucent menu you can see through. Off, the menu keeps a solid backing that reads over white windows."), symbol: "circle.dotted.circle") {
                     Toggle("", isOn: Binding(get: { BoltMenuSettings.shared.clearGlass },
                                              set: { BoltMenuSettings.shared.clearGlass = $0 })).settingsSwitch()
                 }

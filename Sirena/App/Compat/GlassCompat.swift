@@ -6,6 +6,13 @@
 
 import SwiftUI
 
+/// Whether this Mac draws Liquid Glass (macOS 26+). Settings that only change the
+/// glass look are hidden or renamed when it doesn't.
+var supportsLiquidGlass: Bool {
+    if #available(macOS 26, *) { return true }
+    return false
+}
+
 enum CompatGlass {
     case regular
     case clear

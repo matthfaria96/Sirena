@@ -198,7 +198,7 @@ struct WindowSwitcherSettingsView: View {
                     Text(L("Extra large")).tag("xlarge")
                 }
                 .onChange(of: previewSize) { _, _ in sync() }
-                Toggle(L("Liquid Glass background"), isOn: $liquidGlass)
+                Toggle(supportsLiquidGlass ? L("Liquid Glass background") : L("Translucent background"), isOn: $liquidGlass)
                 Toggle(isOn: $minimalPreviews) {
                     Text(L("Minimal previews"))
                     Text(L("Hide titles, buttons and decorative details in switcher previews. The selection stays visible."))

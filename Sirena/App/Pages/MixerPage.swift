@@ -25,6 +25,8 @@ private struct MixerSettingsForm: View {
 
     var body: some View {
         Form {
+            // Before macOS 26 the sliders are always the basic ones: nothing to pick.
+            if supportsLiquidGlass {
             Section {
                 Picker(selection: $glass) {
                     Text(L("Glass")).tag(true)
@@ -36,6 +38,7 @@ private struct MixerSettingsForm: View {
                 .pickerStyle(.segmented)
             } header: {
                 Text(L("Appearance"))
+            }
             }
 
             Section {
