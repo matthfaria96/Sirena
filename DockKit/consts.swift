@@ -116,7 +116,7 @@ extension Defaults.Keys {
     static let dockPreviewActivationModifier = Key<DockPreviewActivationModifier>("dockPreviewActivationModifier", default: .option)
     static let showWindowsFromCurrentSpaceOnly = Key<Bool>("showWindowsFromCurrentSpaceOnly", default: false)
     static let showWindowsFromCurrentMonitorOnly = Key<Bool>("showWindowsFromCurrentMonitorOnly", default: false)
-    static let windowPreviewSortOrder = Key<WindowPreviewSortOrder>("windowPreviewSortOrder", default: .recentlyUsed)
+    static let windowPreviewSortOrder = Key<WindowPreviewSortOrder>("windowPreviewSortOrder", default: .creationOrder)
     static let showWindowsFromCurrentSpaceOnlyInSwitcher = Key<Bool>("showWindowsFromCurrentSpaceOnlyInSwitcher", default: false)
     static let showWindowsFromCurrentMonitorOnlyInSwitcher = Key<Bool>("showWindowsFromCurrentMonitorOnlyInSwitcher", default: false)
     static let windowSwitcherSortOrder = Key<WindowPreviewSortOrder>("windowSwitcherSortOrder", default: .recentlyUsed)
