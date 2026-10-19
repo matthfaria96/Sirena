@@ -1035,17 +1035,15 @@ final class DockObserver {
             return false
         }
 
-        // If app had no windows at hover time, defer to native behavior
-        // This prevents minimizing newly created windows when clicking an app with no windows
-        if hasValidHoverState, !lastHoveredAppHadWindows, !app.isHidden {
-            lastHoveredPID = nil
-            return false
-        }
+        // The hover state comes from the window cache, which can be empty for a window that
+        // is new, on another Space or not read yet. Trusting it left the click to macOS,
+        // which does nothing for the frontmost app: ask the app itself instead.
+        let hoverCacheIsEmpty = hasValidHoverState && !lastHoveredAppHadWindows && !app.isHidden
 
-        // If no hover state, query AX directly to check if windows are minimized at click time
+        // Without a usable hover state, query AX directly at click time
         var hasMinimizedWindowsAtClickTime = false
         var hadAnyWindowsAtClickTime = true
-        if !hasValidHoverState {
+        if !hasValidHoverState || hoverCacheIsEmpty {
             let axApp = AXUIElementCreateApplication(pid)
             if let windowList = try? axApp.windows() {
                 hadAnyWindowsAtClickTime = !windowList.isEmpty
@@ -1080,6 +1078,13 @@ final class DockObserver {
                 }
 
                 let windows = try await WindowUtil.getActiveWindows(of: app, ignoreSingleWindowFilter: true)
+                // The window list can still miss windows macOS has (same cache): the app
+                // itself can always be hidden.
+                if windows.isEmpty, wasFrontmostOnHover || app.isActive, Defaults[.dockClickAction] == .hide {
+                    DebugLogger.log("DockClick", details: "\(appName): hiding (no cached windows)")
+                    app.hide()
+                    return
+                }
                 let currentlyHasMinimizedWindows = windows.contains(where: \.isMinimized)
 
                 // Use the state captured at click time to determine intent

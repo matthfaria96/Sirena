@@ -9861,8 +9861,8 @@
       "localizations": {
         "pt-BR": {
           "stringUnit": {
-            "state": "new",
-            "value": "Dock Click Action"
+            "state": "translated",
+            "value": "Ao clicar no ícone do Dock"
           }
         }
       }
@@ -11522,8 +11522,8 @@
       "localizations": {
         "pt-BR": {
           "stringUnit": {
-            "state": "new",
-            "value": "Hide application"
+            "state": "translated",
+            "value": "Ocultar o app"
           }
         }
       }
@@ -12765,8 +12765,8 @@
       "localizations": {
         "pt-BR": {
           "stringUnit": {
-            "state": "new",
-            "value": "Minimize windows"
+            "state": "translated",
+            "value": "Minimizar janelas"
           }
         }
       }
@@ -14941,8 +14941,8 @@
       "localizations": {
         "pt-BR": {
           "stringUnit": {
-            "state": "new",
-            "value": "Restore all minimized windows on dock icon click"
+            "state": "translated",
+            "value": "Restaurar as janelas minimizadas ao clicar no ícone do Dock"
           }
         }
       }

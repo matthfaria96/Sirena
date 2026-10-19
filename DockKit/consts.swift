@@ -37,7 +37,7 @@ extension Defaults.Keys {
     static let preventSwitcherHide = Key<Bool>("preventSwitcherHide", default: false)
     static let requireShiftTabToGoBack = Key<Bool>("requireShiftTabToGoBack", default: false)
     static let switcherBackwardKeyCode = Key<UInt16>("switcherBackwardKeyCode", default: 56)
-    static let shouldHideOnDockItemClick = Key<Bool>("shouldHideOnDockItemClick", default: false)
+    static let shouldHideOnDockItemClick = Key<Bool>("shouldHideOnDockItemClick", default: true)
     static let dockClickAction = Key<DockClickAction>("dockClickAction", default: .hide)
     static let restoreAllMinimizedWindowsOnDockClick = Key<Bool>("restoreAllMinimizedWindowsOnDockClick", default: true)
     static let enableCmdRightClickQuit = Key<Bool>("enableCmdRightClickQuit", default: true)

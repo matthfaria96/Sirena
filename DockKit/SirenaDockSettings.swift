@@ -30,6 +30,9 @@ private struct DockPreviewsPage: View {
     @Default(.previewHoverAction) var previewHoverAction
     @Default(.tapEquivalentInterval) var tapEquivalentInterval
     @Default(.enableCmdRightClickQuit) var enableCmdRightClickQuit
+    @Default(.shouldHideOnDockItemClick) var shouldHideOnDockItemClick
+    @Default(.dockClickAction) var dockClickAction
+    @Default(.restoreAllMinimizedWindowsOnDockClick) var restoreAllMinimizedWindowsOnDockClick
     @Default(.bufferFromDock) var bufferFromDock
     @Default(.dockPreviewControlPosition) var dockPreviewControlPosition
     @Default(.showWindowTitle) var showWindowTitle
@@ -69,6 +72,13 @@ private struct DockPreviewsPage: View {
                     SliderRow(title: "Preview Hover Action Delay", value: $tapEquivalentInterval,
                               range: 0 ... 2, step: 0.1, format: "%.1f s")
                         .disabled(previewHoverAction == .none)
+                    Toggle("Hide all app windows on dock icon click", isOn: $shouldHideOnDockItemClick)
+                    if shouldHideOnDockItemClick {
+                        Picker("Dock Click Action", selection: $dockClickAction) {
+                            ForEach(DockClickAction.allCases, id: \.self) { Text($0.localizedName).tag($0) }
+                        }
+                        Toggle("Restore all minimized windows on dock icon click", isOn: $restoreAllMinimizedWindowsOnDockClick)
+                    }
                     Toggle("CMD + Right Click on dock icon to quit app", isOn: $enableCmdRightClickQuit)
                     SliderRow(title: "Window Buffer from Dock (pixels)", value: $bufferFromDock,
                               range: -100 ... 100, step: 5, format: "%.0f px")
