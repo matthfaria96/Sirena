@@ -22,8 +22,12 @@ Um app de barra de menus para macOS 26+ que junta, num lugar só, as ferramentas
 
 ## Instalação
 
-1. Baixe `Sirena.zip` na página de [Releases](../../releases) e mova `Sirena.app` para **/Applications** (alguns recursos só funcionam a partir dessa pasta).
-2. O app não é notarizado pela Apple. Na primeira vez, clique com o botão direito em `Sirena.app` › **Abrir**, ou rode `xattr -dr com.apple.quarantine /Applications/Sirena.app`.
+1. Baixe o `.dmg` (ou `Sirena.zip`) na página de [Releases](../../releases) e mova `Sirena.app` para **/Applications** (alguns recursos só funcionam a partir dessa pasta).
+2. O app não é notarizado pela Apple, então na primeira vez o macOS mostra "Não foi possível verificar o Sirena" com o botão **Mover para o Lixo**. Clique em **OK** (não em Mover para o Lixo) e então:
+   - abra **Ajustes do Sistema › Privacidade e Segurança**, role até o fim e clique em **Abrir Mesmo Assim** ao lado do aviso do Sirena; ou
+   - no Terminal, rode `xattr -dr com.apple.quarantine /Applications/Sirena.app` e abra o app normalmente.
+
+   Desde o macOS 15, clicar com o botão direito › Abrir não pula mais esse aviso.
 3. Siga o onboarding para permitir **Acessibilidade** e **Gravação de Tela**.
 
 ## Compilar
@@ -34,6 +38,8 @@ Requer Xcode 27 e macOS 26+.
 xcodebuild -scheme Sirena -configuration Release -derivedDataPath build/DerivedData \
   -skipMacroValidation -skipPackagePluginValidation build
 ```
+
+Esse build assina com o certificado local "Sirena Local Dev", que só é confiável no Mac onde foi criado. Para gerar os arquivos que vão para o Releases, use `scripts/package-release.sh`: ele assina ad hoc, sem Hardened Runtime, para que o app abra em qualquer Mac sem conta paga de desenvolvedor.
 
 ## Créditos e licença
 
