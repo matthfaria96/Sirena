@@ -82,7 +82,7 @@ private struct ToastView: View {
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
         .frame(maxWidth: 420, alignment: .leading)
-        .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .compatGlass(in: RoundedRectangle(cornerRadius: 16, style: .continuous))
         .padding(8)
     }
 }

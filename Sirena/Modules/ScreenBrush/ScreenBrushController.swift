@@ -250,7 +250,7 @@ final class ScreenBrushController {
             let primaryHeight = NSScreen.screens.first?.frame.height ?? screen.frame.height
             let f = screen.frame
             let rect = CGRect(x: f.minX, y: primaryHeight - f.maxY, width: f.width, height: f.height)
-            if let cg = try? await SCScreenshotManager.captureImage(in: rect) {
+            if let cg = try? await SCScreenshotManager.compatCaptureImage(in: rect) {
                 return NSImage(cgImage: cg, size: f.size)
             }
         }

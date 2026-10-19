@@ -199,7 +199,7 @@ private struct EnabledButtonsGrid: View {
                     }
                 }
                 .padding(.horizontal, 8).padding(.vertical, 5)
-                .glassEffect(.regular, in: Capsule())
+                .compatGlass(in: Capsule())
                 .opacity(enabledButtons.isEmpty ? 0 : 1)
                 .animation(.snappy, value: enabledButtons)
             }

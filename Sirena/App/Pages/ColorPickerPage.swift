@@ -12,7 +12,7 @@ struct ColorPickerPage: View {
             Button { ColorPickerController.shared.pick() } label: {
                 Label(L("Pick Color"), systemImage: "eyedropper.halffull")
             }
-            .buttonStyle(.glassProminent)
+            .compatGlassProminentButtonStyle()
         }
     }
 }
@@ -99,7 +99,7 @@ private struct ColorHistoryView: View {
                 Text(L("Pick a color anywhere on screen. It's copied and kept here."))
             } actions: {
                 Button(L("Pick Color")) { controller.pick() }
-                    .buttonStyle(.glassProminent)
+                    .compatGlassProminentButtonStyle()
             }
         } else {
             ScrollView {
@@ -155,7 +155,7 @@ private struct ColorHistoryView: View {
             Spacer()
         }
         .padding(14)
-        .glassEffect(.regular, in: .rect(cornerRadius: 18))
+        .compatGlass(in: .rect(cornerRadius: 18))
         .padding([.horizontal, .top], 20)
     }
 }
@@ -178,7 +178,7 @@ private struct PalettesView: View {
                 } description: {
                     Text(L("Group colors into named palettes and export them as JSON, CSS or text."))
                 } actions: {
-                    Button(L("New Palette")) { controller.newPalette() }.buttonStyle(.glassProminent)
+                    Button(L("New Palette")) { controller.newPalette() }.compatGlassProminentButtonStyle()
                     Button(L("Import…")) { controller.importPalette() }
                 }
             } else {

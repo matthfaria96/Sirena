@@ -15,7 +15,7 @@ struct PomodoroPage: View {
                 Label(controller.isTicking ? L("Pause") : (controller.hasStarted ? L("Resume") : L("Start \(controller.phase.title)")),
                       systemImage: controller.isTicking ? "pause.fill" : "play.fill")
             }
-            .buttonStyle(.glassProminent)
+            .compatGlassProminentButtonStyle()
             .tint(controller.phase.color)
             .disabled(!controller.isRunning)
         }
@@ -59,7 +59,7 @@ private struct PomodoroTimerView: View {
                             .font(.title3.weight(.semibold))
                             .frame(minWidth: 120, minHeight: 28)
                     }
-                    .buttonStyle(.glassProminent)
+                    .compatGlassProminentButtonStyle()
                     .tint(controller.phase.color)
                     .keyboardShortcut(.space, modifiers: [])
 
@@ -68,7 +68,7 @@ private struct PomodoroTimerView: View {
                     }
                     .help(L("Skip to the next phase"))
                 }
-                .buttonStyle(.glass)
+                .compatGlassButtonStyle()
                 .controlSize(.large)
 
                 stats
@@ -102,7 +102,7 @@ private struct PomodoroTimerView: View {
         }
         .frame(width: 260, height: 260)
         .padding(20)
-        .glassEffect(.regular, in: .circle)
+        .compatGlass(in: .circle)
     }
 
     private var cycleText: String {
@@ -131,7 +131,7 @@ private struct PomodoroTimerView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(14)
-        .glassEffect(.regular, in: .rect(cornerRadius: 16))
+        .compatGlass(in: .rect(cornerRadius: 16))
     }
 }
 

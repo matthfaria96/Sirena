@@ -105,7 +105,7 @@ struct MirrorView: View {
                     .foregroundStyle(.white)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 5)
-                    .glassEffect(.regular, in: .capsule)
+                    .compatGlass(in: .capsule)
                     .environment(\.colorScheme, .dark)
                     .animation(.snappy, value: left)
                     .padding(.top, settings.shape == .circle ? 22 : 10)
@@ -171,7 +171,7 @@ struct MirrorView: View {
         }
         .padding(5)
         // Liquid Glass floating over the video, like the camera controls in FaceTime.
-        .glassEffect(.regular.interactive(), in: .capsule)
+        .compatGlass(interactive: true, in: .capsule)
         .environment(\.colorScheme, .dark)
     }
 }
@@ -220,7 +220,7 @@ private struct MicrophoneLevel: View {
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
-        .glassEffect(.regular, in: .capsule)
+        .compatGlass(in: .capsule)
         .environment(\.colorScheme, .dark)
         .animation(.linear(duration: 0.08), value: level)
     }

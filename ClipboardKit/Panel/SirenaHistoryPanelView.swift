@@ -39,7 +39,7 @@ struct SirenaHistoryPanelView: View {
   private var panelBackground: some View {
     if #available(macOS 26.0, *) {
       Color.clear
-        .glassEffect(.regular, in: .rect(cornerRadius: Self.cornerRadius))
+        .compatGlass(in: .rect(cornerRadius: Self.cornerRadius))
     } else {
       RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous)
         .fill(.regularMaterial)

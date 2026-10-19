@@ -359,7 +359,7 @@ private struct InlineFocusPanel: View {
                         .frame(width: 28, height: 28)
                         .contentShape(Rectangle())
                 }
-                .buttonStyle(.glass)
+                .compatGlassButtonStyle()
                 .buttonBorderShape(.circle)
                 .help(L("Pomodoro settings"))
             }
@@ -398,7 +398,7 @@ private struct InlineFocusPanel: View {
                         .font(.callout.weight(.medium))
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.glassProminent)
+                .compatGlassProminentButtonStyle()
                 .tint(controller.phase.color)
                 .controlSize(.large)
                 if controller.hasStarted {
@@ -408,7 +408,7 @@ private struct InlineFocusPanel: View {
                         Image(systemName: "stop.fill")
                             .frame(width: 22)
                     }
-                    .buttonStyle(.glassProminent)
+                    .compatGlassProminentButtonStyle()
                     .tint(.red)
                     .controlSize(.large)
                     .help(L("End session"))
@@ -794,7 +794,7 @@ private struct InlineHistoryPanel: View {
                 .lineLimit(1)
                 .frame(maxWidth: .infinity)
         }
-        .buttonStyle(.glass)
+        .compatGlassButtonStyle()
         .controlSize(.large)
         .tint(tint == .accentColor ? nil : tint)
     }

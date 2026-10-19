@@ -206,7 +206,7 @@ final class TextCaptureController {
 
     private func process(rect: CGRect, intent: CaptureIntent) async {
         do {
-            let image = try await SCScreenshotManager.captureImage(in: rect)
+            let image = try await SCScreenshotManager.compatCaptureImage(in: rect)
             if settings.playSound { Self.shutterSound?.play() }
             await recognize(image, rect: rect, intent: intent, showWindow: false)
         } catch {

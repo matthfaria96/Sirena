@@ -42,7 +42,22 @@ struct GlassIcon: View {
         .foregroundStyle(isOn ? .white : .secondary)
         .frame(width: size, height: size)
         .background(isOn ? AnyShapeStyle(tint.gradient.opacity(0.9)) : AnyShapeStyle(Color.primary.opacity(0.06)), in: shape)
-        .glassEffect(glass ? .regular.tint(isOn ? tint.opacity(0.25) : .clear) : .identity, in: shape)
+        .modifier(TileGlass(enabled: glass, tint: isOn ? tint.opacity(0.25) : .clear, shape: shape))
+    }
+}
+
+/// Glass on the tile only on macOS 26+ (before that the tile keeps its plain background).
+private struct TileGlass<S: Shape>: ViewModifier {
+    let enabled: Bool
+    let tint: Color
+    let shape: S
+
+    func body(content: Content) -> some View {
+        if #available(macOS 26, *) {
+            content.glassEffect(enabled ? .regular.tint(tint) : .identity, in: shape)
+        } else {
+            content
+        }
     }
 }
 

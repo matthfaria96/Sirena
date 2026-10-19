@@ -52,7 +52,7 @@ private struct BrushToolbarView: View {
                     Label(L("Leave"), systemImage: "xmark")
                         .font(.callout.weight(.semibold))
                 }
-                .buttonStyle(.glassProminent)
+                .compatGlassProminentButtonStyle()
                 .tint(.red)
                 .help(L("Leave (Esc)"))
             }
@@ -114,14 +114,14 @@ private struct BrushToolbarView: View {
                 }
                 .help(L("Whole screen with the drawing, copied to the clipboard (⌘C)"))
             }
-            .buttonStyle(.glass)
+            .compatGlassButtonStyle()
             .controlSize(.large)
         }
         .padding(14)
         .frame(width: 300)
         .background(Color(nsColor: .windowBackgroundColor).opacity(BoltMenuSettings.shared.clearGlass ? 0 : 0.9),
                     in: RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .compatGlass(in: RoundedRectangle(cornerRadius: 20, style: .continuous))
         .padding(10)
     }
 

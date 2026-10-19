@@ -132,7 +132,7 @@ private struct OnboardingView: View {
                     Text(Self.essentialsGranted ? L("Start Using Sirena") : L("Continue Without Everything"))
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.glassProminent)
+                .compatGlassProminentButtonStyle()
                 .controlSize(.extraLarge)
                 .keyboardShortcut(.defaultAction)
                 Text(L("You can change these later in General."))

@@ -266,7 +266,7 @@ struct ShelfView: View {
             }
             .clipShape(shape)
         }
-        .glassEffect(.clear, in: shape)
+        .compatGlass(.clear, in: shape)
         .overlay {
             shape.strokeBorder(
                 LinearGradient(colors: [.white.opacity(0.45), .white.opacity(0.08)], startPoint: .top, endPoint: .bottom),

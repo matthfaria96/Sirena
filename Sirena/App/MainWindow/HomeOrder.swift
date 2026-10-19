@@ -72,7 +72,7 @@ struct Reorderable: ViewModifier {
             .draggable(id) {
                 Label(L("Move"), systemImage: "arrow.up.and.down.and.arrow.left.and.right")
                     .padding(8)
-                    .glassEffect(.regular, in: Capsule())
+                    .compatGlass(in: Capsule())
             }
             .dropDestination(for: String.self) { items, _ in
                 guard let moved = items.first, ids.contains(moved) else { return false }

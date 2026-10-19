@@ -113,7 +113,7 @@ private struct NotchLockScreenGlass: ViewModifier {
 #if compiler(>=6.2)
         if #available(macOS 26, *) {
             Color.clear
-                .glassEffect(.clear, in: shape)
+                .compatGlass(.clear, in: shape)
                 .environment(\.appearsActive, true)
                 .materialActiveAppearance(.active)
         } else {

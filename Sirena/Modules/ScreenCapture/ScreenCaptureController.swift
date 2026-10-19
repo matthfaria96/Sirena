@@ -255,6 +255,31 @@ private final class RecordingStopPanel {
     private var panel: NSPanel?
     private var timer: Timer?
 
+    /// Liquid Glass on macOS 26+, a HUD material before that.
+    private static func backdrop(around content: NSView, cornerRadius: CGFloat) -> NSView {
+        if #available(macOS 26, *) {
+            let glass = NSGlassEffectView()
+            glass.cornerRadius = cornerRadius
+            glass.contentView = content
+            return glass
+        }
+        let effect = NSVisualEffectView()
+        effect.material = .hudWindow
+        effect.state = .active
+        effect.wantsLayer = true
+        effect.layer?.cornerRadius = cornerRadius
+        effect.layer?.masksToBounds = true
+        content.translatesAutoresizingMaskIntoConstraints = false
+        effect.addSubview(content)
+        NSLayoutConstraint.activate([
+            content.leadingAnchor.constraint(equalTo: effect.leadingAnchor),
+            content.trailingAnchor.constraint(equalTo: effect.trailingAnchor),
+            content.topAnchor.constraint(equalTo: effect.topAnchor),
+            content.bottomAnchor.constraint(equalTo: effect.bottomAnchor),
+        ])
+        return effect
+    }
+
     func show(on screen: NSScreen?, stop: @escaping () -> Void) {
         close()
         let label = NSTextField(labelWithString: "0:00")
@@ -262,7 +287,7 @@ private final class RecordingStopPanel {
         let dot = NSImageView(image: NSImage(systemSymbolName: "record.circle.fill", accessibilityDescription: nil) ?? NSImage())
         dot.contentTintColor = .systemRed
         let button = NSButton(title: L("Stop"), target: nil, action: nil)
-        button.bezelStyle = .glass
+        if #available(macOS 26, *) { button.bezelStyle = .glass } else { button.bezelStyle = .rounded }
         button.controlSize = .small
         let handler = StopTarget(stop)
         button.target = handler
@@ -271,9 +296,7 @@ private final class RecordingStopPanel {
         stack.spacing = 8
         stack.edgeInsets = NSEdgeInsets(top: 6, left: 12, bottom: 6, right: 8)
 
-        let glass = NSGlassEffectView()
-        glass.cornerRadius = 18
-        glass.contentView = stack
+        let glass = Self.backdrop(around: stack, cornerRadius: 18)
 
         let size = NSSize(width: 150, height: 36)
         let frame = (screen ?? NSScreen.main)?.visibleFrame ?? .zero

@@ -31,58 +31,32 @@ extension View {
                     let containerSize = axis == .horizontal ? geo.size.width : geo.size.height
                     let fadeLength = min(fadeLength, containerSize * 0.05)
                     DynStack(direction: axis, spacing: 0) {
-                        if #available(macOS 14.0, *) {
-                            if disableLeading {
-                                Color.black
-                                    .frame(width: axis == .horizontal ? fadeLength : nil, height: axis == .vertical ? fadeLength : nil)
-                            } else {
-                                SmoothLinearGradient(
-                                    from: .black.opacity(0),
-                                    to: .black.opacity(1),
-                                    startPoint: axis == .horizontal ? .leading : .top,
-                                    endPoint: axis == .horizontal ? .trailing : .bottom,
-                                    curve: .easeInOut
-                                )
+                        if disableLeading {
+                            Color.black
                                 .frame(width: axis == .horizontal ? fadeLength : nil, height: axis == .vertical ? fadeLength : nil)
-                            }
-                            Color.black.frame(maxWidth: .infinity)
-                            if disableTrailing {
-                                Color.black
-                                    .frame(width: axis == .horizontal ? fadeLength : nil, height: axis == .vertical ? fadeLength : nil)
-                            } else {
-                                SmoothLinearGradient(
-                                    from: .black.opacity(0),
-                                    to: .black.opacity(1),
-                                    startPoint: axis == .horizontal ? .trailing : .bottom,
-                                    endPoint: axis == .horizontal ? .leading : .top,
-                                    curve: .easeInOut
-                                )
-                                .frame(width: axis == .horizontal ? fadeLength : nil, height: axis == .vertical ? fadeLength : nil)
-                            }
                         } else {
-                            if disableLeading {
-                                Color.black
-                                    .frame(width: axis == .horizontal ? fadeLength : nil, height: axis == .vertical ? fadeLength : nil)
-                            } else {
-                                LinearGradient(
-                                    gradient: Gradient(colors: [.black.opacity(0), .black]),
-                                    startPoint: axis == .horizontal ? .leading : .top,
-                                    endPoint: axis == .horizontal ? .trailing : .bottom
-                                )
+                            SmoothLinearGradient(
+                                from: .black.opacity(0),
+                                to: .black.opacity(1),
+                                startPoint: axis == .horizontal ? .leading : .top,
+                                endPoint: axis == .horizontal ? .trailing : .bottom,
+                                curve: .easeInOut
+                            )
+                            .frame(width: axis == .horizontal ? fadeLength : nil, height: axis == .vertical ? fadeLength : nil)
+                        }
+                        Color.black.frame(maxWidth: .infinity)
+                        if disableTrailing {
+                            Color.black
                                 .frame(width: axis == .horizontal ? fadeLength : nil, height: axis == .vertical ? fadeLength : nil)
-                            }
-                            Color.black.frame(maxWidth: .infinity)
-                            if disableTrailing {
-                                Color.black
-                                    .frame(width: axis == .horizontal ? fadeLength : nil, height: axis == .vertical ? fadeLength : nil)
-                            } else {
-                                LinearGradient(
-                                    gradient: Gradient(colors: [.black.opacity(0), .black]),
-                                    startPoint: axis == .horizontal ? .trailing : .bottom,
-                                    endPoint: axis == .horizontal ? .leading : .top
-                                )
-                                .frame(width: axis == .horizontal ? fadeLength : nil, height: axis == .vertical ? fadeLength : nil)
-                            }
+                        } else {
+                            SmoothLinearGradient(
+                                from: .black.opacity(0),
+                                to: .black.opacity(1),
+                                startPoint: axis == .horizontal ? .trailing : .bottom,
+                                endPoint: axis == .horizontal ? .leading : .top,
+                                curve: .easeInOut
+                            )
+                            .frame(width: axis == .horizontal ? fadeLength : nil, height: axis == .vertical ? fadeLength : nil)
                         }
                     }
                 }
