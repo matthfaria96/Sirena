@@ -40,7 +40,7 @@ final class AreaSelector {
             overlay.orderFrontRegardless()
             overlays.append(overlay)
         }
-        // The overlay takes the keyboard without activating Sirena, so its main window stays put.
+        NSApp.activate()
         let mouse = NSEvent.mouseLocation
         (overlays.first { $0.frame.contains(mouse) } ?? overlays.first)?.makeKey()
     }
@@ -96,15 +96,13 @@ final class AreaSelector {
     }
 }
 
-private final class AreaOverlayWindow: NSPanel {
+private final class AreaOverlayWindow: NSWindow {
     let areaView: AreaView
 
     init(screen: NSScreen) {
         areaView = AreaView(frame: NSRect(origin: .zero, size: screen.frame.size))
-        super.init(contentRect: screen.frame, styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
+        super.init(contentRect: screen.frame, styleMask: .borderless, backing: .buffered, defer: false)
         level = .screenSaver
-        becomesKeyOnlyIfNeeded = false
-        hidesOnDeactivate = false
         backgroundColor = .clear
         isOpaque = false
         hasShadow = false
