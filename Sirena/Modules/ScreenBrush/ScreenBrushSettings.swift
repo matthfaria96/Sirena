@@ -18,8 +18,20 @@ final class ScreenBrushSettings {
         var title: String {
             switch self {
             case .copy: return L("Copy to Clipboard")
-            case .save: return L("Save to Pictures")
-            case .both: return L("Copy and Save to Pictures")
+            case .save: return L("Save to Screenshots")
+            case .both: return L("Copy and Save to Screenshots")
+            }
+        }
+    }
+
+    /// What a screenshot takes: an area the user picks (like ⇧⌘4) or the whole screen.
+    enum ScreenshotArea: String, CaseIterable, Identifiable {
+        case selection, fullScreen
+        var id: String { rawValue }
+        var title: String {
+            switch self {
+            case .selection: return L("Selected area")
+            case .fullScreen: return L("Whole screen")
             }
         }
     }
@@ -39,6 +51,7 @@ final class ScreenBrushSettings {
     var laserDelay: Double { didSet { defaults.set(laserDelay, forKey: "screenBrush.laserDelay") } }
     var spotlightRadius: Double { didSet { defaults.set(spotlightRadius, forKey: "screenBrush.spotlightRadius") } }
     var screenshotAction: ScreenshotAction { didSet { defaults.set(screenshotAction.rawValue, forKey: "screenBrush.screenshotAction") } }
+    var screenshotArea: ScreenshotArea { didSet { defaults.set(screenshotArea.rawValue, forKey: "screenBrush.screenshotArea") } }
 
     private init() {
         let d = UserDefaults.standard
@@ -51,6 +64,7 @@ final class ScreenBrushSettings {
         showToolbar = d.object(forKey: "screenBrush.showToolbar") as? Bool ?? true
         laserDelay = d.object(forKey: "screenBrush.laserDelay") as? Double ?? 1.5
         spotlightRadius = d.object(forKey: "screenBrush.spotlightRadius") as? Double ?? 140
-        screenshotAction = ScreenshotAction(rawValue: d.string(forKey: "screenBrush.screenshotAction") ?? "") ?? .save
+        screenshotAction = ScreenshotAction(rawValue: d.string(forKey: "screenBrush.screenshotAction") ?? "") ?? .both
+        screenshotArea = ScreenshotArea(rawValue: d.string(forKey: "screenBrush.screenshotArea") ?? "") ?? .selection
     }
 }

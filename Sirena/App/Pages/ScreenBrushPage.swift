@@ -70,8 +70,14 @@ private struct ScreenBrushSettingsView: View {
             }
 
             Section {
-                Picker(L("Screenshot"), selection: $settings.screenshotAction) {
+                Picker(L("Capture"), selection: $settings.screenshotArea) {
+                    ForEach(ScreenBrushSettings.ScreenshotArea.allCases) { Text($0.title).tag($0) }
+                }
+                Picker(selection: $settings.screenshotAction) {
                     ForEach(ScreenBrushSettings.ScreenshotAction.allCases) { Text($0.title).tag($0) }
+                } label: {
+                    Text(L("Screenshot"))
+                    Text(L("Saved in Pictures › Screenshots."))
                 }
                 if !hasScreenRecording {
                     LabeledContent {
@@ -96,7 +102,7 @@ private struct ScreenBrushSettingsView: View {
                 keyRow(L("Thinner / thicker"), "[  ]")
                 keyRow(L("Undo / Redo"), "⌘Z  ⇧⌘Z")
                 keyRow(L("Clear"), "⌘⌫")
-                keyRow(L("Screenshot / Copy screenshot"), "⌘S  ⌘C")
+                keyRow(L("Screenshot / Copy only"), "⌘S  ⌘C")
                 keyRow(L("Straight lines, squares and circles"), "⇧")
             } header: {
                 Text(L("While Drawing"))

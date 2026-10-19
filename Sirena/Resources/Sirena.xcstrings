@@ -13111,6 +13111,116 @@
           }
         }
       }
+    },
+    "Save to Screenshots": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salvar em Screenshots"
+          }
+        }
+      }
+    },
+    "Copy and Save to Screenshots": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar e salvar em Screenshots"
+          }
+        }
+      }
+    },
+    "Selected area": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Área selecionada"
+          }
+        }
+      }
+    },
+    "Whole screen": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tela inteira"
+          }
+        }
+      }
+    },
+    "Select Area": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selecionar área"
+          }
+        }
+      }
+    },
+    "Whole Screen": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tela inteira"
+          }
+        }
+      }
+    },
+    "Drag over an area to capture it with the drawing (⌘S). Esc cancels.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arraste sobre uma área para capturá-la com o desenho (⌘S). Esc cancela."
+          }
+        }
+      }
+    },
+    "The whole screen with the drawing.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A tela inteira com o desenho."
+          }
+        }
+      }
+    },
+    "Saved in Pictures › Screenshots.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salvo em Imagens › Screenshots."
+          }
+        }
+      }
+    },
+    "Screenshot / Copy only": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Print / Só copiar"
+          }
+        }
+      }
+    },
+    "%@ at %@": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ às %@"
+          }
+        }
+      }
     }
   }
 }

@@ -101,18 +101,18 @@ private struct BrushToolbarView: View {
             }
 
             HStack(spacing: 8) {
-                Button { controller.takeScreenshot(forcing: .save) } label: {
-                    Label(L("Save to Pictures"), systemImage: "photo.on.rectangle")
+                Button { controller.takeScreenshot(area: .selection) } label: {
+                    Label(L("Select Area"), systemImage: "rectangle.dashed")
                         .font(.callout.weight(.medium))
                         .frame(maxWidth: .infinity)
                 }
-                .help(L("Whole screen with the drawing, saved in Pictures (⌘S)"))
-                Button { controller.takeScreenshot(forcing: .copy) } label: {
-                    Label(L("Copy"), systemImage: "doc.on.doc")
+                .help(L("Drag over an area to capture it with the drawing (⌘S). Esc cancels."))
+                Button { controller.takeScreenshot(area: .fullScreen) } label: {
+                    Label(L("Whole Screen"), systemImage: "macwindow")
                         .font(.callout.weight(.medium))
                         .frame(maxWidth: .infinity)
                 }
-                .help(L("Whole screen with the drawing, copied to the clipboard (⌘C)"))
+                .help(L("The whole screen with the drawing."))
             }
             .compatGlassButtonStyle()
             .controlSize(.large)

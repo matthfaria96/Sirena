@@ -94,12 +94,18 @@ final class ScreenBrushController {
         startLaserTimer()
         escapeMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { event in
             guard event.keyCode == UInt16(kVK_Escape) else { return }
-            Task { @MainActor in ScreenBrushController.shared.stopDrawing() }
+            Task { @MainActor in ScreenBrushController.shared.escapePressed() }
         }
+    }
+
+    /// Esc: cancels picking an area first; a second Esc leaves drawing mode.
+    func escapePressed() {
+        if areaSelector.isSelecting { areaSelector.cancel() } else { stopDrawing() }
     }
 
     func stopDrawing() {
         guard isDrawing else { return }
+        areaSelector.cancel()
         overlays.values.forEach { $0.canvas.commitText() }
         isDrawing = false
         removeClickThroughMonitor()
@@ -108,6 +114,7 @@ final class ScreenBrushController {
         overlays.values.forEach { $0.orderOut(nil) }
         overlays.removeAll()
         toolbar?.orderOut(nil)
+        toolbar?.alphaValue = 1
         laserTimer?.invalidate()
         laserTimer = nil
         if !settings.keepStrokes { document.reset() } else { document.current = nil; document.clickThrough = false }
@@ -141,6 +148,8 @@ final class ScreenBrushController {
         if settings.showToolbar {
             let panel = toolbar ?? BrushToolbarPanel(document: document)
             toolbar = panel
+            // Hidden while a screenshot is taken: never come back invisible.
+            panel.alphaValue = 1
             panel.place(on: screen)
             panel.orderFrontRegardless()
         }
@@ -199,7 +208,7 @@ final class ScreenBrushController {
     func handleKey(_ event: NSEvent) -> Bool {
         let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
         let chars = event.charactersIgnoringModifiers?.lowercased() ?? ""
-        if event.keyCode == UInt16(kVK_Escape) { stopDrawing(); return true }
+        if event.keyCode == UInt16(kVK_Escape) { escapePressed(); return true }
         if flags.contains(.command) {
             switch event.keyCode {
             case UInt16(kVK_ANSI_Z): flags.contains(.shift) ? document.redo() : document.undo()
@@ -232,58 +241,117 @@ final class ScreenBrushController {
         "/System/Library/Components/CoreAudio.component/Contents/SharedSupport/SystemSounds/system/Screen Capture.aif",
         byReference: true) ?? NSSound(named: "Tink")
 
-    func takeScreenshot(forcing action: ScreenBrushSettings.ScreenshotAction? = nil) {
-        guard isDrawing, let screen = screenWithMouse() else { return }
+    private let areaSelector = ScreenBrushAreaSelector()
+
+    /// A screenshot of the screen with the drawing. By default the user picks an area first
+    /// (like ⇧⌘4); `area` and `action` override the settings for one shot.
+    func takeScreenshot(area: ScreenBrushSettings.ScreenshotArea? = nil,
+                        forcing action: ScreenBrushSettings.ScreenshotAction? = nil) {
+        guard isDrawing, !areaSelector.isSelecting, let screen = screenWithMouse() else { return }
         let action = action ?? settings.screenshotAction
+        switch area ?? settings.screenshotArea {
+        case .fullScreen:
+            shoot(screen.frame, action: action)
+        case .selection:
+            toolbar?.alphaValue = 0
+            areaSelector.begin { [weak self] rect in
+                guard let self else { return }
+                guard let rect else {
+                    self.toolbar?.alphaValue = 1
+                    return
+                }
+                self.shoot(rect, action: action)
+            }
+        }
+    }
+
+    /// Captures `rect` (global AppKit coordinates) once the toolbar and the selection are gone.
+    private func shoot(_ rect: CGRect, action: ScreenBrushSettings.ScreenshotAction) {
         toolbar?.alphaValue = 0
         Task { @MainActor in
-            try? await Task.sleep(for: .milliseconds(120))
-            let image = await self.capture(screen)
+            try? await Task.sleep(for: .milliseconds(150))
+            let image = await self.capture(rect)
             self.toolbar?.alphaValue = 1
             guard let image else { NSSound.beep(); return }
             self.deliver(image, action: action)
         }
     }
 
-    private func capture(_ screen: NSScreen) async -> NSImage? {
+    private func capture(_ rect: CGRect) async -> NSImage? {
         if CGPreflightScreenCaptureAccess() {
-            let primaryHeight = NSScreen.screens.first?.frame.height ?? screen.frame.height
-            let f = screen.frame
-            let rect = CGRect(x: f.minX, y: primaryHeight - f.maxY, width: f.width, height: f.height)
-            if let cg = try? await SCScreenshotManager.compatCaptureImage(in: rect) {
-                return NSImage(cgImage: cg, size: f.size)
+            // ScreenCaptureKit wants a top-left origin measured from the primary display.
+            let primaryHeight = NSScreen.screens.first?.frame.height ?? rect.maxY
+            let topLeft = CGRect(x: rect.minX, y: primaryHeight - rect.maxY, width: rect.width, height: rect.height)
+            if let cg = try? await SCScreenshotManager.compatCaptureImage(in: topLeft) {
+                return NSImage(cgImage: cg, size: rect.size)
             }
         }
-        // No Screen Recording: only the drawing layer.
-        guard let canvas = overlays[screen.displayID]?.canvas ?? overlays.values.first?.canvas,
+        return drawingOnly(in: rect)
+    }
+
+    /// Without Screen Recording: only the drawing layer, cropped to `rect`.
+    private func drawingOnly(in rect: CGRect) -> NSImage? {
+        let screen = NSScreen.screens.first { $0.frame.intersects(rect) }
+        guard let screen, let canvas = overlays[screen.displayID]?.canvas ?? overlays.values.first?.canvas,
               let rep = canvas.bitmapImageRepForCachingDisplay(in: canvas.bounds) else { return nil }
         canvas.cacheDisplay(in: canvas.bounds, to: rep)
-        let image = NSImage(size: canvas.bounds.size)
-        image.addRepresentation(rep)
-        return image
+        let local = rect.intersection(screen.frame).offsetBy(dx: -screen.frame.minX, dy: -screen.frame.minY)
+        let scale = CGFloat(rep.pixelsWide) / canvas.bounds.width
+        // The bitmap's rows start at the top: flip the y of the crop.
+        let pixels = CGRect(x: local.minX * scale, y: (canvas.bounds.height - local.maxY) * scale,
+                            width: local.width * scale, height: local.height * scale).integral
+        guard let full = rep.cgImage, let cropped = full.cropping(to: pixels) else { return nil }
+        return NSImage(cgImage: cropped, size: local.size)
     }
 
     private func deliver(_ image: NSImage, action: ScreenBrushSettings.ScreenshotAction) {
+        guard let png = Self.pngData(image) else { NSSound.beep(); return }
         var ok = true
         if action != .save {
-            NSPasteboard.general.clearContents()
-            ok = NSPasteboard.general.writeObjects([image])
+            let pasteboard = NSPasteboard.general
+            pasteboard.clearContents()
+            // PNG and TIFF, so every app finds a type it pastes.
+            ok = pasteboard.setData(png, forType: .png) && (image.tiffRepresentation.map { pasteboard.setData($0, forType: .tiff) } ?? true)
         }
         if action != .copy {
             do {
-                guard let tiff = image.tiffRepresentation,
-                      let png = NSBitmapImageRep(data: tiff)?.representation(using: .png, properties: [:]),
-                      let pictures = FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask).first
-                else { throw CocoaError(.fileWriteUnknown) }
-                let stamp = Date().formatted(.iso8601.year().month().day().time(includingFractionalSeconds: false))
-                    .replacingOccurrences(of: ":", with: ".")
-                try png.write(to: pictures.appending(path: "\(L("Freehand Drawing")) \(stamp).png"))
+                try png.write(to: try Self.screenshotsFolder().appending(path: Self.fileName()))
             } catch {
+                NSLog("Sirena Freehand Drawing: saving the screenshot failed: \(error.localizedDescription)")
                 ok = false
             }
         }
         if ok { Self.shutter?.play() } else { NSSound.beep() }
     }
+
+    private static func pngData(_ image: NSImage) -> Data? {
+        guard let tiff = image.tiffRepresentation, let rep = NSBitmapImageRep(data: tiff) else { return nil }
+        return rep.representation(using: .png, properties: [:])
+    }
+
+    /// Pictures › Screenshots, created when missing.
+    static func screenshotsFolder() throws -> URL {
+        guard let pictures = FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask).first else {
+            throw CocoaError(.fileNoSuchFile)
+        }
+        let folder = pictures.appending(path: "Screenshots", directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        return folder
+    }
+
+    /// "Desenho Livre 2026-10-19 às 19.04.39.png", in local time like macOS's own screenshots.
+    private static func fileName() -> String {
+        let now = Date()
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = .current
+        formatter.dateFormat = "yyyy-MM-dd"
+        let day = formatter.string(from: now)
+        formatter.dateFormat = "HH.mm.ss"
+        let time = formatter.string(from: now)
+        return "\(L("Freehand Drawing")) \(L("\(day) at \(time)")).png"
+    }
+
 
     func requestScreenRecording() {
         if !CGRequestScreenCaptureAccess(),
