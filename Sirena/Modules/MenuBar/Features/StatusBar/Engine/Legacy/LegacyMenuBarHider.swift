@@ -29,6 +29,8 @@ final class LegacyMenuBarHider {
     private static let collapsedLength: CGFloat = 10_000
     private static let expandedLength: CGFloat = 1
     private static let dragStepDelay: TimeInterval = 0.08
+    /// Time for the menu bar to lay icons out again after the separator shrinks.
+    private static let settleDelay: TimeInterval = 0.4
     /// Safety net: never drag forever if an icon refuses to move.
     private static let maxDrags = 30
 
@@ -64,7 +66,7 @@ final class LegacyMenuBarHider {
         guard let separator, AXIsProcessTrusted() else { return completion(false) }
         // Back to a thin separator first: positions are only meaningful when visible.
         separator.length = Self.expandedLength
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { [weak self] in
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.settleDelay) { [weak self] in
             guard let self else { return completion(false) }
             self.moveIcons(hiding: bundleIDs, arrow: arrow) { [weak self] in
                 guard let self, let separator = self.separator else { return completion(false) }

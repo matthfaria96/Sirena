@@ -239,8 +239,13 @@ final class MenuBarModule: NSObject {
     /// An app launched while hidden is shown, unless it is on the list: re-apply.
     @objc private func appsChanged() {
         if isCollapsed { collapse() }
-        // A launched app adds its icon a moment later: keep the arrow last.
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in self?.keepArrowLast() }
+        // A launched app adds its icon a moment later: keep the arrow last. Before macOS 27
+        // that icon is born left of the separator (off screen): sort it again once it exists.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
+            guard let self else { return }
+            self.keepArrowLast()
+            if self.usesLegacy && self.isCollapsed { self.collapse() }
+        }
     }
 
     /// Puts the arrow back at the end (and the hidden icons beyond it) when the layout
