@@ -3,7 +3,8 @@
 /// On-device text and barcode recognition with Vision.
 ///
 /// The recognition tuning (no minimum text height, contrast boost, fast-level retry)
-/// follows TRex by Ameba Labs (MIT, https://github.com/amebalabs/TRex).
+/// follows TRex by Ameba Labs (MIT, https://github.com/amebalabs/TRex). Screen captures
+/// are read in tiles (see TiledTextRecognizer) so large selections keep their small print.
 
 import CoreGraphics
 import CoreImage
@@ -16,22 +17,32 @@ struct TextRecognitionOptions: Sendable {
     var customWords: [String] = []
     var languageCorrection = true
     var keepLineBreaks = true
+    /// Pixels per screen point for screen captures; nil for imported images of unknown text size.
+    var pixelScale: CGFloat?
 }
 
 enum TextRecognizer {
     static func recognizeText(in image: CGImage, options: TextRecognitionOptions) async throws -> String {
-        let prepared = prepared(image)
-        let observations: [RecognizedTextObservation]
+        let lines: [String]
+        if let pixelScale = options.pixelScale {
+            lines = try await TiledTextRecognizer.recognizeLines(in: contrasted(image), pixelScale: pixelScale) { tile in
+                try await recognize(tile, options: options)
+            }
+        } else {
+            lines = try await recognize(prepared(image), options: options).compactMap { $0.topCandidates(1).first?.string }
+        }
+        return options.keepLineBreaks ? lines.joined(separator: "\n") : joinedWithoutBreaks(lines)
+    }
+
+    private static func recognize(_ image: CGImage, options: TextRecognitionOptions) async throws -> [RecognizedTextObservation] {
         do {
-            observations = try await recognize(prepared, options: options, level: .accurate)
+            return try await recognize(image, options: options, level: .accurate)
         } catch is CancellationError {
             throw CancellationError()
         } catch {
             // The accurate model can fail inside the Neural Engine; the fast one is a different model.
-            observations = try await recognize(prepared, options: options, level: .fast)
+            return try await recognize(image, options: options, level: .fast)
         }
-        let lines = observations.compactMap { $0.topCandidates(1).first?.string }
-        return options.keepLineBreaks ? lines.joined(separator: "\n") : joinedWithoutBreaks(lines)
     }
 
     private static func recognize(_ image: CGImage, options: TextRecognitionOptions,
@@ -76,12 +87,22 @@ enum TextRecognizer {
             lanczos?.setValue(1.0, forKey: kCIInputAspectRatioKey)
             output = lanczos?.outputImage ?? output
         }
+        return render(withRaisedContrast(output)) ?? image
+    }
+
+    private static func contrasted(_ image: CGImage) -> CGImage {
+        render(withRaisedContrast(CIImage(cgImage: image))) ?? image
+    }
+
+    private static func withRaisedContrast(_ image: CIImage) -> CIImage {
         let contrast = CIFilter(name: "CIColorControls")
-        contrast?.setValue(output, forKey: kCIInputImageKey)
+        contrast?.setValue(image, forKey: kCIInputImageKey)
         contrast?.setValue(1.2, forKey: kCIInputContrastKey)
-        output = contrast?.outputImage ?? output
-        let extent = output.extent.integral
-        return context.createCGImage(output, from: extent) ?? image
+        return contrast?.outputImage ?? image
+    }
+
+    private static func render(_ image: CIImage) -> CGImage? {
+        context.createCGImage(image, from: image.extent.integral)
     }
 
     // MARK: - Joining
