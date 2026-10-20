@@ -32,3 +32,7 @@ Ran in tart VM `sequoia-sirena` (host untouched). Sirena launched and stayed run
 VM state: original store files restored; `clipboard.migrations` defaults key rewritten with the 4 known keys. Leftover files in VM home: `~/main.plist.bak`, `~/cur.plist.bak`, `~/clip.plist.bak`, `/tmp/Sirena.zip` (deletion blocked by safety check, harmless). Sirena.app in VM /Applications is the new Debug build.
 
 ## Self-Check: PASSED
+
+## Runtime check (orchestrator, 2026-10-20)
+
+Done in the `sequoia-sirena` VM (macOS 15.7): with `Clipboard.sqlite` overwritten by "not a sqlite file", Sirena launched, a clipboard change opened the store, the bad file was moved to `Clipboard.sqlite.corrupt-1792489758`, a fresh store was created, the process stayed alive and no crash report appeared. **STAB-01 verified.** The VM's original store and the executor's leftover backup files were restored and removed.
