@@ -126,7 +126,16 @@ final class MediaInfo: ObservableObject {
     @Published var artist: String = ""
     @Published var album: String = ""
     @Published var artwork: NSImage?
-    @Published var isPlaying: Bool = false
+    private static let playingPollInterval: TimeInterval = 2.0
+    private static let pausedPollInterval: TimeInterval = 5.0
+    private static let interpolationWindow: TimeInterval = playingPollInterval + 1.0
+
+    @Published var isPlaying: Bool = false {
+        didSet {
+            guard oldValue != isPlaying else { return }
+            if updateTimer != nil { startPeriodicUpdates() }
+        }
+    }
     @Published var currentTime: TimeInterval = 0
     @Published var duration: TimeInterval = 0
     @Published var appName: String = ""
@@ -588,7 +597,7 @@ final class MediaInfo: ObservableObject {
         let timeSinceLastPoll = now.timeIntervalSince(lastPollDate)
 
         // Only interpolate if the last poll was recent (within 2 seconds)
-        if timeSinceLastPoll < 2.0 {
+        if timeSinceLastPoll < Self.interpolationWindow {
             interpolatedTime = lastPolledTime + timeSinceLastPoll
         } else {
             interpolatedTime = currentTime
@@ -637,12 +646,13 @@ final class MediaInfo: ObservableObject {
     private func startPeriodicUpdates() {
         guard activeViewCount > 0, !isUsingMediaRemote else { return }
         updateTimer?.invalidate()
-        let updateInterval: TimeInterval = hasLyrics ? 0.5 : 1.0
+        let updateInterval = isPlaying ? Self.playingPollInterval : Self.pausedPollInterval
         updateTimer = Timer.scheduledTimer(withTimeInterval: updateInterval, repeats: true) { [weak self] _ in
             Task { @MainActor in
                 await self?.fetchMediaData()
             }
         }
+        updateTimer?.tolerance = updateInterval * 0.2
     }
 
     private func fetchMediaData() async {
