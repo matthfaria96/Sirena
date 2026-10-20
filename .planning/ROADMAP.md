@@ -23,7 +23,12 @@ A stability cycle for an existing app, in the order the owner asked for: first r
   3. When the SkyLight private API is unavailable, the affected feature fails gracefully and the app keeps running (no trap from a force unwrap)
   4. With the Dynamic Island or media widget hidden, Activity Monitor shows no repeated `osascript` processes, and while visible they spawn far less often than every 0.5-1 s
   5. The lyrics timer is idle when lyrics are hidden or playback is paused (no 20 Hz wakeups)
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Clipboard store recovery (STAB-01) and trap-free SkyLight wrappers (STAB-02)
+- [ ] 01-02-PLAN.md — Gesture session window-frame AX read moved off the event-tap thread (STAB-03)
+- [ ] 01-03-PLAN.md — Slower osascript polling and gated lyrics timer (PERF-01, PERF-02)
 
 ### Phase 2: Tests
 **Goal**: The owner can run an automated test suite that guards window calculations and pure helper logic
