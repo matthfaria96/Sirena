@@ -1,10 +1,13 @@
 import AppKit.NSPasteboard
 import Foundation
+import os
 import SwiftData
 
 @MainActor
 class Storage {
   static let shared = Storage()
+
+  private static let log = Logger(subsystem: "Sirena", category: "ClipboardStorage")
 
   var container: ModelContainer
   var context: ModelContext { container.mainContext }
@@ -27,8 +30,44 @@ class Storage {
 
     do {
       container = try ModelContainer(for: HistoryItem.self, configurations: config)
-    } catch let error {
-      fatalError("Cannot load database: \(error.localizedDescription).")
+      return
+    } catch {
+      Self.log.error("Clipboard store failed to open: \(error.localizedDescription, privacy: .public)")
+    }
+
+    Self.moveStoreAside(url)
+
+    do {
+      container = try ModelContainer(for: HistoryItem.self, configurations: ModelConfiguration(url: url))
+      return
+    } catch {
+      Self.log.error("Clipboard store failed after recovery: \(error.localizedDescription, privacy: .public)")
+    }
+
+    container = Self.inMemoryContainer()
+  }
+
+  private static func moveStoreAside(_ url: URL) {
+    let suffix = ".corrupt-\(Int(Date().timeIntervalSince1970))"
+    let fileManager = FileManager.default
+
+    for path in [url.path, url.path + "-wal", url.path + "-shm"] where fileManager.fileExists(atPath: path) {
+      do {
+        try fileManager.moveItem(atPath: path, toPath: path + suffix)
+        log.notice("Moved clipboard store file aside: \(path + suffix, privacy: .public)")
+      } catch {
+        log.error("Cannot move \(path, privacy: .public) aside: \(error.localizedDescription, privacy: .public)")
+        try? fileManager.removeItem(atPath: path)
+      }
+    }
+  }
+
+  private static func inMemoryContainer() -> ModelContainer {
+    // A failing in-memory store means the model itself is broken (programmer error), not user data.
+    do {
+      return try ModelContainer(for: HistoryItem.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+    } catch {
+      fatalError("In-memory clipboard store unavailable: \(error)")
     }
   }
 
