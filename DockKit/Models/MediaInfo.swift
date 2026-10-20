@@ -134,6 +134,7 @@ final class MediaInfo: ObservableObject {
         didSet {
             guard oldValue != isPlaying else { return }
             if updateTimer != nil { startPeriodicUpdates() }
+            updateLyricsTimer()
         }
     }
     @Published var currentTime: TimeInterval = 0
@@ -172,6 +173,7 @@ final class MediaInfo: ObservableObject {
     private var currentFetchTask: Task<[LyricLine], Error>?
     private var lastFetchedTrack: String = "" // Track to prevent duplicate fetches
     private var lyricsRequested = false
+    private var lyricsVisible = false
 
     // MARK: - Timing Synchronization
 
@@ -298,6 +300,7 @@ final class MediaInfo: ObservableObject {
             mrDataSubscription = nil
             isUsingMediaRemote = false
             lyricsRequested = false
+            lyricsVisible = false
         }
     }
 
@@ -384,7 +387,7 @@ final class MediaInfo: ObservableObject {
             isLoadingLyrics = false
 
             if hasLyrics {
-                startLyricsTimer()
+                updateLyricsTimer()
                 startPeriodicUpdates()
             }
         } catch {
@@ -571,6 +574,23 @@ final class MediaInfo: ObservableObject {
         return dp[m][n]
     }
 
+    func setLyricsVisible(_ visible: Bool) {
+        lyricsVisible = visible
+        updateLyricsTimer()
+    }
+
+    private func updateLyricsTimer() {
+        let shouldRun = lyricsVisible && hasLyrics && isPlaying && activeViewCount > 0
+        if shouldRun {
+            if lyricsTimer == nil { startLyricsTimer() }
+        } else {
+            lyricsTimer?.invalidate()
+            lyricsTimer = nil
+            updateInterpolatedTime()
+            updateCurrentLyricIndex()
+        }
+    }
+
     private func startLyricsTimer() {
         lyricsTimer?.invalidate()
 
@@ -580,6 +600,7 @@ final class MediaInfo: ObservableObject {
                 self?.updateCurrentLyricIndex()
             }
         }
+        lyricsTimer?.tolerance = 0.02
     }
 
     private func updateInterpolatedTime() {

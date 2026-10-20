@@ -111,6 +111,7 @@ struct MediaControlsView: View {
         .onAppear {
             loadAppIcon()
             mediaInfo.viewAppeared()
+            mediaInfo.setLyricsVisible(showingLyrics || showingLyricsInFull)
             if let artwork = mediaInfo.artwork {
                 dominantArtworkColor = artwork.averageColor()
             }
@@ -149,6 +150,9 @@ struct MediaControlsView: View {
         }
         .onDisappear {
             mediaInfo.viewDisappeared()
+        }
+        .onChange(of: showingLyrics || showingLyricsInFull) { visible in
+            mediaInfo.setLyricsVisible(visible)
         }
         .task {
             for await _ in Defaults.updates(BackgroundAppearance.observedKeys, initial: true) {
