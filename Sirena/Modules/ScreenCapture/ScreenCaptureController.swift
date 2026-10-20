@@ -46,6 +46,35 @@ enum ScreenCaptureAction: String, CaseIterable, Identifiable {
     var shortcutKey: String { "screenCaptureShortcut_\(rawValue)" }
 }
 
+/// Where screenshots and recordings are saved.
+enum ScreenCaptureDestination: String, CaseIterable, Identifiable {
+    case desktop, screenshots
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .desktop: return L("Desktop")
+        case .screenshots: return L("Pictures › Screenshots")
+        }
+    }
+
+    var folder: URL {
+        let fm = FileManager.default
+        switch self {
+        case .desktop:
+            return fm.urls(for: .desktopDirectory, in: .userDomainMask).first
+                ?? URL(fileURLWithPath: NSHomeDirectory()).appending(path: "Desktop")
+        case .screenshots:
+            let pictures = fm.urls(for: .picturesDirectory, in: .userDomainMask).first
+                ?? URL(fileURLWithPath: NSHomeDirectory()).appending(path: "Pictures")
+            let folder = pictures.appending(path: "Screenshots", directoryHint: .isDirectory)
+            try? fm.createDirectory(at: folder, withIntermediateDirectories: true)
+            return folder
+        }
+    }
+}
+
 @MainActor
 @Observable
 final class ScreenCaptureController {
@@ -61,6 +90,9 @@ final class ScreenCaptureController {
     var recordsMicrophone: Bool { didSet { save(recordsMicrophone, "recordsMicrophone") } }
     var opensAfterCapture: Bool { didSet { save(opensAfterCapture, "opensAfterCapture") } }
     var copiesScreenshots: Bool { didSet { save(copiesScreenshots, "copiesScreenshots") } }
+    var destination: ScreenCaptureDestination {
+        didSet { UserDefaults.standard.set(destination.rawValue, forKey: "screenCapture.destination") }
+    }
 
     @ObservationIgnored private var openPage: () -> Void = {}
     @ObservationIgnored private let selector = AreaSelector()
@@ -69,11 +101,18 @@ final class ScreenCaptureController {
 
     private init() {
         let d = UserDefaults.standard
-        showsCursor = d.object(forKey: "screenCapture.showsCursor") as? Bool ?? false
+        // Copying and the pointer came on by default later: switch them on once for everyone.
+        if !d.bool(forKey: "screenCapture.defaultsV2") {
+            d.set(true, forKey: "screenCapture.copiesScreenshots")
+            d.set(true, forKey: "screenCapture.showsCursor")
+            d.set(true, forKey: "screenCapture.defaultsV2")
+        }
+        showsCursor = d.object(forKey: "screenCapture.showsCursor") as? Bool ?? true
         showsClicks = d.object(forKey: "screenCapture.showsClicks") as? Bool ?? true
         recordsMicrophone = d.object(forKey: "screenCapture.recordsMicrophone") as? Bool ?? false
         opensAfterCapture = d.object(forKey: "screenCapture.opensAfterCapture") as? Bool ?? false
-        copiesScreenshots = d.object(forKey: "screenCapture.copiesScreenshots") as? Bool ?? false
+        copiesScreenshots = d.object(forKey: "screenCapture.copiesScreenshots") as? Bool ?? true
+        destination = ScreenCaptureDestination(rawValue: d.string(forKey: "screenCapture.destination") ?? "") ?? .screenshots
     }
 
     private func save(_ value: Bool, _ key: String) {
@@ -148,15 +187,14 @@ final class ScreenCaptureController {
             args.append("-D\(Self.displayIndexUnderMouse())")
             if showsCursor { args.append("-C") }
         }
-        if copiesScreenshots {
-            args.append("-c")
-        } else {
-            if opensAfterCapture { args.append("-P") }
-            args.append(url.path)
-        }
+        if opensAfterCapture { args.append("-P") }
+        args.append(url.path)
         launch(args) { [weak self] in
-            guard let self, !self.copiesScreenshots else { return }
-            if FileManager.default.fileExists(atPath: url.path) { self.lastFile = url }
+            // Esc in the selection: no file, nothing to copy.
+            guard let self, FileManager.default.fileExists(atPath: url.path) else { return }
+            self.lastFile = url
+            // Saved and copied, like the Freehand Drawing screenshots.
+            if self.copiesScreenshots { Self.copyImage(at: url) }
         }
     }
 
@@ -188,6 +226,14 @@ final class ScreenCaptureController {
         stopPanel.show(on: Self.screenUnderMouse) { [weak self] in self?.stopRecording() }
     }
 
+    private static func copyImage(at url: URL) {
+        guard let data = try? Data(contentsOf: url) else { return }
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setData(data, forType: .png)
+        if let tiff = NSImage(data: data)?.tiffRepresentation { pasteboard.setData(tiff, forType: .tiff) }
+    }
+
     func stopRecording() {
         guard let recorder, recorder.isRunning else { return }
         // screencapture finishes the movie on SIGINT, like ^C in Terminal.
@@ -216,15 +262,8 @@ final class ScreenCaptureController {
 
     // MARK: Files and screens
 
-    /// Where macOS saves screenshots (Screenshot app › Options), the Desktop by default.
-    static var saveFolder: URL {
-        if let path = UserDefaults(suiteName: "com.apple.screencapture")?.string(forKey: "location") {
-            let url = URL(fileURLWithPath: (path as NSString).expandingTildeInPath, isDirectory: true)
-            if FileManager.default.fileExists(atPath: url.path) { return url }
-        }
-        return FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask).first
-            ?? URL(fileURLWithPath: NSHomeDirectory()).appending(path: "Desktop")
-    }
+    /// The folder picked on the page (Desktop or Pictures › Screenshots), created when missing.
+    static var saveFolder: URL { shared.destination.folder }
 
     /// Named like macOS does: "Captura de Tela 2026-10-18 às 10.15.40.png".
     private static func nextFile(prefix: String, ext: String) -> URL {

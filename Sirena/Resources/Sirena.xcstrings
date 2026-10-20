@@ -2,6 +2,16 @@
   "sourceLanguage": "en",
   "version": "1.0",
   "strings": {
+    "Sirena is free software under the GNU GPL v3.0. It builds on the open-source projects listed in its licenses.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Sirena é software livre sob a GNU GPL v3.0. Ele se baseia nos projetos de código aberto listados nas suas licenças."
+          }
+        }
+      }
+    },
     "%lld items in history": {
       "localizations": {
         "pt-BR": {
@@ -13218,6 +13228,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "%@ às %@"
+          }
+        }
+      }
+    },
+    "Besides saving the file.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Além de salvar o arquivo."
+          }
+        }
+      }
+    },
+    "Desktop": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mesa"
+          }
+        }
+      }
+    },
+    "Pictures › Screenshots": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Imagens › Screenshots"
           }
         }
       }
