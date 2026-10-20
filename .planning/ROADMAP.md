@@ -6,7 +6,7 @@ A stability cycle for an existing app, in the order the owner asked for: first r
 
 ## Phases
 
-- [ ] **Phase 1: Stability and Performance** - No crash loops, no input stalls, no wasteful media polling
+- [x] **Phase 1: Stability and Performance** - No crash loops, no input stalls, no wasteful media polling (completed 2026-10-20)
 - [ ] **Phase 2: Tests** - A test target that runs and covers window math and pure helper logic
 - [ ] **Phase 3: Cleanup** - Unused packages removed and the app still builds and runs
 
@@ -26,9 +26,9 @@ A stability cycle for an existing app, in the order the owner asked for: first r
 **Plans**: 3 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Clipboard store recovery (STAB-01) and trap-free SkyLight wrappers (STAB-02)
-- [ ] 01-02-PLAN.md — Gesture session window-frame AX read moved off the event-tap thread (STAB-03)
-- [ ] 01-03-PLAN.md — Slower osascript polling and gated lyrics timer (PERF-01, PERF-02)
+- [x] 01-01-PLAN.md — Clipboard store recovery (STAB-01) and trap-free SkyLight wrappers (STAB-02)
+- [x] 01-02-PLAN.md — Gesture session window-frame AX read moved off the event-tap thread (STAB-03)
+- [x] 01-03-PLAN.md — Slower osascript polling and gated lyrics timer (PERF-01, PERF-02)
 
 ### Phase 2: Tests
 **Goal**: The owner can run an automated test suite that guards window calculations and pure helper logic
@@ -55,6 +55,6 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Stability and Performance | 0/TBD | Not started | - |
+| 1. Stability and Performance | 3/3 | Complete    | 2026-10-20 |
 | 2. Tests | 0/TBD | Not started | - |
 | 3. Cleanup | 0/TBD | Not started | - |

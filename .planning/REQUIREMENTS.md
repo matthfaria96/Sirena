@@ -7,14 +7,14 @@
 
 ### Stability
 
-- [ ] **STAB-01**: When the clipboard history store can't be opened (corrupt or migration failure), Sirena moves it aside, starts with a fresh store and keeps running instead of hitting `fatalError` (`ClipboardKit/Storage.swift`).
-- [ ] **STAB-02**: Private-API wrappers have no force unwraps or traps on recoverable paths (e.g. `CGError(rawValue: -1)!` in `DockKit/Utilities/PrivateApis.swift`). Failures return errors instead.
-- [ ] **STAB-03**: The window-gesture event tap callback never sleeps or does slow work synchronously. Delays and AX calls move off the tap thread (`DockKit/Utilities/Window Gestures/WindowGestureExecutor.swift`).
+- [x] **STAB-01**: When the clipboard history store can't be opened (corrupt or migration failure), Sirena moves it aside, starts with a fresh store and keeps running instead of hitting `fatalError` (`ClipboardKit/Storage.swift`).
+- [x] **STAB-02**: Private-API wrappers have no force unwraps or traps on recoverable paths (e.g. `CGError(rawValue: -1)!` in `DockKit/Utilities/PrivateApis.swift`). Failures return errors instead.
+- [x] **STAB-03**: The window-gesture event tap callback never sleeps or does slow work synchronously. Delays and AX calls move off the tap thread (`DockKit/Utilities/Window Gestures/WindowGestureExecutor.swift`).
 
 ### Performance
 
-- [ ] **PERF-01**: Media info stops spawning `osascript` every 0.5–1 s when the Dynamic Island or media widget isn't visible, and polls much less often when it is (`DockKit/Models/MediaInfo.swift`).
-- [ ] **PERF-02**: The 20 Hz lyrics timer only runs while lyrics are on screen and stops when they are hidden or playback pauses.
+- [x] **PERF-01**: Media info stops spawning `osascript` every 0.5–1 s when the Dynamic Island or media widget isn't visible, and polls much less often when it is (`DockKit/Models/MediaInfo.swift`).
+- [x] **PERF-02**: The 20 Hz lyrics timer only runs while lyrics are on screen and stops when they are hidden or playback pauses.
 
 ### Testing
 
@@ -49,11 +49,11 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| STAB-01 | Phase 1 | Pending |
-| STAB-02 | Phase 1 | Pending |
-| STAB-03 | Phase 1 | Pending |
-| PERF-01 | Phase 1 | Pending |
-| PERF-02 | Phase 1 | Pending |
+| STAB-01 | Phase 1 | Complete |
+| STAB-02 | Phase 1 | Complete |
+| STAB-03 | Phase 1 | Complete |
+| PERF-01 | Phase 1 | Complete |
+| PERF-02 | Phase 1 | Complete |
 | TEST-01 | Phase 2 | Pending |
 | TEST-02 | Phase 2 | Pending |
 | TEST-03 | Phase 2 | Pending |
