@@ -158,13 +158,13 @@ private func loadSkyLightFunctions() {
 
 func _SLPSSetFrontProcessWithOptions(_ psn: UnsafeMutablePointer<ProcessSerialNumber>, _ wid: CGWindowID, _ mode: SLPSMode.RawValue) -> CGError {
     loadSkyLightFunctions()
-    guard let fn = setFrontProcessPtr else { return CGError(rawValue: -1)! }
+    guard let fn = setFrontProcessPtr else { return .failure }
     return fn(psn, wid, mode)
 }
 
 func SLPSPostEventRecordTo(_ psn: UnsafeMutablePointer<ProcessSerialNumber>, _ bytes: UnsafeMutablePointer<UInt8>) -> CGError {
     loadSkyLightFunctions()
-    guard let fn = postEventRecordPtr else { return CGError(rawValue: -1)! }
+    guard let fn = postEventRecordPtr else { return .failure }
     return fn(psn, bytes)
 }
 
