@@ -8,7 +8,7 @@ final class WindowGestureController {
         var recognizer: WindowGestureRecognizer
         var cursor: CGPoint
         let disabled: Set<WindowGesture>
-        let windowFrame: CGRect?
+        var windowFrame: CGRect?
         var naturalScrolling: Bool?
         var ownsPinch = false
         var lastProgress = GestureProgress()
@@ -347,10 +347,25 @@ final class WindowGestureController {
             recognizer: WindowGestureRecognizer(configuration: configuration),
             cursor: point,
             disabled: disabled,
-            windowFrame: zone.window?.currentWindowFrame()
+            windowFrame: nil
         )
+        captureWindowFrame(for: zone)
         startTickTimer()
         return true
+    }
+
+    private static let frameQueue = DispatchQueue(label: "com.sirena.windowGestures.frame", qos: .userInteractive)
+
+    private func captureWindowFrame(for zone: WindowGestureZone) {
+        guard let window = zone.window else { return }
+        let windowID = window.id
+        Self.frameQueue.async { [weak self] in
+            let frame = window.currentWindowFrame()
+            self?.thread.perform { [weak self] in
+                guard let self, self.session?.zone.window?.id == windowID else { return }
+                self.session?.windowFrame = frame
+            }
+        }
     }
 
     private func zone(at point: CGPoint, now: TimeInterval) -> WindowGestureZone? {
