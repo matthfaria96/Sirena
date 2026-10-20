@@ -124,7 +124,7 @@ final class TextCaptureController {
             alert.informativeText = L("Allow Sirena in System Settings › Privacy & Security › Screen & System Audio Recording, then restart Sirena.")
             alert.addButton(withTitle: L("Open System Settings"))
             alert.addButton(withTitle: L("Cancel"))
-            NSApp.activate()
+            SirenaActivation.activateForTool()
             if alert.runModal() == .alertFirstButtonReturn,
                let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture") {
                 NSWorkspace.shared.open(url)
@@ -188,7 +188,7 @@ final class TextCaptureController {
         let panel = NSOpenPanel()
         panel.allowedContentTypes = [.image, .pdf]
         panel.allowsMultipleSelection = false
-        NSApp.activate()
+        SirenaActivation.activateForTool()
         guard panel.runModal() == .OK, let url = panel.url, let image = NSImage(contentsOf: url) else { return }
         handleImportedImage(image)
     }

@@ -38,7 +38,7 @@ final class HiddenIconsPanel: NSObject, NSPopoverDelegate {
         popover.contentViewController = controller
         self.popover = popover
         self.onClose = onClose
-        NSApp.activate()
+        SirenaActivation.activateForTool()
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
     }
 

@@ -38,6 +38,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         let modules = ModuleManager.shared
         modules.openPage = { [weak self] item in self?.mainWindowController.present(item) }
+        SirenaActivation.closeIdleMainWindow = { [weak self] in self?.mainWindowController.closeIfIdle() }
         modules.startEnabledModules(windowManagement: windowManagement, windowsMenu: windowsMenu)
         // First launch, or an essential permission is missing: one page to allow it.
         DispatchQueue.main.async { [weak self] in

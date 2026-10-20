@@ -88,7 +88,7 @@ final class ScreenBrushController {
         rebuildOverlays()
         // macOS may refuse to bring a background app forward (cooperative activation);
         // then the overlay never gets the keyboard, so Esc is also watched globally below.
-        NSApp.activate(ignoringOtherApps: true)
+        SirenaActivation.activateForTool()
         focusOverlayUnderMouse()
         NSCursor.crosshair.set()
         startLaserTimer()

@@ -40,7 +40,7 @@ final class AreaSelector {
             overlay.orderFrontRegardless()
             overlays.append(overlay)
         }
-        NSApp.activate()
+        SirenaActivation.activateForTool()
         let mouse = NSEvent.mouseLocation
         (overlays.first { $0.frame.contains(mouse) } ?? overlays.first)?.makeKey()
     }

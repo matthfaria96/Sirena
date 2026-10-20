@@ -87,7 +87,7 @@ final class SirenaStatusItem: NSObject {
         popover.delegate = self
         popover.contentViewController = content
         self.popover = popover
-        NSApp.activate()
+        MainActor.assumeIsolated { SirenaActivation.activateForTool() }
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
     }
 

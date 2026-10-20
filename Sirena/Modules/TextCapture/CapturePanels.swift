@@ -101,7 +101,7 @@ final class CaptureResultWindow {
         model.presentTranslation = false
         let window = self.window ?? makeWindow()
         self.window = window
-        NSApp.activate()
+        SirenaActivation.activateForTool()
         window.makeKeyAndOrderFront(nil)
         if translate {
             // Presented after the window is up so the popover has an anchor.

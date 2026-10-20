@@ -20,36 +20,42 @@ struct AboutBlock: View {
                 .resizable()
                 .frame(width: 96, height: 96)
                 .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-                .shadow(color: .black.opacity(0.3), radius: 12, y: 6)
-                .padding(.bottom, 16)
+                .shadow(color: .black.opacity(0.35), radius: 14, y: 6)
+                .padding(.bottom, 18)
             Text("Sirena")
-                .font(.title.weight(.semibold))
+                .font(.system(size: 24, weight: .semibold))
             Text(version)
-                .font(.caption)
+                .font(.system(size: 12))
                 .monospacedDigit()
                 .foregroundStyle(.secondary)
                 .textSelection(.enabled)
                 .padding(.top, 4)
 
             Text(L("Sirena brings together what you use every day on the Mac: windows, the Dock, ⌘ Tab, the clipboard, a shelf for files, the notch and quick controls in the menu bar."))
-                .font(.callout)
+                .font(.system(size: 13))
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
-                .lineSpacing(2)
-                .frame(maxWidth: 440)
-                .padding(.top, 20)
+                .lineSpacing(3)
+                .frame(maxWidth: 460)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.top, 26)
 
-            Text(L("Built on open-source projects: \(AboutBlock.projectNames)."))
-                .font(.caption)
+            Text(L("Sirena is free software under the GNU GPL v3.0. It builds on the open-source projects listed in its licenses."))
+                .font(.system(size: 11.5))
                 .foregroundStyle(.tertiary)
                 .multilineTextAlignment(.center)
-                .frame(maxWidth: 440)
-                .padding(.top, 12)
+                .frame(maxWidth: 460)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.top, 14)
 
-            Button(L("Open-source licenses")) { showsLicenses = true }
-                .buttonStyle(.link)
-                .font(.caption)
-                .padding(.top, 8)
+            HStack(spacing: 18) {
+                Link("witchmymac.com", destination: URL(string: "http://witchmymac.com")!)
+                    .font(.system(size: 12))
+                Button(L("Open-source licenses")) { showsLicenses = true }
+                    .buttonStyle(.link)
+                    .font(.system(size: 12))
+            }
+            .padding(.top, 10)
         }
         .frame(maxWidth: .infinity)
         .padding(.top, 12)
@@ -83,7 +89,9 @@ private struct LicensesSheet: View {
             guard seen.insert(origin.name).inserted else { return nil }
             return Entry(name: origin.name, author: origin.author, license: origin.license, url: origin.url)
         }
-        return apps + [
+        let own = Entry(name: "Sirena", author: "Copyright (C) 2026 Matheus Faria", license: "GPL-3.0",
+                        url: "https://github.com/matthfaria96/Sirena")
+        return [own] + apps + [
             Entry(name: "MASShortcut", author: "Vadim Shpakovski", license: "BSD 2-Clause", url: "https://github.com/rxhanson/MASShortcut"),
             Entry(name: "Defaults", author: "Sindre Sorhus", license: "MIT", url: "https://github.com/sindresorhus/Defaults"),
             Entry(name: "KeyboardShortcuts", author: "Sindre Sorhus", license: "MIT", url: "https://github.com/sindresorhus/KeyboardShortcuts"),

@@ -27,7 +27,7 @@ final class WindowPicker {
             overlay.orderFrontRegardless()
             overlays.append(overlay)
         }
-        NSApp.activate()
+        SirenaActivation.activateForTool()
         let mouse = NSEvent.mouseLocation
         (overlays.first { $0.frame.contains(mouse) } ?? overlays.first)?.makeKey()
         pointerMoved(to: mouse)

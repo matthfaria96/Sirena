@@ -134,7 +134,7 @@ final class PinWindowController {
             alert.informativeText = L("Allow Sirena in System Settings › Privacy & Security › Screen & System Audio Recording, then restart Sirena.")
             alert.addButton(withTitle: L("Open System Settings"))
             alert.addButton(withTitle: L("Cancel"))
-            NSApp.activate()
+            SirenaActivation.activateForTool()
             if alert.runModal() == .alertFirstButtonReturn {
                 openPrivacySettings("Privacy_ScreenCapture")
             }
@@ -301,7 +301,7 @@ final class PinWindowController {
         let alert = NSAlert()
         alert.messageText = L("Couldn't pin the window")
         alert.informativeText = error.localizedDescription
-        NSApp.activate()
+        SirenaActivation.activateForTool()
         alert.runModal()
     }
 }

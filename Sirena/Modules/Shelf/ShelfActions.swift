@@ -106,7 +106,7 @@ enum ShelfActions {
         alert.accessoryView = field
         alert.addButton(withTitle: L("Rename"))
         alert.addButton(withTitle: L("Cancel"))
-        NSApp.activate()
+        SirenaActivation.activateForTool()
         alert.window.initialFirstResponder = field
         guard alert.runModal() == .alertFirstButtonReturn else { return }
         let name = field.stringValue.trimmingCharacters(in: .whitespaces)
@@ -127,7 +127,7 @@ enum ShelfActions {
         panel.canChooseFiles = false
         panel.canCreateDirectories = true
         panel.prompt = prompt
-        NSApp.activate()
+        SirenaActivation.activateForTool()
         return panel.runModal() == .OK ? panel.url : nil
     }
 
@@ -146,7 +146,7 @@ enum ShelfActions {
 
     private static func present(_ error: Error) {
         let alert = NSAlert(error: error)
-        NSApp.activate()
+        SirenaActivation.activateForTool()
         alert.runModal()
     }
 

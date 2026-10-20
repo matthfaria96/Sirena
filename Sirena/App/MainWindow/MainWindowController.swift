@@ -26,6 +26,20 @@ final class PageNavigator {
     var requestedTab: String?
 }
 
+/// Brings Sirena forward for a tool (the ⚡ menu, an overlay, an alert) without the main
+/// window. Activating an app raises all its windows, so a main window left open behind other
+/// apps popped up on every Pin Window or Text Capture; it only shows when asked for
+/// (Configurações, ⌃⌥S, "Open Sirena…").
+@MainActor
+enum SirenaActivation {
+    static var closeIdleMainWindow: () -> Void = {}
+
+    static func activateForTool() {
+        closeIdleMainWindow()
+        NSApp.activate()
+    }
+}
+
 final class MainWindowController: NSWindowController, NSWindowDelegate {
 
     let router = Router()
@@ -73,6 +87,13 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
         router.isWindowOpen = true
         showWindow(nil)
         window?.makeKeyAndOrderFront(nil)
+    }
+
+    /// Closes the window unless the user is working in it right now.
+    func closeIfIdle() {
+        guard let window, window.isVisible else { return }
+        if NSApp.isActive, window.isKeyWindow { return }
+        window.close()
     }
 
     func windowWillClose(_ notification: Notification) {
