@@ -499,7 +499,7 @@
 				CODE_SIGN_IDENTITY = "Sirena Local Dev";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 114;
+				CURRENT_PROJECT_VERSION = 115;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -508,7 +508,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.5.1;
+				MARKETING_VERSION = 0.5.2;
 				OTHER_CODE_SIGN_FLAGS = "--timestamp=none";
 				PRODUCT_BUNDLE_IDENTIFIER = com.matheusfaria.Sirena;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -532,7 +532,7 @@
 				CODE_SIGN_IDENTITY = "Sirena Local Dev";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 114;
+				CURRENT_PROJECT_VERSION = 115;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -541,7 +541,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.5.1;
+				MARKETING_VERSION = 0.5.2;
 				OTHER_CODE_SIGN_FLAGS = "--timestamp=none";
 				PRODUCT_BUNDLE_IDENTIFIER = com.matheusfaria.Sirena;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -557,7 +557,7 @@
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "Sirena Local Dev";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 114;
+				CURRENT_PROJECT_VERSION = 115;
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = "";
 				DYLIB_COMPATIBILITY_VERSION = 1;
@@ -571,7 +571,7 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.5.1;
+				MARKETING_VERSION = 0.5.2;
 				OTHER_CODE_SIGN_FLAGS = "--timestamp=none";
 				PRODUCT_BUNDLE_IDENTIFIER = com.matheusfaria.Sirena.ClipboardKit;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
@@ -588,7 +588,7 @@
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "Sirena Local Dev";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 114;
+				CURRENT_PROJECT_VERSION = 115;
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = "";
 				DYLIB_COMPATIBILITY_VERSION = 1;
@@ -602,7 +602,7 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.5.1;
+				MARKETING_VERSION = 0.5.2;
 				OTHER_CODE_SIGN_FLAGS = "--timestamp=none";
 				PRODUCT_BUNDLE_IDENTIFIER = com.matheusfaria.Sirena.ClipboardKit;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
@@ -619,7 +619,7 @@
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "Sirena Local Dev";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 114;
+				CURRENT_PROJECT_VERSION = 115;
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = "";
 				DYLIB_COMPATIBILITY_VERSION = 1;
@@ -633,7 +633,7 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.5.1;
+				MARKETING_VERSION = 0.5.2;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-Xlinker",
@@ -731,7 +731,7 @@
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "Sirena Local Dev";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 114;
+				CURRENT_PROJECT_VERSION = 115;
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = "";
 				DYLIB_COMPATIBILITY_VERSION = 1;
@@ -745,7 +745,7 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.5.1;
+				MARKETING_VERSION = 0.5.2;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-Xlinker",
@@ -843,9 +843,9 @@
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "Sirena Local Dev";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 114;
+				CURRENT_PROJECT_VERSION = 115;
 				DEVELOPMENT_TEAM = "";
-				MARKETING_VERSION = 0.5.1;
+				MARKETING_VERSION = 0.5.2;
 				OTHER_CODE_SIGN_FLAGS = "--timestamp=none";
 				CODE_SIGN_ENTITLEMENTS = SirenaFinder/SirenaFinder.entitlements;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -868,9 +868,9 @@
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "Sirena Local Dev";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 114;
+				CURRENT_PROJECT_VERSION = 115;
 				DEVELOPMENT_TEAM = "";
-				MARKETING_VERSION = 0.5.1;
+				MARKETING_VERSION = 0.5.2;
 				OTHER_CODE_SIGN_FLAGS = "--timestamp=none";
 				CODE_SIGN_ENTITLEMENTS = SirenaFinder/SirenaFinder.entitlements;
 				ENABLE_HARDENED_RUNTIME = YES;
