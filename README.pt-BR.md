@@ -26,17 +26,21 @@ Funciona do **macOS 15 (Sequoia)** em diante. No macOS 26+ o visual usa Liquid G
 
 ## Instalação
 
-1. Baixe o `Sirena-<versão>.dmg` na página de [Releases](../../releases) ou em [witchmymac.com](https://witchmymac.com), abra e arraste o `Sirena.app` para **Aplicativos** (alguns recursos só funcionam a partir dessa pasta).
-2. O app não é notarizado pela Apple, então o macOS bloqueia na primeira vez que você abre. Para liberar, cole isto no Terminal:
+Escolha um:
 
+1. **Terminal, uma linha (recomendado).** Cole isto no Terminal:
+   ```sh
+   curl -fsSL https://witchmymac.com/install.sh | bash -s sirena
+   ```
+   Ele baixa a versão mais nova do GitHub, confere o SHA-256, instala o Sirena em Aplicativos e abre. Não aparece aviso do macOS, porque arquivos baixados pelo `curl` não ganham a marca de "baixado da internet". Rode a mesma linha de novo para atualizar. O script é aberto: [install.sh](https://witchmymac.com/install.sh).
+2. **Baixe o DMG** em [Releases](https://github.com/matthfaria96/Sirena/releases) ou em [witchmymac.com](https://witchmymac.com), arraste o Sirena para Aplicativos (alguns recursos só funcionam a partir dessa pasta) e libere uma vez com:
    ```sh
    xattr -dr com.apple.quarantine "/Applications/Sirena.app"
    ```
+   Ele só tira daquele app a marca de "baixado da internet".
+3. **Baixe o DMG** e libere pelos Ajustes do Sistema: abra o app, clique em OK no aviso e vá em Ajustes do Sistema › Privacidade e Segurança › Abrir Mesmo Assim.
 
-   Isso só tira do Sirena a marca de "baixado da internet"; nada mais no sistema muda. Depois, abra o app normalmente.
-
-   Sem Terminal: abra o app, clique em **OK** no aviso e vá em **Ajustes do Sistema › Privacidade e Segurança**, role até o fim e clique em **Abrir Mesmo Assim** ao lado do aviso do Sirena.
-3. Siga o onboarding para permitir **Acessibilidade** e **Gravação de Tela**.
+Depois, siga o onboarding para permitir **Acessibilidade** e **Gravação de Tela**.
 
 ## Compilar
 

@@ -26,17 +26,21 @@ Works on **macOS 15 (Sequoia)** and later. On macOS 26+ it uses the Liquid Glass
 
 ## Installation
 
-1. Download `Sirena-<version>.dmg` from the [Releases](../../releases) page or from [witchmymac.com](https://witchmymac.com), open it and drag `Sirena.app` to **Applications** (some features only work from that folder).
-2. The app is not notarized by Apple, so macOS blocks it the first time you open it. To allow it, paste this in Terminal:
+Pick one:
 
+1. **Terminal, one line (recommended).** Paste this into Terminal:
+   ```sh
+   curl -fsSL https://witchmymac.com/install.sh | bash -s sirena
+   ```
+   It downloads the latest release from GitHub, checks its SHA-256, installs Sirena in Applications and opens it. There's no macOS warning, because files downloaded by `curl` don't get the "downloaded from the internet" mark. Run the same line again to update. The script is open: [install.sh](https://witchmymac.com/install.sh).
+2. **Download the DMG** from [Releases](https://github.com/matthfaria96/Sirena/releases) or [witchmymac.com](https://witchmymac.com), drag Sirena to Applications (some features only work from that folder), then allow it once with:
    ```sh
    xattr -dr com.apple.quarantine "/Applications/Sirena.app"
    ```
+   It only removes the "downloaded from the internet" mark from that app.
+3. **Download the DMG** and allow it in System Settings: open the app, click OK on the warning, then go to System Settings › Privacy & Security and click Open Anyway.
 
-   This only removes the "downloaded from the internet" mark from Sirena; nothing else on the system changes. Then open the app as usual.
-
-   Without Terminal: open the app, click **OK** on the warning, then go to **System Settings › Privacy & Security**, scroll down and click **Open Anyway** next to the Sirena notice.
-3. Follow the onboarding to allow **Accessibility** and **Screen Recording**.
+Then follow the onboarding to allow **Accessibility** and **Screen Recording**.
 
 ## Building
 
