@@ -10,10 +10,10 @@ Um app de barra de menus para macOS 15 ou mais novo que junta, num lugar só, as
 - **Área de Transferência** — histórico pesquisável do que você copiou.
 - **Fixar Janela** — mantém uma janela por cima de todas.
 - **Capturar Texto** — copia o texto de qualquer parte da tela (OCR), QR codes e códigos de barras.
-- **Captura de Tela** — atalho para a Captura de Tela da Apple: área, tela inteira ou gravação, já no modo escolhido.
+- **Captura de Tela** — atalho para a Captura de Tela da Apple: área, tela inteira ou gravação, já no modo escolhido. Por padrão, a captura é copiada e salva, na Mesa ou em Imagens › Screenshots.
 - **Pomodoro** — timer de foco com pausas e contador na barra de menus.
 - **Seletor de Cores** — captura cores da tela, histórico, paletas e vários formatos.
-- **Desenho Livre** — desenhe, destaque e aponte por cima da tela; print com o desenho.
+- **Desenho Livre** — desenhe, destaque e aponte por cima da tela; print de uma área selecionada (ou da tela inteira) com o desenho.
 - **Espelho** — uma olhada rápida na câmera antes de uma chamada.
 
 **Controles** — Não desligar tela, Desligar monitor (apaga a tela após uma contagem que dá para cancelar) e mixer de som (volume por app, saída e microfone).
@@ -26,12 +26,16 @@ Funciona do **macOS 15 (Sequoia)** em diante. No macOS 26+ o visual usa Liquid G
 
 ## Instalação
 
-1. Baixe o `.dmg` (ou `Sirena.zip`) na página de [Releases](../../releases) e mova `Sirena.app` para **/Applications** (alguns recursos só funcionam a partir dessa pasta).
-2. O app não é notarizado pela Apple, então na primeira vez o macOS mostra "Não foi possível verificar o Sirena" com o botão **Mover para o Lixo**. Clique em **OK** (não em Mover para o Lixo) e então:
-   - abra **Ajustes do Sistema › Privacidade e Segurança**, role até o fim e clique em **Abrir Mesmo Assim** ao lado do aviso do Sirena; ou
-   - no Terminal, rode `xattr -dr com.apple.quarantine /Applications/Sirena.app` e abra o app normalmente.
+1. Baixe o `Sirena-<versão>.dmg` na página de [Releases](../../releases) ou em [witchmymac.com](https://witchmymac.com), abra e arraste o `Sirena.app` para **Aplicativos** (alguns recursos só funcionam a partir dessa pasta).
+2. O app não é notarizado pela Apple, então o macOS bloqueia na primeira vez que você abre. Para liberar, cole isto no Terminal:
 
-   Desde o macOS 15, clicar com o botão direito › Abrir não pula mais esse aviso.
+   ```sh
+   xattr -dr com.apple.quarantine "/Applications/Sirena.app"
+   ```
+
+   Isso só tira do Sirena a marca de "baixado da internet"; nada mais no sistema muda. Depois, abra o app normalmente.
+
+   Sem Terminal: abra o app, clique em **OK** no aviso e vá em **Ajustes do Sistema › Privacidade e Segurança**, role até o fim e clique em **Abrir Mesmo Assim** ao lado do aviso do Sirena.
 3. Siga o onboarding para permitir **Acessibilidade** e **Gravação de Tela**.
 
 ## Compilar

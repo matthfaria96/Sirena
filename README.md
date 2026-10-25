@@ -10,10 +10,10 @@ A menu bar app for macOS 15 or later that brings your everyday tools into one pl
 - **Clipboard** — a searchable history of what you copied.
 - **Pin Window** — keeps a window above all others.
 - **Capture Text** — copies text from anywhere on screen (OCR), plus QR codes and barcodes.
-- **Screenshot** — a shortcut to Apple's Screenshot tool: area, full screen or recording, already in the mode you pick.
+- **Screenshot** — a shortcut to Apple's Screenshot tool: area, full screen or recording, already in the mode you pick. Captures are copied and saved by default, to the Desktop or Pictures › Screenshots.
 - **Pomodoro** — a focus timer with breaks and a countdown in the menu bar.
 - **Color Picker** — picks colors from the screen, with history, palettes and several formats.
-- **Free Drawing** — draw, highlight and point on top of the screen; take a screenshot with the drawing.
+- **Free Drawing** — draw, highlight and point on top of the screen; screenshot a selected area (or the full screen) with the drawing.
 - **Mirror** — a quick look at your camera before a call.
 
 **Controls** — Keep screen on, Turn off display (blanks the screen after a countdown you can cancel) and a sound mixer (per-app volume, output and microphone).
@@ -26,12 +26,16 @@ Works on **macOS 15 (Sequoia)** and later. On macOS 26+ it uses the Liquid Glass
 
 ## Installation
 
-1. Download the `.dmg` (or `Sirena.zip`) from the [Releases](../../releases) page and move `Sirena.app` to **/Applications** (some features only work from that folder).
-2. The app is not notarized by Apple, so the first time macOS shows "Sirena can't be verified" with a **Move to Trash** button. Click **OK** (not Move to Trash), then either:
-   - open **System Settings › Privacy & Security**, scroll to the bottom and click **Open Anyway** next to the Sirena notice; or
-   - in Terminal, run `xattr -dr com.apple.quarantine /Applications/Sirena.app` and open the app as usual.
+1. Download `Sirena-<version>.dmg` from the [Releases](../../releases) page or from [witchmymac.com](https://witchmymac.com), open it and drag `Sirena.app` to **Applications** (some features only work from that folder).
+2. The app is not notarized by Apple, so macOS blocks it the first time you open it. To allow it, paste this in Terminal:
 
-   Since macOS 15, right-click › Open no longer skips this notice.
+   ```sh
+   xattr -dr com.apple.quarantine "/Applications/Sirena.app"
+   ```
+
+   This only removes the "downloaded from the internet" mark from Sirena; nothing else on the system changes. Then open the app as usual.
+
+   Without Terminal: open the app, click **OK** on the warning, then go to **System Settings › Privacy & Security**, scroll down and click **Open Anyway** next to the Sirena notice.
 3. Follow the onboarding to allow **Accessibility** and **Screen Recording**.
 
 ## Building
