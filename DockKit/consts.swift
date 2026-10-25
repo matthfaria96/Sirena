@@ -87,7 +87,8 @@ extension Defaults.Keys {
     static let aeroShakeAction = Key<AeroShakeAction>("aeroShakeAction", default: .none)
 
     static let showSpecialAppControls = Key<Bool>("showSpecialAppControls", default: true)
-    static let enableMediaWidget = Key<Bool>("enableMediaWidget", default: true)
+    // Sirena: o player de música nas prévias do Dock fica desligado até o usuário ligar (Ajustes › Dock).
+    static let enableMediaWidget = Key<Bool>("enableMediaWidget", default: false)
     static let mediaDetectionMode = Key<MediaDetectionMode>("mediaDetectionMode", default: .universal)
     static let enableCalendarWidget = Key<Bool>("enableCalendarWidget", default: true)
     static let enableFolderWidget = Key<Bool>("enableFolderWidget", default: false)

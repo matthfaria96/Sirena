@@ -25,6 +25,7 @@ private struct DockPreviewsPage: View {
     @Default(.windowPreviewSortOrder) var windowPreviewSortOrder
     @Default(.includeHiddenWindowsInDockPreview) var includeHiddenWindowsInDockPreview
     @Default(.groupAppInstancesInDock) var groupAppInstancesInDock
+    @Default(.enableMediaWidget) var enableMediaWidget
     @Default(.dockPreviewActivationMode) var dockPreviewActivationMode
     @Default(.dockPreviewActivationModifier) var dockPreviewActivationModifier
     @Default(.previewHoverAction) var previewHoverAction
@@ -54,6 +55,10 @@ private struct DockPreviewsPage: View {
                     Toggle(isOn: $groupAppInstancesInDock) {
                         Text("Group multiple app instances together")
                         Text("Show windows from all instances of an app when hovering its dock icon.")
+                    }
+                    Toggle(isOn: $enableMediaWidget) {
+                        Text("Music player in previews")
+                        Text("Hovering a music app in the Dock also shows its playback controls.")
                     }
                 }
 

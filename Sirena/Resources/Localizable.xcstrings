@@ -19057,6 +19057,26 @@
           }
         }
       }
+    },
+    "Music player in previews": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Player de música nas prévias"
+          }
+        }
+      }
+    },
+    "Hovering a music app in the Dock also shows its playback controls.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ao passar o mouse num app de música no Dock, mostra também os controles de reprodução."
+          }
+        }
+      }
     }
   },
   "version": "1.3"
