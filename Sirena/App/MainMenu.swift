@@ -5,12 +5,15 @@
 
 import Cocoa
 
+@MainActor
 enum MainMenu {
     static func make() -> NSMenu {
         let mainMenu = NSMenu()
 
         let appMenu = NSMenu()
         appMenu.addItem(withTitle: L("About Sirena"), action: #selector(AppDelegate.showAbout(_:)), keyEquivalent: "")
+        let updates = appMenu.addItem(withTitle: L("Check for Updates…"), action: #selector(AppUpdater.checkForUpdates(_:)), keyEquivalent: "")
+        updates.target = AppUpdater.shared
         appMenu.addItem(.separator())
         appMenu.addItem(withTitle: L("Settings…"), action: #selector(AppDelegate.openSettings(_:)), keyEquivalent: ",")
         appMenu.addItem(.separator())

@@ -21,6 +21,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.mainMenu = MainMenu.make()
+        AppUpdater.shared.start()
+
+        // SIRENA_UPDATES_ONLY=1: only the menus, the updater and the About page, no modules,
+        // no menu bar icon, no onboarding. Lets a renamed copy of Sirena test updates without
+        // touching the Mac (⌘ Tab, the Dock, the menu bar) next to the installed one.
+        if ProcessInfo.processInfo.environment["SIRENA_UPDATES_ONLY"] == "1" {
+            updatesOnly = true
+            hasFinishedLaunching = true
+            if ProcessInfo.processInfo.environment["SIRENA_OPEN_PAGE"] == "about" {
+                mainWindowController.present(.about)
+            }
+            return
+        }
 
         windowsMenu.autoenablesItems = false
         statusItem.menuProvider = { [weak self] in self?.makeSirenaMenu() ?? NSMenu() }
@@ -70,6 +83,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        guard !updatesOnly else { return }
         SirenaMixer.shared.stop()
         ModuleManager.shared.terminate()
     }
@@ -81,6 +95,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// Set at the end of launch: a reopen that arrives earlier (the app opened twice in a row)
     /// built the main window mid-launch and crashed in AppKit layout.
     private var hasFinishedLaunching = false
+    /// SIRENA_UPDATES_ONLY: nothing was started, so there is nothing to stop.
+    private var updatesOnly = false
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         guard hasFinishedLaunching else { return true }

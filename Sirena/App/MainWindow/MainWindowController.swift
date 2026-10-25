@@ -98,6 +98,8 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
 
     func windowWillClose(_ notification: Notification) {
         router.isWindowOpen = false
+        // An update window still up keeps the Dock icon; Sparkle's session end hides it.
+        guard !AppUpdater.shared.isShowingUpdate else { return }
         NSApp.setActivationPolicy(.accessory)
     }
 }

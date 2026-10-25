@@ -28,6 +28,7 @@ final class OnboardingWindow {
         window.titleVisibility = .hidden
         window.isMovableByWindowBackground = true
         window.isReleasedWhenClosed = false
+        window.identifier = NSUserInterfaceItemIdentifier("SirenaOnboardingWindow")
         window.center()
         self.window = window
         NSApp.setActivationPolicy(.regular)

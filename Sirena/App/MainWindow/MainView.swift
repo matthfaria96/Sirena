@@ -105,8 +105,10 @@ struct MainView: View {
             ColorPickerPage()
         case .module(.screenBrush):
             ScreenBrushPage()
-        case .general, .about:
+        case .general:
             GeneralPage()
+        case .about:
+            GeneralPage(showsAbout: true)
         }
     }
 }

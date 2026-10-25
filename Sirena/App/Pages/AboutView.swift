@@ -30,6 +30,10 @@ struct AboutBlock: View {
                 .foregroundStyle(.secondary)
                 .textSelection(.enabled)
                 .padding(.top, 4)
+            // Sparkle: checks daily on its own; this asks now and always answers.
+            Button(L("Check for Updates")) { AppUpdater.shared.checkForUpdates(nil) }
+                .disabled(!AppUpdater.shared.canCheckForUpdates)
+                .padding(.top, 12)
 
             Text(L("Sirena brings together what you use every day on the Mac: windows, the Dock, ⌘ Tab, the clipboard, a shelf for files, the notch and quick controls in the menu bar."))
                 .font(.system(size: 13))
@@ -102,6 +106,7 @@ private struct LicensesSheet: View {
             Entry(name: "SwiftLog", author: "Apple Inc.", license: "Apache 2.0", url: "https://github.com/apple/swift-log"),
             Entry(name: "HotKey", author: "Sam Soffes", license: "MIT", url: "https://github.com/soffes/HotKey"),
             Entry(name: "SmoothGradient", author: "Ramon Torres", license: "MIT", url: "https://github.com/raymondjavaxx/SmoothGradient"),
+            Entry(name: "Sparkle", author: "Sparkle Project", license: "MIT", url: "https://github.com/sparkle-project/Sparkle"),
             Entry(name: "MediaRemoteAdapter", author: "Jonas van den Berg, Ethan Bills", license: L("See repository"),
                   url: "https://github.com/ejbills/mediaremote-adapter")
         ]
