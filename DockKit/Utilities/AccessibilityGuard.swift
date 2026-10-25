@@ -138,6 +138,8 @@ public final class AccessibilityGuard: @unchecked Sendable {
     /// Whether a tap may be created now. Both the cached state and a live check must agree;
     /// a refusal is logged once per tap until trust changes.
     public func mayCreateTap(_ name: String) -> Bool {
+        // Sirena's showcase mode (site screenshots) never holds a tap.
+        if ProcessInfo.processInfo.environment["SIRENA_SHOWCASE"] == "1" { return false }
         let live = AXIsProcessTrusted()
         let (allowed, firstRefusal) = lock.withLock { () -> (Bool, Bool) in
             if live, tracker.trusted { return (true, false) }

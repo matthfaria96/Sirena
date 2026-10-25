@@ -19,7 +19,7 @@ struct ScreenBrushPage: View {
 
 private struct ScreenBrushSettingsView: View {
     @State private var settings = ScreenBrushSettings.shared
-    @State private var hasScreenRecording = CGPreflightScreenCaptureAccess()
+    @State private var hasScreenRecording = Showcase.screenRecordingShown()
 
     var body: some View {
         Form {
@@ -110,7 +110,7 @@ private struct ScreenBrushSettingsView: View {
         }
         .formStyle(.grouped)
         .onReceive(NotificationCenter.default.publisher(for: NSWindow.didBecomeKeyNotification)) { _ in
-            hasScreenRecording = CGPreflightScreenCaptureAccess()
+            hasScreenRecording = Showcase.screenRecordingShown()
         }
     }
 

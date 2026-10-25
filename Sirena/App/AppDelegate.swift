@@ -22,6 +22,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.mainMenu = MainMenu.make()
+
+        // SIRENA_SHOWCASE=1: site screenshots from a renamed copy. Nothing starts (no modules,
+        // taps, mixer, updater, menu bar icon or onboarding); see Showcase.swift and CLAUDE.md.
+        if Showcase.isActive {
+            updatesOnly = true
+            hasFinishedLaunching = true
+            Showcase.start(mainWindow: mainWindowController)
+            return
+        }
+
         AppUpdater.shared.start()
 
         // SIRENA_UPDATES_ONLY=1: only the menus, the updater and the About page, no modules,

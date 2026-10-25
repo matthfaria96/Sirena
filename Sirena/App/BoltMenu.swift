@@ -203,7 +203,9 @@ final class BoltMenuSettings {
         let all = HomeOrder.shared.sorted(BoltMenuItem.shortcuts, group: "shortcuts", id: \.rawValue)
             + HomeOrder.shared.sorted(BoltMenuItem.controls, group: "controls", id: \.rawValue)
         return all.filter { item in
-            enabled.contains(item) && (item.module.map { ModuleManager.shared.isRunning($0) } ?? true)
+            // Showcase mode starts nothing: tools show as running, the mixer (real devices) stays out.
+            if Showcase.isActive { return enabled.contains(item) && item != .sound }
+            return enabled.contains(item) && (item.module.map { ModuleManager.shared.isRunning($0) } ?? true)
         }
     }
 }

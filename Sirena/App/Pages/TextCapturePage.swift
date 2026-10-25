@@ -23,7 +23,7 @@ struct TextCapturePage: View {
 private struct TextCaptureSettingsView: View {
     @State private var settings = TextCaptureSettings.shared
     @State private var controller = TextCaptureController.shared
-    @State private var hasScreenRecording = CGPreflightScreenCaptureAccess()
+    @State private var hasScreenRecording = Showcase.screenRecordingShown()
 
     var body: some View {
         Form {
@@ -137,7 +137,7 @@ private struct TextCaptureSettingsView: View {
         }
         .formStyle(.grouped)
         .onReceive(NotificationCenter.default.publisher(for: NSWindow.didBecomeKeyNotification)) { _ in
-            hasScreenRecording = CGPreflightScreenCaptureAccess()
+            hasScreenRecording = Showcase.screenRecordingShown()
         }
     }
 }

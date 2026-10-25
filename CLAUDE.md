@@ -67,3 +67,19 @@ at once and tells the owners (via `observe`) to tear down, on regain to recreate
   `/usr/bin/log show --predicate 'category == "AccessibilityGuard"'` (`log` alone is a zsh builtin).
   Its prefs land in `~/Library/Preferences/<id>.plist` even with `CFFIXED_USER_HOME`: delete them,
   `tccutil reset All <id>` and `lsregister -u` the copy afterwards.
+
+## Showcase mode (site screenshots)
+
+`SIRENA_SHOWCASE=1` (`Sirena/App/Showcase.swift`) is for the witchmymac.com screenshots. Nothing
+starts: no modules, event taps (`AccessibilityGuard.mayCreateTap` refuses), mixer, updater, menu
+bar icon or onboarding, and no permission is asked. Pages show permissions as granted and the
+clipboard history gets fictional entries (`ClipboardKit/ShowcaseHistory.swift`, only into an
+empty store). `SIRENA_OPEN_PAGE=<module id|general|about|home>` (+ `SIRENA_OPEN_TAB`) picks the
+page; `SIRENA_SHOW_PANEL=1` shows the menu bar panel in a popover instead, with
+`SIRENA_PANEL_INLINE=clipboard|pomodoro|screenCapture` for an inline panel;
+`SIRENA_SHOWCASE_SCREEN=left` uses the leftmost display. Run a renamed copy (bundle id
+`com.matheusfaria.Sirena.showcase`, no `PlugIns/`, no `NSServices`/`CFBundleURLTypes`/
+`UTExportedTypeDeclarations`/`SUFeedURL`, ad hoc signed) with `CFFIXED_USER_HOME=<temp home>` and
+`--args -AppleLanguages "(en)"`. Its prefs land in `~/Library/Preferences/<id>.plist`: delete them,
+the temp home, and `lsregister -u` the copy afterwards.
+

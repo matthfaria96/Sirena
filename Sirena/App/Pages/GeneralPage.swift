@@ -77,16 +77,16 @@ final class PermissionsState {
         let next = [
             Item(id: "accessibility", title: L("Accessibility"),
                  purpose: L("Moves and resizes windows, pastes from the clipboard history and powers the switcher."),
-                 symbol: "accessibility", granted: AXIsProcessTrusted()),
+                 symbol: "accessibility", granted: Showcase.accessibilityShown()),
             Item(id: "screen", title: L("Screen Recording"),
                  purpose: L("Window previews in the Dock and the switcher, and capturing text from the screen."),
-                 symbol: "rectangle.dashed.badge.record", granted: CGPreflightScreenCaptureAccess()),
+                 symbol: "rectangle.dashed.badge.record", granted: Showcase.screenRecordingShown()),
             Item(id: "camera", title: L("Camera"),
                  purpose: L("The mirror and “Peek” from the menu."),
-                 symbol: "camera", granted: AVCaptureDevice.authorizationStatus(for: .video) == .authorized),
+                 symbol: "camera", granted: Showcase.isActive || AVCaptureDevice.authorizationStatus(for: .video) == .authorized),
             Item(id: "microphone", title: L("Microphone"),
                  purpose: L("The microphone level in the mirror and the microphone controls."),
-                 symbol: "mic", granted: AVCaptureDevice.authorizationStatus(for: .audio) == .authorized)
+                 symbol: "mic", granted: Showcase.isActive || AVCaptureDevice.authorizationStatus(for: .audio) == .authorized)
         ]
         if next != items { items = next }
     }

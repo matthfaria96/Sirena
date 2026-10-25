@@ -56,7 +56,7 @@ private extension ModuleManager {
 private struct WindowsTab: View {
     @State private var manager = ModuleManager.shared
     @State private var tweaks = TweaksSettings.shared
-    @State private var hasAccessibility = AXIsProcessTrusted()
+    @State private var hasAccessibility = Showcase.accessibilityShown()
     @AppStorage("windowsAdvancedMode") private var advanced = false
 
     var body: some View {
@@ -125,7 +125,7 @@ private struct WindowsTab: View {
         }
         .formStyle(.grouped)
         .onReceive(NotificationCenter.default.publisher(for: NSWindow.didBecomeKeyNotification)) { _ in
-            hasAccessibility = AXIsProcessTrusted()
+            hasAccessibility = Showcase.accessibilityShown()
         }
     }
 
@@ -136,7 +136,7 @@ private struct WindowsTab: View {
 private struct DockTab: View {
     @State private var manager = ModuleManager.shared
     @State private var tweaks = TweaksSettings.shared
-    @State private var hasScreenRecording = DockController.hasScreenRecordingPermission
+    @State private var hasScreenRecording = Showcase.screenRecordingShown()
 
     var body: some View {
         Form {
@@ -169,7 +169,7 @@ private struct DockTab: View {
         }
         .formStyle(.grouped)
         .onReceive(Timer.publish(every: 2, on: .main, in: .common).autoconnect()) { _ in
-            hasScreenRecording = DockController.hasScreenRecordingPermission
+            hasScreenRecording = Showcase.screenRecordingShown()
         }
     }
 }

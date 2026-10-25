@@ -6,7 +6,7 @@ import SwiftUI
 struct FinderTab: View {
     @State private var settings = TweaksSettings.shared
     @State private var manager = ModuleManager.shared
-    @State private var hasAccessibility = AXIsProcessTrusted()
+    @State private var hasAccessibility = Showcase.accessibilityShown()
 
     var body: some View {
         Form {
@@ -60,7 +60,7 @@ struct FinderTab: View {
         }
         .formStyle(.grouped)
         .onReceive(NotificationCenter.default.publisher(for: NSWindow.didBecomeKeyNotification)) { _ in
-            hasAccessibility = AXIsProcessTrusted()
+            hasAccessibility = Showcase.accessibilityShown()
             settings.refresh()
         }
     }

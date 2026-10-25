@@ -59,7 +59,7 @@ struct HomeView: View {
         return LazyVGrid(columns: [GridItem(.adaptive(minimum: 240), spacing: 12)], alignment: .leading, spacing: 12) {
             ForEach(sorted) { item in
                 MenuItemCard(item: item,
-                             available: item.module.map { manager.isRunning($0) } ?? true,
+                             available: item.module.map { Showcase.isActive || manager.isRunning($0) } ?? true,
                              open: item.module.map { module in { router.selection = .module(module) } })
                     .modifier(Reorderable(id: item.rawValue, group: group, ids: sorted.map(\.rawValue)))
             }
@@ -409,8 +409,8 @@ struct ModuleStatusLabel: View {
     @MainActor
     static func needsPermission(_ module: ModuleID) -> Bool {
         switch module {
-        case .windows, .tweaks, .switcher: return !AXIsProcessTrusted()
-        case .dock, .pinWindow, .textCapture: return !CGPreflightScreenCaptureAccess()
+        case .windows, .tweaks, .switcher: return !Showcase.accessibilityShown()
+        case .dock, .pinWindow, .textCapture: return !Showcase.screenRecordingShown()
         default: return false
         }
     }
@@ -418,9 +418,9 @@ struct ModuleStatusLabel: View {
     private var isActive: Bool {
         guard isEnabled else { return false }
         switch module {
-        case .windows: return AXIsProcessTrusted()
+        case .windows: return Showcase.accessibilityShown()
         case .dock: return DockController.shared.isRunning
-        case .switcher: return AXIsProcessTrusted()
+        case .switcher: return Showcase.accessibilityShown()
         case .island: return IslandController.shared.isRunning
         case .clipboard: return !ClipboardController.shared.isPaused
         case .menuBar: return true
@@ -429,8 +429,8 @@ struct ModuleStatusLabel: View {
         case .mixer: return SirenaMixer.shared.isRunning
         case .mirror: return MirrorController.shared.isVisible
         case .pinWindow: return !PinWindowController.shared.pins.isEmpty
-        case .textCapture: return CGPreflightScreenCaptureAccess()
-        case .tweaks: return AXIsProcessTrusted()
+        case .textCapture: return Showcase.screenRecordingShown()
+        case .tweaks: return Showcase.accessibilityShown()
         case .shelf: return true
         case .screenCapture: return ScreenCaptureController.shared.isRunning
         case .pomodoro: return PomodoroController.shared.isActive
@@ -441,9 +441,9 @@ struct ModuleStatusLabel: View {
 
     private var color: Color {
         if !isEnabled { return .gray }
-        if (module == .windows || module == .tweaks || module == .switcher) && !AXIsProcessTrusted() { return .orange }
-        if module == .dock && !DockController.hasScreenRecordingPermission { return .orange }
-        if (module == .pinWindow || module == .textCapture) && !CGPreflightScreenCaptureAccess() { return .orange }
+        if (module == .windows || module == .tweaks || module == .switcher) && !Showcase.accessibilityShown() { return .orange }
+        if module == .dock && !Showcase.screenRecordingShown() { return .orange }
+        if (module == .pinWindow || module == .textCapture) && !Showcase.screenRecordingShown() { return .orange }
         return isActive ? .green : .secondary.opacity(0.5)
     }
 
@@ -455,11 +455,11 @@ struct ModuleStatusLabel: View {
     static func detail(_ module: ModuleID) -> String {
         switch module {
         case .windows:
-            return AXIsProcessTrusted() ? L("Active") : L("Needs Accessibility permission")
+            return Showcase.accessibilityShown() ? L("Active") : L("Needs Accessibility permission")
         case .dock:
-            return DockController.hasScreenRecordingPermission ? L("Active") : L("Active — allow Screen Recording for thumbnails")
+            return Showcase.screenRecordingShown() ? L("Active") : L("Active — allow Screen Recording for thumbnails")
         case .switcher:
-            return AXIsProcessTrusted() ? L("Active on ⌘ Tab") : L("Needs Accessibility permission")
+            return Showcase.accessibilityShown() ? L("Active on ⌘ Tab") : L("Needs Accessibility permission")
         case .island:
             return L("Active")
         case .clipboard:
@@ -480,7 +480,7 @@ struct ModuleStatusLabel: View {
         case .mirror:
             return MirrorController.shared.isVisible ? L("Mirror is showing") : L("Mirror is hidden")
         case .pinWindow:
-            guard CGPreflightScreenCaptureAccess() else { return L("Needs Screen Recording permission") }
+            guard Showcase.screenRecordingShown() else { return L("Needs Screen Recording permission") }
             let count = PinWindowController.shared.pins.count
             switch count {
             case 0: return L("No windows pinned")
@@ -488,11 +488,11 @@ struct ModuleStatusLabel: View {
             default: return L("\(count) windows pinned")
             }
         case .textCapture:
-            guard CGPreflightScreenCaptureAccess() else { return L("Needs Screen Recording permission") }
+            guard Showcase.screenRecordingShown() else { return L("Needs Screen Recording permission") }
             let additive = TextCaptureController.shared.additiveItems.count
             return additive > 0 ? L("Additive Clipboard: \(additive) captures") : L("Ready — press ⇧⌘2 to capture")
         case .tweaks:
-            return AXIsProcessTrusted() ? L("Active") : L("Needs Accessibility permission")
+            return Showcase.accessibilityShown() ? L("Active") : L("Needs Accessibility permission")
         case .shelf:
             let count = ShelfStore.shared.items.count
             switch count {

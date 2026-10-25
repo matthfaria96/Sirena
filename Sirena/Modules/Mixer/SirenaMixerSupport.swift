@@ -190,6 +190,8 @@ final class SirenaMixer {
     private init() {}
 
     func start() {
+        // Showcase mode (site screenshots) never touches the Mac's audio.
+        guard !Showcase.isActive else { return }
         isRunning = true
         SirenaAppVolumeMixer.shared.start()
         SirenaMixerInputManager.shared.start()
