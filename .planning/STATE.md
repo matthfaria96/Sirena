@@ -14,7 +14,7 @@ See: .planning/PROJECT.md (updated 2026-10-20)
 Phase: 2 of 3 (tests)
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-10-20
+Last activity: 2026-10-24 (v0.5.0 release)
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -32,6 +32,10 @@ Progress: [░░░░░░░░░░] 0%
 ### Pending Todos
 
 None yet.
+
+### Releases
+
+- 2026-10-24: v0.5.0 released (bundles the unreleased 0.4.1/0.4.2 work, the phase 1 stability fixes and the crisper menu bar icon). Phase 1 human checks are still pending.
 
 ### Blockers/Concerns
 
