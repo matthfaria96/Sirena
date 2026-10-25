@@ -19077,6 +19077,26 @@
           }
         }
       }
+    },
+    "Music": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Música"
+          }
+        }
+      }
+    },
+    "Example: the Dock preview of a music app with playback controls": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exemplo: a prévia do Dock de um app de música com os controles de reprodução"
+          }
+        }
+      }
     }
   },
   "version": "1.3"

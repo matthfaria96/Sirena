@@ -60,6 +60,7 @@ private struct DockPreviewsPage: View {
                         Text("Music player in previews")
                         Text("Hovering a music app in the Dock also shows its playback controls.")
                     }
+                    MediaWidgetPreview()
                 }
 
                 Section("Dock Interaction") {
