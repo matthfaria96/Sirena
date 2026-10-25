@@ -1,8 +1,8 @@
 /// OnboardingWindow.swift
 ///
-/// First launch only: one page with the permissions Sirena needs to work, nothing else.
+/// First launch only: one page with the two permissions Sirena needs to work, nothing else.
+/// Camera, microphone, Bluetooth and Calendar are asked for by each feature on first use.
 
-import AVFoundation
 import DockKit
 import SwiftUI
 
@@ -58,6 +58,9 @@ private struct OnboardingView: View {
     @State private var launchOnLogin = Defaults.launchOnLogin.enabled
     /// One permission at a time: the one being asked, until it is answered or 6 s pass.
     @State private var asking: String?
+    /// Screen Recording waits for Accessibility to be granted or at least asked: granting it
+    /// makes macOS offer to quit and reopen Sirena, so it has to be the last step.
+    @State private var askedAccessibility = false
 
     static var essentialsGranted: Bool { AXIsProcessTrusted() && CGPreflightScreenCaptureAccess() }
 
@@ -69,6 +72,7 @@ private struct OnboardingView: View {
         let tint: Color
         let required: Bool
         let granted: Bool
+        var note: String?
     }
 
     private var steps: [Step] {
@@ -80,13 +84,8 @@ private struct OnboardingView: View {
             Step(id: "screen", title: L("Screen Recording"),
                  detail: L("Previews in the Dock and ⌘ Tab, Capture, Text, Pin Window and screenshots of drawings."),
                  symbol: "rectangle.dashed.badge.record", tint: .red, required: true,
-                 granted: CGPreflightScreenCaptureAccess()),
-            Step(id: "camera", title: L("Camera"), detail: L("The mirror and “Peek” from the menu."),
-                 symbol: "camera.fill", tint: .green, required: false,
-                 granted: AVCaptureDevice.authorizationStatus(for: .video) == .authorized),
-            Step(id: "microphone", title: L("Microphone"), detail: L("Recording your voice with Capture and the mirror's sound level."),
-                 symbol: "mic.fill", tint: .orange, required: false,
-                 granted: AVCaptureDevice.authorizationStatus(for: .audio) == .authorized)
+                 granted: CGPreflightScreenCaptureAccess(),
+                 note: L("macOS will ask to reopen Sirena after this one."))
         ]
     }
 
@@ -128,6 +127,13 @@ private struct OnboardingView: View {
             .background(.background.secondary, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(.separator, lineWidth: 0.5))
 
+            Text(L("Camera, microphone, Bluetooth and Calendar are asked for only when you use the feature."))
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.top, -10)
+
             VStack(spacing: 8) {
                 Button(action: finish) {
                     Text(Self.essentialsGranted ? L("Start Using Sirena") : L("Continue Without Everything"))
@@ -150,9 +156,16 @@ private struct OnboardingView: View {
         }
     }
 
+    /// Granted, or asked and no longer waiting on the answer.
+    private var accessibilityAnswered: Bool {
+        _ = tick
+        return AXIsProcessTrusted() || (askedAccessibility && asking != "accessibility")
+    }
+
     private func allow(_ id: String) {
         guard asking == nil else { return }
         asking = id
+        if id == "accessibility" { askedAccessibility = true }
         DispatchQueue.main.asyncAfter(deadline: .now() + 6) { if asking == id { asking = nil } }
         PermissionsState.request(id)
     }
@@ -183,6 +196,12 @@ private struct OnboardingView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
+                if let note = step.note, !step.granted {
+                    Label(note, systemImage: "arrow.clockwise")
+                        .font(.caption)
+                        .foregroundStyle(.orange)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
             Spacer(minLength: 8)
             if step.granted {
@@ -196,7 +215,7 @@ private struct OnboardingView: View {
                 } else {
                     Button(L("Allow…")) { allow(step.id) }
                         .buttonStyle(.bordered)
-                        .disabled(asking != nil)
+                        .disabled(asking != nil || (step.id == "screen" && !accessibilityAnswered))
                 }
             }
         }

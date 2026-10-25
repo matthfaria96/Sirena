@@ -13281,6 +13281,26 @@
           }
         }
       }
+    },
+    "macOS will ask to reopen Sirena after this one.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O macOS vai pedir para reabrir o Sirena depois desta."
+          }
+        }
+      }
+    },
+    "Camera, microphone, Bluetooth and Calendar are asked for only when you use the feature.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Câmera, microfone, Bluetooth e Calendário são pedidos só quando você usar o recurso."
+          }
+        }
+      }
     }
   }
 }
