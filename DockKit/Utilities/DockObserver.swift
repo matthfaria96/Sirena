@@ -783,6 +783,11 @@ final class DockObserver {
         eventTapRunLoopSource = nil
     }
 
+    /// Accessibility was revoked: drop the tap until AccessibilityGuard reports it back.
+    func suspendEventTap() {
+        removeEventTap()
+    }
+
     static let dockProximityBand: CGFloat = 220
     private static let dockItemHoverSlop: CGFloat = 8
 
@@ -819,7 +824,8 @@ final class DockObserver {
     }
 
     private func setupEventTap() {
-        guard eventTap == nil, DockObserver.canPostEvents else { return }
+        guard eventTap == nil, DockObserver.canPostEvents,
+              AccessibilityGuard.shared.mayCreateTap("DockObserver") else { return }
         var eventMask: CGEventMask = (1 << CGEventType.leftMouseDown.rawValue) |
             (1 << CGEventType.rightMouseDown.rawValue) |
             (1 << CGEventType.otherMouseDown.rawValue)
@@ -844,6 +850,7 @@ final class DockObserver {
             return
         }
 
+        AccessibilityGuard.shared.register(eventTap, name: "DockObserver")
         let runLoopSource = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, eventTap, 0)!
         EventTapThread.shared.add(runLoopSource)
 
@@ -852,7 +859,7 @@ final class DockObserver {
     }
 
     private func eventTapCallback(proxy: CGEventTapProxy, type: CGEventType, event: CGEvent) -> Unmanaged<CGEvent>? {
-        if let passthrough = reEnableIfNeeded(tap: eventTap, type: type, event: event) {
+        if let passthrough = passthroughIfTapUnsafe(tap: eventTap, type: type, event: event, name: "DockObserver") {
             return passthrough
         }
 

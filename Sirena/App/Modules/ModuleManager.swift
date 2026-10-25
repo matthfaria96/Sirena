@@ -26,6 +26,16 @@ final class ModuleManager {
         start(.tweaks, windowManagement: windowManagement, windowsMenu: windowsMenu)
     }
 
+    /// SIRENA_TAP_CHECK: only the modules that hold event taps. Tweaks runs its tap alone,
+    /// without touching the green button or the Finder extension (shared with the real app).
+    func startTapModulesForCheck(windowManagement: WindowManagementModule, windowsMenu: NSMenu) {
+        for module in [ModuleID.windows, .dock, .switcher] {
+            start(module, windowManagement: windowManagement, windowsMenu: windowsMenu)
+        }
+        TweaksController.shared.startTapOnly()
+        running.insert(.tweaks)
+    }
+
     func isRunning(_ module: ModuleID) -> Bool {
         running.contains(module)
     }

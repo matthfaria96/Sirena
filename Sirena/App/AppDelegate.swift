@@ -1,6 +1,7 @@
 /// AppDelegate.swift
 
 import ClipboardKit
+import DockKit
 import MASShortcut
 import Cocoa
 import SwiftUI
@@ -32,6 +33,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             if ProcessInfo.processInfo.environment["SIRENA_OPEN_PAGE"] == "about" {
                 mainWindowController.present(.about)
             }
+            return
+        }
+
+        // Watches Accessibility from launch: every event tap goes away the moment it is revoked.
+        AccessibilityGuard.shared.activate()
+
+        // SIRENA_TAP_CHECK=1: only the features that hold event taps (Windows, Dock, ⌘ Tab,
+        // tweaks) and the guard; no menu bar icon, onboarding, mixer or Finder extension. A
+        // renamed copy without Accessibility must then start with no tap at all (CLAUDE.md).
+        if ProcessInfo.processInfo.environment["SIRENA_TAP_CHECK"] == "1" {
+            ModuleManager.shared.startTapModulesForCheck(windowManagement: windowManagement, windowsMenu: windowsMenu)
+            hasFinishedLaunching = true
             return
         }
 

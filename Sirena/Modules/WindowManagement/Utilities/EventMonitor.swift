@@ -1,6 +1,7 @@
 /// EventMonitor.swift
 
 import Cocoa
+import DockKit
 
 protocol EventMonitor {
     var running: Bool { get }
@@ -47,15 +48,21 @@ public class PassiveEventMonitor: EventMonitor {
 }
 
 public class ActiveEventMonitor: EventMonitor {
-    // start(), stop() and the tap's own re-enable can all run at once - the
-    // last of those arrives on the tap's thread while the others come from
-    // the main thread - so the port and its thread are guarded.
+    // start(), stop(), AccessibilityGuard's changes and the tap's disable notices can all
+    // run at once - the last of those arrives on the tap's thread while the others come
+    // from the main thread - so the port and its thread are guarded.
     private let lock = NSLock()
     private var tap: CFMachPort?
     private var thread: RunLoopThread?
+    /// Set by start(), cleared by stop(): a tap dropped because Accessibility was revoked
+    /// comes back when it is granted again.
+    private var wanted = false
+    private var accessibilityObservation: AccessibilityGuard.Observation?
     private let mask: NSEvent.EventTypeMask
     public let filterer: (NSEvent) -> Bool
     public let handler: (NSEvent) -> Void
+
+    private static let tapName = "ActiveEventMonitor"
 
     var running: Bool {
         lock.lock()
@@ -67,6 +74,9 @@ public class ActiveEventMonitor: EventMonitor {
         self.mask = mask
         self.filterer = filterer
         self.handler = handler
+        accessibilityObservation = AccessibilityGuard.shared.observe { [weak self] trusted in
+            self?.accessibilityChanged(trusted)
+        }
     }
 
     deinit {
@@ -76,7 +86,29 @@ public class ActiveEventMonitor: EventMonitor {
     public func start() {
         lock.lock()
         defer { lock.unlock() }
-        guard tap == nil else { return }
+        wanted = true
+        installTapLocked()
+    }
+
+    public func stop() {
+        lock.lock()
+        defer { lock.unlock() }
+        wanted = false
+        removeTapLocked()
+    }
+
+    private func accessibilityChanged(_ trusted: Bool) {
+        lock.lock()
+        defer { lock.unlock() }
+        if !trusted {
+            removeTapLocked()
+        } else if wanted {
+            installTapLocked()
+        }
+    }
+
+    private func installTapLocked() {
+        guard tap == nil, AccessibilityGuard.shared.mayCreateTap(Self.tapName) else { return }
         // Only a trusted process can create a tap. Failing silently here
         // leaves every consumer of this monitor looking simply broken, with
         // nothing anywhere to say why.
@@ -85,16 +117,17 @@ public class ActiveEventMonitor: EventMonitor {
             Logger.log("Unable to create an event tap - accessibility may no longer be authorized")
             return
         }
+        AccessibilityGuard.shared.register(tap, name: Self.tapName)
         let thread = RunLoopThread(mode: .default, qualityOfService: .userInteractive, start: true)
         thread.runLoop?.add(tap, forMode: .default)
         self.tap = tap
         self.thread = thread
     }
 
-    public func stop() {
-        lock.lock()
-        defer { lock.unlock() }
+    private func removeTapLocked() {
         guard let tap = tap else { return }
+        // Unregister before switching it off, so the guard never revives a tap on its way out.
+        AccessibilityGuard.shared.unregister(tap)
         thread?.runLoop?.remove(tap, forMode: .default)
         thread?.cancel()
         thread = nil
@@ -103,21 +136,20 @@ public class ActiveEventMonitor: EventMonitor {
         // releasing ours never deallocates it; without an explicit invalidate, the
         // WindowServer keeps the (disabled) tap registration until the process exits.
         // stop()/start() cycles (app switches while snapping is active, and the
-        // tapDisabledByTimeout recovery below) would otherwise each leak one entry,
+        // Accessibility pause/resume) would otherwise each leak one entry,
         // degrading system-wide input latency once they accumulate.
         CFMachPortInvalidate(tap)
         self.tap = nil
     }
 
-    /// macOS disables a tap whose callback ran long, or on some user input.
-    /// Re-enabling the existing port is both the documented remedy and safer
-    /// than tearing the monitor down from inside its own callback, which
-    /// races any concurrent stop().
-    fileprivate func reEnable() {
+    /// macOS disables a tap whose callback ran long, on some user input, or when
+    /// Accessibility is revoked. Never re-enabled here: AccessibilityGuard does it only
+    /// while Sirena is trusted, and rate-limits timeouts.
+    fileprivate func tapDisabled(_ type: CGEventType) {
         lock.lock()
-        defer { lock.unlock() }
-        guard let tap = tap else { return }
-        CGEvent.tapEnable(tap: tap, enable: true)
+        let tap = tap
+        lock.unlock()
+        AccessibilityGuard.shared.tapDisabled(tap, type: type, name: Self.tapName)
     }
 }
 
@@ -126,8 +158,8 @@ fileprivate func tapCallback(proxy: CGEventTapProxy, type: CGEventType, event: C
     if let ptr = refcon {
         let eventMonitor = CUtil.bridge(ptr: ptr) as ActiveEventMonitor
         if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
-            eventMonitor.reEnable()
-        } else {
+            eventMonitor.tapDisabled(type)
+        } else if AccessibilityGuard.isTrusted {
             if let nsEvent = NSEvent(cgEvent: event) {
                 filtered = eventMonitor.filterer(nsEvent)
                 DispatchQueue.main.async { eventMonitor.handler(nsEvent) }

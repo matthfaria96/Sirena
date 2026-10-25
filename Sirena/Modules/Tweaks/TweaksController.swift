@@ -11,6 +11,7 @@
 import AppKit
 import ApplicationServices
 import Carbon.HIToolbox
+import DockKit
 
 /// Owns the tap's lifetime and the Accessibility trust checks.
 @MainActor
@@ -20,14 +21,30 @@ final class TweaksController {
     private(set) var isRunning = false
     private var engine: TweaksEngine?
     private var trustTimer: Timer?
+    private var accessibilityObservation: AccessibilityGuard.Observation?
 
     private init() {}
 
     func start() {
         guard !isRunning else { return }
-        isRunning = true
         TweaksSettings.applyGreenButton(TweaksSettings.shared.greenButtonFills)
         applyFinderSwitch()
+        startTapOnly()
+    }
+
+    /// The tap alone (SIRENA_TAP_CHECK uses this directly).
+    func startTapOnly() {
+        guard !isRunning else { return }
+        isRunning = true
+        // Accessibility revoked: drop the tap at once. Granted again: start it.
+        accessibilityObservation = AccessibilityGuard.shared.observe { [weak self] trusted in
+            guard let self, self.isRunning else { return }
+            if !trusted {
+                self.engine?.stop()
+                self.engine = nil
+            }
+            self.startWhenTrusted()
+        }
         startWhenTrusted()
     }
 
@@ -51,6 +68,7 @@ final class TweaksController {
         engine = nil
         trustTimer?.invalidate()
         trustTimer = nil
+        accessibilityObservation = nil
         isRunning = false
     }
 
@@ -63,11 +81,11 @@ final class TweaksController {
     /// The tap needs Accessibility; until it's granted, check again every few seconds.
     private func startWhenTrusted() {
         guard isRunning, engine == nil else { return }
-        guard hasAccessibility else {
+        guard AccessibilityGuard.isTrusted else {
             guard trustTimer == nil else { return }
             let timer = Timer(timeInterval: 3, repeats: true) { [weak self] _ in
                 MainActor.assumeIsolated {
-                    guard let self, self.hasAccessibility else { return }
+                    guard let self, AccessibilityGuard.isTrusted else { return }
                     self.trustTimer?.invalidate()
                     self.trustTimer = nil
                     self.startWhenTrusted()
@@ -190,6 +208,7 @@ final class TweaksEngine: @unchecked Sendable {
         guard let runLoop else { return }
         CFRunLoopPerformBlock(runLoop, CFRunLoopMode.commonModes.rawValue) { [self] in
             if let tap {
+                AccessibilityGuard.shared.unregister(tap)
                 CGEvent.tapEnable(tap: tap, enable: false)
                 CFMachPortInvalidate(tap)
             }
@@ -202,6 +221,7 @@ final class TweaksEngine: @unchecked Sendable {
     }
 
     private func installTap() -> Bool {
+        guard AccessibilityGuard.shared.mayCreateTap("Tweaks") else { return false }
         let types: [CGEventType] = [.leftMouseDown, .leftMouseUp, .leftMouseDragged, .keyDown, .keyUp]
         let mask = types.reduce(CGEventMask(0)) { $0 | (1 << $1.rawValue) }
         // The annotated session tap tells which process a key press is going to.
@@ -211,6 +231,8 @@ final class TweaksEngine: @unchecked Sendable {
         let source = CFMachPortCreateRunLoopSource(nil, tap, 0)
         CFRunLoopAddSource(CFRunLoopGetCurrent(), source, .commonModes)
         CGEvent.tapEnable(tap: tap, enable: true)
+        // After the enable: registering switches the tap off if trust went away meanwhile.
+        AccessibilityGuard.shared.register(tap, name: "Tweaks")
         self.tap = tap
         return true
     }
@@ -229,10 +251,10 @@ final class TweaksEngine: @unchecked Sendable {
         DispatchQueue.main.async(execute: block)
     }
 
-    fileprivate func tapDisabled() {
-        if AXIsProcessTrusted() {
-            if let tap { CGEvent.tapEnable(tap: tap, enable: true) }
-        } else {
+    /// AccessibilityGuard re-enables only while trusted, rate-limited; never here.
+    fileprivate func tapDisabled(_ type: CGEventType) {
+        AccessibilityGuard.shared.tapDisabled(tap, type: type, name: "Tweaks")
+        if !AccessibilityGuard.isTrusted {
             onLostTrust()
         }
     }
@@ -533,8 +555,9 @@ private func tweaksTapCallback(_ proxy: CGEventTapProxy, _ type: CGEventType, _ 
     guard let refcon else { return Unmanaged.passUnretained(event) }
     let engine = Unmanaged<TweaksEngine>.fromOpaque(refcon).takeUnretainedValue()
     if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
-        engine.tapDisabled()
+        engine.tapDisabled(type)
         return Unmanaged.passUnretained(event)
     }
+    guard AccessibilityGuard.isTrusted else { return Unmanaged.passUnretained(event) }
     return engine.handle(type, event).map { Unmanaged.passUnretained($0) }
 }

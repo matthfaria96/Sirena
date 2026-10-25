@@ -6,6 +6,7 @@ import ApplicationServices
 import Carbon.HIToolbox
 import Combine
 import CoreGraphics
+import DockKit
 import SwiftUI
 
 private struct SwitcherSourceContext {
@@ -208,7 +209,7 @@ final class SwitcherAppSwitcher: ObservableObject {
         SwitcherSessionActivitySupport.tapShouldRun(
             featureWanted: SwitcherAppFeature.switcher.isAvailable
                 && UserDefaults.standard.bool(forKey: SwitcherDefaultsKey.switcherEnabled),
-            accessibilityGranted: AXIsProcessTrusted(),
+            accessibilityGranted: AccessibilityGuard.isTrusted,
             sessionIsActive: SwitcherSessionActivity.shared.isActive)
     }
 
@@ -372,6 +373,8 @@ final class SwitcherAppSwitcher: ObservableObject {
             return (tapRunLoop, tap, tapThread != nil)
         }
         if let tap = snapshot.tap {
+            // Unregister before switching it off, so the guard never revives it.
+            AccessibilityGuard.shared.unregister(tap)
             CGEvent.tapEnable(tap: tap, enable: false)
         }
         if let runLoop = snapshot.runLoop {
@@ -395,6 +398,12 @@ final class SwitcherAppSwitcher: ObservableObject {
             let shouldStopBeforeCreatingTap = lifecycleLock.withLock { shouldStopTapThread }
             guard !shouldStopBeforeCreatingTap else {
                 if clearEventTapThread() { installTap() }
+                return
+            }
+            // No tap without Accessibility; AccessibilityGuard re-syncs once it is back.
+            guard AccessibilityGuard.shared.mayCreateTap("Switcher") else {
+                _ = clearEventTapThread()
+                DispatchQueue.main.async { [weak self] in self?.restoreNativeHotkeys() }
                 return
             }
 
@@ -431,6 +440,8 @@ final class SwitcherAppSwitcher: ObservableObject {
             }
             CFRunLoopAddSource(runLoop, source, .commonModes)
             CGEvent.tapEnable(tap: tap, enable: true)
+            // After the enable: registering switches the tap off if trust went away meanwhile.
+            AccessibilityGuard.shared.register(tap, name: "Switcher")
 
             let shouldStop = lifecycleLock.withLock { shouldStopTapThread }
             if shouldStop {
@@ -442,6 +453,7 @@ final class SwitcherAppSwitcher: ObservableObject {
                 CFRunLoopRun()
             }
 
+            AccessibilityGuard.shared.unregister(tap)
             CGEvent.tapEnable(tap: tap, enable: false)
             CFRunLoopRemoveSource(runLoop, source, .commonModes)
             CFMachPortInvalidate(tap)
@@ -525,10 +537,12 @@ final class SwitcherAppSwitcher: ObservableObject {
             // a disable by the system. Syncing then would start the tap again
             // under a suspend().
             let currentTap = lifecycleLock.withLock { shouldStopTapThread ? nil : tap }
-            if SwitcherSessionActivity.shared.isActive, AXIsProcessTrusted(), let currentTap {
-                CGEvent.tapEnable(tap: currentTap, enable: true)
-            } else if currentTap != nil {
-                DispatchQueue.main.async { [weak self] in self?.syncWithPreferences() }
+            if let currentTap {
+                // AccessibilityGuard re-enables only while trusted, rate-limited; never here.
+                AccessibilityGuard.shared.tapDisabled(currentTap, type: type, name: "Switcher")
+                if !SwitcherSessionActivity.shared.isActive || !AccessibilityGuard.isTrusted {
+                    DispatchQueue.main.async { [weak self] in self?.syncWithPreferences() }
+                }
             }
             routeLock.withLock { routePendingSessionStart = nil }
             DispatchQueue.main.async { [weak self] in
@@ -537,6 +551,8 @@ final class SwitcherAppSwitcher: ObservableObject {
             }
             return Unmanaged.passUnretained(event)
         }
+        // Without Accessibility, hand every event straight back: never wait on the main thread.
+        guard AccessibilityGuard.isTrusted else { return Unmanaged.passUnretained(event) }
 
         let (active, shortcut, windowShortcut, capturing, canStartSession, hasPendingStart) = routeLock.withLock {
             (routeSessionActive, routeShortcut, routeWindowShortcut, routeCapturing,

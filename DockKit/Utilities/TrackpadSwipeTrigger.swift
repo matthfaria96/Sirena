@@ -116,10 +116,15 @@ final class TrackpadSwipeTrigger {
         setupEventTap()
     }
 
+    /// Accessibility was revoked: drop the tap until AccessibilityGuard reports it back.
+    func suspend() {
+        removeEventTap()
+    }
+
     private static let eventCallback: CGEventTapCallBack = { _, type, event, refcon in
         guard let refcon else { return Unmanaged.passUnretained(event) }
         let trigger = Unmanaged<TrackpadSwipeTrigger>.fromOpaque(refcon).takeUnretainedValue()
-        if let passthrough = reEnableIfNeeded(tap: trigger.eventTap, type: type, event: event) {
+        if let passthrough = passthroughIfTapUnsafe(tap: trigger.eventTap, type: type, event: event, name: "TrackpadSwipeTrigger") {
             return passthrough
         }
         if type.rawValue == NSEvent.EventType.gesture.rawValue {
@@ -129,7 +134,7 @@ final class TrackpadSwipeTrigger {
     }
 
     private func setupEventTap() {
-        guard eventTap == nil else { return }
+        guard eventTap == nil, AccessibilityGuard.shared.mayCreateTap("TrackpadSwipeTrigger") else { return }
         let retainedSelf = Unmanaged.passRetained(self)
         guard let tap = CGEvent.tapCreate(
             tap: .cghidEventTap,
@@ -154,10 +159,13 @@ final class TrackpadSwipeTrigger {
             CFRunLoopAddSource(CFRunLoopGetMain(), source, .commonModes)
             CGEvent.tapEnable(tap: tap, enable: true)
         }
+        // After the enable: registering switches the tap off if trust went away meanwhile.
+        AccessibilityGuard.shared.register(tap, name: "TrackpadSwipeTrigger")
     }
 
     private func removeEventTap() {
         guard let eventTap else { return }
+        AccessibilityGuard.shared.unregister(eventTap)
         CGEvent.tapEnable(tap: eventTap, enable: false)
         if let runLoopSource {
             CFRunLoopRemoveSource(CFRunLoopGetMain(), runLoopSource, .commonModes)

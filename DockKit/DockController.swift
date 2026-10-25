@@ -23,6 +23,7 @@ public final class DockController: NSObject {
     private var dockLocker: DockLocker?
     private var wakeRecoveryTask: Task<Void, Never>?
     private var screenParametersDebounce: DispatchWorkItem?
+    private var accessibilityObservation: AccessibilityGuard.Observation?
     private(set) var started = false
 
     public var isRunning: Bool { started }
@@ -42,6 +43,15 @@ public final class DockController: NSObject {
 
         // Set global AX timeout to prevent hangs from unresponsive apps
         AXUIElementSetMessagingTimeout(AXUIElementCreateSystemWide(), 1.0)
+
+        // Losing Accessibility drops every tap at once; getting it back recreates them.
+        accessibilityObservation = AccessibilityGuard.shared.observe { [weak self] trusted in
+            if trusted {
+                self?.recoverObserversAndTaps()
+            } else {
+                self?.suspendTaps()
+            }
+        }
 
         for name in [NSWorkspace.didWakeNotification, NSWorkspace.screensDidWakeNotification, NSWorkspace.sessionDidBecomeActiveNotification] {
             NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(handleSystemWake), name: name, object: nil)
@@ -149,6 +159,14 @@ public final class DockController: NSObject {
                 self?.recoverObserversAndTaps()
             }
         }
+    }
+
+    private func suspendTaps() {
+        wakeRecoveryTask?.cancel()
+        dockObserver?.suspendEventTap()
+        keybindHelper?.suspendEventTaps()
+        dockLocker?.suspendEventTap()
+        windowGestureController?.suspend()
     }
 
     func recoverObserversAndTaps() {

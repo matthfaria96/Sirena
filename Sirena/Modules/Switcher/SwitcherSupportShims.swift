@@ -4,6 +4,7 @@
 import AppKit
 import ApplicationServices
 import CoreGraphics
+import DockKit
 
 enum SwitcherDefaultsKey {
     static let switcherEnabled = "switcherEnabled"
@@ -103,7 +104,9 @@ enum SwitcherPreviewSizing {
 
 final class SwitcherPermissions {
     static let shared = SwitcherPermissions()
-    var accessibility: Bool { AXIsProcessTrusted() }
+    /// AccessibilityGuard's cached state: read on the main thread while the tap waits,
+    /// where a live TCC round-trip per key is too heavy.
+    var accessibility: Bool { AccessibilityGuard.isTrusted }
     var screenRecording: Bool { CGPreflightScreenCaptureAccess() }
 }
 

@@ -419,6 +419,13 @@ class KeybindHelper {
         trackpadSwipeTrigger?.reset()
     }
 
+    /// Accessibility was revoked: drop the taps until AccessibilityGuard reports it back.
+    func suspendEventTaps() {
+        resetState()
+        removeEventTap()
+        trackpadSwipeTrigger?.suspend()
+    }
+
     func recover() {
         reset()
         switcherSessionActive = false
@@ -475,7 +482,8 @@ class KeybindHelper {
     }
 
     private func setupEventTap() {
-        guard eventTap == nil, DockObserver.canPostEvents else { return }
+        guard eventTap == nil, DockObserver.canPostEvents,
+              AccessibilityGuard.shared.mayCreateTap("KeybindHelper") else { return }
 
         let eventMask = (1 << CGEventType.keyDown.rawValue) |
             (1 << CGEventType.keyUp.rawValue) |
@@ -509,6 +517,8 @@ class KeybindHelper {
             EventTapThread.shared.add(runLoopSource)
             CGEvent.tapEnable(tap: newEventTap, enable: true)
         }
+        // After the enable: registering switches the tap off if trust went away meanwhile.
+        AccessibilityGuard.shared.register(newEventTap, name: "KeybindHelper")
     }
 
     private func removeEventTap() {
@@ -522,7 +532,7 @@ class KeybindHelper {
     }
 
     private func handleEvent(proxy: CGEventTapProxy, type: CGEventType, event: CGEvent) -> Unmanaged<CGEvent>? {
-        if let passthrough = reEnableIfNeeded(tap: eventTap, type: type, event: event) {
+        if let passthrough = passthroughIfTapUnsafe(tap: eventTap, type: type, event: event, name: "KeybindHelper") {
             return passthrough
         }
 
@@ -1328,15 +1338,6 @@ class KeybindHelper {
             return nil
         }
     }
-}
-
-/// Re-enables a disabled event tap and returns a passthrough result, or nil if the event type is not tap-disabled.
-func reEnableIfNeeded(tap: CFMachPort?, type: CGEventType, event: CGEvent) -> Unmanaged<CGEvent>? {
-    guard type == .tapDisabledByTimeout || type == .tapDisabledByUserInput else { return nil }
-    if let tap {
-        CGEvent.tapEnable(tap: tap, enable: true)
-    }
-    return Unmanaged.passUnretained(event)
 }
 
 extension CGEventFlags {

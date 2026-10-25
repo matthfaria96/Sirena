@@ -74,6 +74,13 @@ final class WindowGestureController {
         }
     }
 
+    /// Accessibility was revoked: drop the tap until AccessibilityGuard reports it back.
+    func suspend() {
+        thread.perform { [weak self] in
+            self?.removeTap()
+        }
+    }
+
     func reset() {
         thread.perform { [weak self] in
             guard let self else { return }
@@ -94,7 +101,8 @@ final class WindowGestureController {
     }
 
     private func installTap() {
-        guard eventTap == nil, DockObserver.canPostEvents else { return }
+        guard eventTap == nil, DockObserver.canPostEvents,
+              AccessibilityGuard.shared.mayCreateTap("WindowGestureController") else { return }
         let mask: CGEventMask = (1 << CGEventType.scrollWheel.rawValue)
             | (1 << CGEventType.keyDown.rawValue)
             | (1 << CGEventMask(Self.gestureEventType))
@@ -122,6 +130,8 @@ final class WindowGestureController {
         runLoopSource = source
         CFRunLoopAddSource(CFRunLoopGetCurrent(), source, .commonModes)
         CGEvent.tapEnable(tap: tap, enable: true)
+        // After the enable: registering switches the tap off if trust went away meanwhile.
+        AccessibilityGuard.shared.register(tap, name: "WindowGestureController")
     }
 
     private func removeTap() {
@@ -130,6 +140,7 @@ final class WindowGestureController {
         swallowingPinch = false
         consumingMomentum = false
         guard let tap = eventTap else { return }
+        AccessibilityGuard.shared.unregister(tap)
         CGEvent.tapEnable(tap: tap, enable: false)
         if let runLoopSource {
             CFRunLoopRemoveSource(CFRunLoopGetCurrent(), runLoopSource, .commonModes)
@@ -146,14 +157,14 @@ final class WindowGestureController {
 
     private func handle(type: CGEventType, event: CGEvent) -> Unmanaged<CGEvent>? {
         if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
-            if let eventTap {
-                CGEvent.tapEnable(tap: eventTap, enable: true)
-            }
+            // AccessibilityGuard re-enables only while trusted, rate-limited.
+            AccessibilityGuard.shared.tapDisabled(eventTap, type: type, name: "WindowGestureController")
             if type == .tapDisabledByTimeout {
                 abandonSession(swallowRemainder: true)
             }
             return Unmanaged.passUnretained(event)
         }
+        guard AccessibilityGuard.isTrusted else { return Unmanaged.passUnretained(event) }
 
         switch type.rawValue {
         case CGEventType.scrollWheel.rawValue:

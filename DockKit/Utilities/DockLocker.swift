@@ -399,7 +399,8 @@ final class DockLocker {
     // MARK: - Event Tap
 
     private func setupEventTap() {
-        guard DockObserver.canPostEvents else { return }
+        guard eventTap == nil, DockObserver.canPostEvents,
+              AccessibilityGuard.shared.mayCreateTap("DockLocker") else { return }
         let eventMask: CGEventMask =
             (1 << CGEventType.mouseMoved.rawValue)
 
@@ -423,10 +424,16 @@ final class DockLocker {
             return
         }
 
+        AccessibilityGuard.shared.register(tap, name: "DockLocker")
         let source = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, tap, 0)!
         EventTapThread.shared.add(source)
         eventTap = tap
         runLoopSource = source
+    }
+
+    /// Accessibility was revoked: drop the tap until AccessibilityGuard reports it back.
+    func suspendEventTap() {
+        removeEventTap()
     }
 
     private func removeEventTap() {
@@ -438,8 +445,8 @@ final class DockLocker {
     }
 
     private func eventTapCallback(proxy _: CGEventTapProxy, type: CGEventType, event: CGEvent) -> Unmanaged<CGEvent>? {
-        // reEnableIfNeeded handles tap re-enable on tapDisabledByTimeout
-        if let passthrough = reEnableIfNeeded(tap: eventTap, type: type, event: event) {
+        // Disable notices go to AccessibilityGuard (re-enabled only while trusted, rate-limited)
+        if let passthrough = passthroughIfTapUnsafe(tap: eventTap, type: type, event: event, name: "DockLocker") {
             return passthrough
         }
 

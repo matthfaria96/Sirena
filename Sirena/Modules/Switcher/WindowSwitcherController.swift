@@ -8,6 +8,7 @@
 // CGEvent tap, so it can own ⌘Tab, which a normal global hotkey cannot.
 
 import AppKit
+import DockKit
 
 @MainActor
 final class WindowSwitcherController {
@@ -15,6 +16,7 @@ final class WindowSwitcherController {
 
     private(set) var isRunning = false
     private var observers: [NSObjectProtocol] = []
+    private var accessibilityObservation: AccessibilityGuard.Observation?
 
     private init() {
         SwitcherDefaults.registerSwitcherDefaults()
@@ -43,6 +45,11 @@ final class WindowSwitcherController {
             forName: NSApplication.didBecomeActiveNotification, object: nil, queue: .main) { _ in
             MainActor.assumeIsolated { WindowSwitcherController.shared.syncWithPreferences() }
         })
+        // Accessibility revoked: the sync removes the tap and gives ⌘Tab back to macOS.
+        // Granted again: it installs the tap.
+        accessibilityObservation = AccessibilityGuard.shared.observe { _ in
+            WindowSwitcherController.shared.syncWithPreferences()
+        }
     }
 
     func terminate() {
@@ -50,6 +57,7 @@ final class WindowSwitcherController {
         isRunning = false
         observers.forEach { NotificationCenter.default.removeObserver($0) }
         observers.removeAll()
+        accessibilityObservation = nil
         SwitcherAppFeature.setSwitcherRunning(false)
         SwitcherAppSwitcher.shared.syncWithPreferences()
         SwitcherAppSwitcher.shared.suspend()

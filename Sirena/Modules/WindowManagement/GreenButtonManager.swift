@@ -1,6 +1,7 @@
 /// GreenButtonManager.swift
 
 import Cocoa
+import DockKit
 
 class GreenButtonManager {
     private var eventMonitor: ActiveEventMonitor!
@@ -33,7 +34,8 @@ class GreenButtonManager {
     private func filter(_ event: NSEvent) -> Bool {
         switch event.type {
         case .leftMouseDown:
-            guard AXIsProcessTrusted() else { return false }
+            // Cached by AccessibilityGuard: a live TCC check per click is too slow for a tap.
+            guard AccessibilityGuard.isTrusted else { return false }
             return autoreleasepool { filterMouseDown(event) }
         case .leftMouseUp:
             return filterMouseUp(event)

@@ -37,6 +37,8 @@ final class EventTapThread {
     }
 
     func remove(_ tap: CFMachPort, source: CFRunLoopSource?, then cleanup: (() -> Void)? = nil) {
+        // Unregister before switching it off, so the guard never revives a tap on its way out.
+        AccessibilityGuard.shared.unregister(tap)
         CGEvent.tapEnable(tap: tap, enable: false)
         CFRunLoopPerformBlock(runLoop, CFRunLoopMode.commonModes.rawValue) {
             if let source {
