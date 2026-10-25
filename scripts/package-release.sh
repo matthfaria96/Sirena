@@ -7,6 +7,8 @@
 # distribuir sem conta paga de desenvolvedor, este script assina ad hoc
 # (CODE_SIGN_IDENTITY=-) e desliga o Hardened Runtime, que só é necessário para
 # notarizar e passa a exigir que os frameworks embutidos tenham o mesmo Team ID.
+# Depois, se existir ~/Documents/witchmymac-release/sign-app.sh, reassina com o
+# certificado witchmymac (ver abaixo), ainda sem Hardened Runtime.
 set -eu
 
 cd "$(dirname "$0")/.."
@@ -26,7 +28,17 @@ APP="$DERIVED/Build/Products/Release/Sirena.app"
 VERSION=$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" "$APP/Contents/Info.plist")
 
 # O Xcode já assinou cada parte ad hoc, com os entitlements certos (a extensão
-# do Finder precisa do sandbox), então aqui só conferimos.
+# do Finder precisa do sandbox). Neste Mac, sign-app.sh reassina tudo com o
+# certificado autoassinado "witchmymac Code Signing", mantendo entitlements e
+# flags: o requisito designado passa a ser 'identifier ... and certificate root
+# = H"ff83cea4…"', igual de uma versão para outra, e o macOS não esquece mais as
+# permissões (Acessibilidade, Gravação de Tela…) a cada atualização. O Sparkle
+# aceita a atualização pela assinatura EdDSA do DMG e confere que a assinatura de
+# código do app novo é válida. Sem o script (outro Mac), fica a assinatura ad hoc.
+SIGN_APP="$HOME/Documents/witchmymac-release/sign-app.sh"
+if [ -f "$SIGN_APP" ]; then
+  sh "$SIGN_APP" "$APP"
+fi
 codesign --verify --deep --strict --verbose=2 "$APP"
 
 # ditto preserva os links simbólicos dos frameworks; o zip comum os quebra e o
