@@ -36,6 +36,7 @@ None yet.
 ### Releases
 
 - 2026-10-24: v0.5.0 released (bundles the unreleased 0.4.1/0.4.2 work, the phase 1 stability fixes and the crisper menu bar icon). Phase 1 human checks are still pending.
+- 2026-10-25: v0.5.2 built locally (not published): Sparkle 2 in-app updates (app menu + About, daily check, feed witchmymac.com/appcast/sirena.xml) and release builds re-signed with the witchmymac certificate so permissions survive updates. Outside the GSD phases; see CLAUDE.md.
 
 ### Blockers/Concerns
 
