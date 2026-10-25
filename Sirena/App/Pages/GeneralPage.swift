@@ -1,21 +1,19 @@
 /// GeneralPage.swift
 ///
-/// Geral: permissions first, then Sirena's own settings, then About — one quiet column
-/// of grouped rows, in the manner of System Settings.
+/// Geral: permissions first, then Sirena's own settings — one quiet column of grouped
+/// rows, in the manner of System Settings. About has its own page (AboutView.swift).
 
 import AVFoundation
 import DockKit
 import SwiftUI
 
 struct GeneralPage: View {
-    /// Opened from "About Sirena": starts scrolled down to About (and its update button).
-    var showsAbout = false
     @State private var launchOnLogin = Defaults.launchOnLogin.enabled
     @State private var recordingObserver = ShortcutRecordingObserver()
     @State private var permissions = PermissionsState()
 
     var body: some View {
-        SettingsColumn(anchor: showsAbout ? .bottom : nil) {
+        SettingsColumn {
             SettingsGroup(L("Permissions"),
                           footer: L("Each status is read from macOS right now and updates as soon as you change it in System Settings. Everything stays on this Mac.")) {
                 Text(L("\(permissions.grantedCount) of \(permissions.items.count) allowed"))
@@ -49,8 +47,6 @@ struct GeneralPage: View {
                         .frame(width: 150, height: 22)
                 }
             }
-
-            AboutBlock()
         }
         .toolbar { BackToHomeButton() }
         .onReceive(Timer.publish(every: 2, on: .main, in: .common).autoconnect()) { _ in
@@ -154,14 +150,7 @@ private struct PermissionLine: View {
 
 /// A centered scrolling column of groups.
 struct SettingsColumn<Content: View>: View {
-    /// Where the column starts scrolled to (nil: the top).
-    var anchor: UnitPoint?
     @ViewBuilder var content: Content
-
-    init(anchor: UnitPoint? = nil, @ViewBuilder content: () -> Content) {
-        self.anchor = anchor
-        self.content = content()
-    }
 
     var body: some View {
         ScrollView {
@@ -175,7 +164,6 @@ struct SettingsColumn<Content: View>: View {
             .padding(.bottom, 32)
         }
         .scrollIndicators(.never)
-        .defaultScrollAnchor(anchor, for: .initialOffset)
     }
 }
 

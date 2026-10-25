@@ -1,9 +1,20 @@
 /// AboutView.swift
 ///
-/// The end of Geral: centered and quiet, like About This Mac. The open-source projects
+/// Sobre, Sirena's last page (also "About Sirena" in the app menu): centered and quiet,
+/// like About This Mac, with the version and the update check. The open-source projects
 /// Sirena is built from are named in one line, with their licenses a click away.
 
 import SwiftUI
+
+struct AboutPage: View {
+    var body: some View {
+        SettingsColumn {
+            AboutBlock()
+                .padding(.top, 28)
+        }
+        .toolbar { BackToHomeButton() }
+    }
+}
 
 struct AboutBlock: View {
     @State private var showsLicenses = false
