@@ -37,6 +37,7 @@ None yet.
 
 - 2026-10-24: v0.5.0 released (bundles the unreleased 0.4.1/0.4.2 work, the phase 1 stability fixes and the crisper menu bar icon). Phase 1 human checks are still pending.
 - 2026-10-25: v0.5.2 built locally (not published): Sparkle 2 in-app updates (app menu + About, daily check, feed witchmymac.com/appcast/sirena.xml) and release builds re-signed with the witchmymac certificate so permissions survive updates. Outside the GSD phases; see CLAUDE.md.
+- 2026-10-25: v0.5.3 built locally (not published): AccessibilityGuard — revoking Accessibility no longer freezes the Mac (taps dropped at once, never re-enabled without trust); simpler onboarding (Accessibility, then Screen Recording last); Sobre is its own page.
 
 ### Blockers/Concerns
 

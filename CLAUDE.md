@@ -32,8 +32,8 @@ without touching the project. Sirena's own strings go through `L("…")` into
 
 - Sparkle via Swift Package Manager (product `Sparkle`, embedded automatically). Code:
   `Sirena/App/Updates/AppUpdater.swift` (controller, menu validation, Dock icon while an update window
-  is up), "Check for Updates…" in the app menu (`MainMenu.swift`) and a button in About
-  (`AboutView.swift`, end of Geral; "About Sirena" opens Geral scrolled down to it).
+  is up), "Check for Updates…" in the app menu (`MainMenu.swift`) and a button on the Sobre page
+  (`AboutView.swift`, its own sidebar item after Geral; "About Sirena" in the app menu opens it).
 - Info.plist: `SUFeedURL` = `https://witchmymac.com/appcast/sirena.xml`, `SUPublicEDKey` (shared
   witchmymac EdDSA key), `SUEnableAutomaticChecks` = YES (no permission prompt), `SUScheduledCheckInterval`
   = 86400 (daily), `SUAutomaticallyUpdate` = NO (Sparkle asks before downloading; the user can tick
@@ -47,3 +47,23 @@ without touching the project. Sirena's own strings go through `L("…")` into
   local server, `LSEnvironment` `SIRENA_UPDATES_ONLY=1`). In that mode Sirena starts only the menus, the
   updater and (with `SIRENA_OPEN_PAGE=about`) the About page: no modules, no menu bar icon, no onboarding.
   Clean up its prefs/caches and `lsregister -u` it afterwards.
+
+## Event taps and Accessibility (safety rule)
+
+Revoking Accessibility while Sirena ran froze the whole Mac (0.5.2): taps were re-enabled without
+trust. **Never create or re-enable a CGEvent tap without trust.** `DockKit/Utilities/AccessibilityGuard.swift`
+polls `AXIsProcessTrusted()` every second off the main thread; on loss it disables every registered tap
+at once and tells the owners (via `observe`) to tear down, on regain to recreate. For every tap:
+- `AccessibilityGuard.shared.mayCreateTap(name)` before `tapCreate`; `register(tap, name:)` after the
+  initial `tapEnable(true)`; `unregister(tap)` before switching it off / invalidating.
+- In the callback: disable notices go to `AccessibilityGuard.shared.tapDisabled` (or
+  `passthroughIfTapUnsafe`), never `tapEnable(…, true)`; pass every event straight through while
+  `!AccessibilityGuard.isTrusted`; no synchronous main-thread/AX waits on that path.
+- Policy (timeouts re-enabled only while trusted, max 3 per minute per tap) lives in
+  `EventTapPolicy.swift`, tested by `scripts/test-event-tap-policy.sh` (no app, no TCC).
+- Checking without Accessibility: a renamed copy (other bundle id, no `PlugIns/`) with `LSEnvironment`
+  `SIRENA_TAP_CHECK=1` starts only the tap modules and the guard (no menu bar icon, onboarding, mixer or
+  Finder extension). Launch with `open -g`, count its taps with `CGGetEventTapList` (must be 0) and read
+  `/usr/bin/log show --predicate 'category == "AccessibilityGuard"'` (`log` alone is a zsh builtin).
+  Its prefs land in `~/Library/Preferences/<id>.plist` even with `CFFIXED_USER_HOME`: delete them,
+  `tccutil reset All <id>` and `lsregister -u` the copy afterwards.
