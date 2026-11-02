@@ -4,7 +4,7 @@
 /// - Atalhos: tools opened with one click (clipboard history, pin a window, capture
 ///   text, a peek through the camera).
 /// - Controladores: things adjusted right there (Cafeína, and the sound mixer with the
-///   Mac's volume, each app's and the microphone).
+///   Mac's volume, each app's and the microphone), and the connected Bluetooth devices.
 
 import AppKit
 import AVFoundation
@@ -15,7 +15,7 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
     // Atalhos
     case clipboard, pinWindow, textCapture, screenCapture, pomodoro, colorPicker, screenBrush, mirror
     // Controladores
-    case keepAwake, displayOff, sound
+    case keepAwake, displayOff, devices, sound
 
     var id: String { rawValue }
 
@@ -40,6 +40,7 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
         case .keepAwake: return L("Keep Display On")
         case .displayOff: return ModuleID.displayOff.title
         case .mirror: return L("Peek Camera")
+        case .devices: return L("Connected Devices")
         case .sound: return L("Sound Mixer")
         }
     }
@@ -57,6 +58,7 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
         case .mirror: return L("A quick look at yourself before a call.")
         case .keepAwake: return L("Keeps the display on for as long as you want.")
         case .displayOff: return L("Turns the screen off with one click, after a countdown.")
+        case .devices: return L("Your Bluetooth accessories and how much battery they have.")
         case .sound: return L("Each app's volume and where the sound goes.")
         }
     }
@@ -89,6 +91,7 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
         case .keepAwake: return L("Keeps the Mac and the display from sleeping, for the time you choose or indefinitely. The time is remembered.")
         case .displayOff: return L("Click to start the countdown; you can cancel before the screen goes dark.")
         case .mirror: return L("Opens the camera below the menu bar for a quick look at yourself, with a countdown. It closes by itself after 10 seconds (changeable on its page).")
+        case .devices: return L("Shows the keyboards, mice, headphones and other Bluetooth devices connected to the Mac, with their battery.")
         case .sound: return L("Volume of the Mac and of each app, the sound output and the microphone, all in one place.")
         }
     }
@@ -102,6 +105,7 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
         case .keepAwake: return "cup.and.saucer.fill"
         case .displayOff: return ModuleID.displayOff.symbol
         case .mirror: return "camera.fill"
+        case .devices: return "dot.radiowaves.left.and.right"
         case .sound: return "slider.vertical.3"
         }
     }
@@ -115,6 +119,7 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
         case .keepAwake: return ModuleID.keepAwake.tint
         case .displayOff: return ModuleID.displayOff.tint
         case .mirror: return ModuleID.mirror.tint
+        case .devices: return .blue
         case .sound: return .purple
         }
     }
@@ -167,7 +172,7 @@ final class BoltMenuSettings {
     private init() {
         let saved = UserDefaults.standard.stringArray(forKey: Self.key)
         var items = saved.map { Set($0.compactMap(BoltMenuItem.init)) }
-            ?? Set(BoltMenuItem.allCases)
+            ?? Set(BoltMenuItem.allCases).subtracting([.sound])
         // Pomodoro, Color Picker and Freehand Drawing came later: show them once to everyone.
         if !UserDefaults.standard.bool(forKey: "boltMenu.addedFocusColorBrush") {
             items.formUnion([.pomodoro, .colorPicker, .screenBrush])
@@ -180,6 +185,11 @@ final class BoltMenuSettings {
         if !UserDefaults.standard.bool(forKey: "boltMenu.addedScreenCapture") {
             items.insert(.screenCapture)
             UserDefaults.standard.set(true, forKey: "boltMenu.addedScreenCapture")
+        }
+        if !UserDefaults.standard.bool(forKey: "boltMenu.addedDevices") {
+            items.insert(.devices)
+            HomeOrder.shared.insert(BoltMenuItem.devices.rawValue, before: BoltMenuItem.sound.rawValue, group: "controls")
+            UserDefaults.standard.set(true, forKey: "boltMenu.addedDevices")
         }
         enabled = items
     }
@@ -638,6 +648,8 @@ private struct ControlRow: View {
             .help(item.detail)
         case .displayOff:
             DisplayOffRow(item: item)
+        case .devices:
+            ConnectedDevicesSection()
         default:
             EmptyView()
         }

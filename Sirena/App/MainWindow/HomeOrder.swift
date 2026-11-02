@@ -35,6 +35,14 @@ final class HomeOrder {
         UserDefaults.standard.set(orders, forKey: Self.key)
     }
 
+    /// Gives a new item its place in an order the user already saved.
+    func insert(_ id: String, before target: String, group: String) {
+        guard var order = orders[group], !order.contains(id) else { return }
+        order.insert(id, at: order.firstIndex(of: target) ?? order.count)
+        orders[group] = order
+        UserDefaults.standard.set(orders, forKey: Self.key)
+    }
+
     func reset(_ group: String) {
         orders[group] = nil
         UserDefaults.standard.set(orders, forKey: Self.key)

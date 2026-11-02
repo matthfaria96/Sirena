@@ -263,7 +263,7 @@ final class IslandPeripheralBatterySampler {
     }
 }
 
-private final class BluetoothBatteryRead: NSObject, IslandPeripheralBluetoothReading, CBCentralManagerDelegate, CBPeripheralDelegate {
+final class BluetoothBatteryRead: NSObject, IslandPeripheralBluetoothReading, CBCentralManagerDelegate, CBPeripheralDelegate {
     private static let batteryService = CBUUID(string: "180F")
     private static let batteryLevel = CBUUID(string: "2A19")
 

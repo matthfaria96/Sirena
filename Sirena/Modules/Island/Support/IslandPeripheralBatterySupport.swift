@@ -256,7 +256,7 @@ enum IslandPeripheralBatterySupport {
         return sorted(result)
     }
 
-    private static func connectedBluetoothEntries(from data: Data) -> [(String, [String: Any])] {
+    static func connectedBluetoothEntries(from data: Data) -> [(String, [String: Any])] {
         guard !data.isEmpty,
               let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
               let controllers = root["SPBluetoothDataType"] as? [Any] else {
@@ -284,7 +284,7 @@ enum IslandPeripheralBatterySupport {
         name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
     }
 
-    private static func bluetoothPercent(in properties: [String: Any]) -> Int? {
+    static func bluetoothPercent(in properties: [String: Any]) -> Int? {
         for key in ["device_batteryLevelMain", "device_batteryLevel"] {
             if let percent = percent(from: properties[key]) {
                 return percent

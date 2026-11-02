@@ -13301,6 +13301,186 @@
           }
         }
       }
+    },
+    "Connected Devices": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aparelhos conectados"
+          }
+        }
+      }
+    },
+    "Your Bluetooth accessories and how much battery they have.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seus acessórios Bluetooth e quanta bateria eles têm."
+          }
+        }
+      }
+    },
+    "Shows the keyboards, mice, headphones and other Bluetooth devices connected to the Mac, with their battery.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostra teclados, mouses, fones e outros aparelhos Bluetooth conectados ao Mac, com a bateria de cada um."
+          }
+        }
+      }
+    },
+    "Show all": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar tudo"
+          }
+        }
+      }
+    },
+    "Show fewer": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar menos"
+          }
+        }
+      }
+    },
+    "No Bluetooth devices connected": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nenhum aparelho Bluetooth conectado"
+          }
+        }
+      }
+    },
+    "Looking for devices…": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Procurando aparelhos…"
+          }
+        }
+      }
+    },
+    "Headphones": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fones"
+          }
+        }
+      }
+    },
+    "Keyboard": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teclado"
+          }
+        }
+      }
+    },
+    "Mouse": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mouse"
+          }
+        }
+      }
+    },
+    "Trackpad": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trackpad"
+          }
+        }
+      }
+    },
+    "Game controller": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Controle"
+          }
+        }
+      }
+    },
+    "Speaker": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Caixa de som"
+          }
+        }
+      }
+    },
+    "%@ doesn't report its battery": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ não informa a bateria"
+          }
+        }
+      }
+    },
+    "Allow Bluetooth in General to see the battery": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permita o Bluetooth em Geral para ver a bateria"
+          }
+        }
+      }
+    },
+    "Bluetooth": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bluetooth"
+          }
+        }
+      }
+    },
+    "The battery of connected devices in the menu.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A bateria dos aparelhos conectados, no menu."
+          }
+        }
+      }
+    },
+    "Open Bluetooth settings": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir ajustes de Bluetooth"
+          }
+        }
+      }
     }
   }
 }

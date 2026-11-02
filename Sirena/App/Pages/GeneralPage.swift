@@ -4,6 +4,7 @@
 /// rows, in the manner of System Settings. About has its own page (AboutView.swift).
 
 import AVFoundation
+import CoreBluetooth
 import DockKit
 import SwiftUI
 
@@ -86,7 +87,10 @@ final class PermissionsState {
                  symbol: "camera", granted: Showcase.isActive || AVCaptureDevice.authorizationStatus(for: .video) == .authorized),
             Item(id: "microphone", title: L("Microphone"),
                  purpose: L("The microphone level in the mirror and the microphone controls."),
-                 symbol: "mic", granted: Showcase.isActive || AVCaptureDevice.authorizationStatus(for: .audio) == .authorized)
+                 symbol: "mic", granted: Showcase.isActive || AVCaptureDevice.authorizationStatus(for: .audio) == .authorized),
+            Item(id: "bluetooth", title: L("Bluetooth"),
+                 purpose: L("The battery of connected devices in the menu."),
+                 symbol: "dot.radiowaves.left.and.right", granted: Showcase.isActive || CBManager.authorization == .allowedAlways)
         ]
         if next != items { items = next }
     }
@@ -101,8 +105,29 @@ final class PermissionsState {
             ask(.video, pane: "Privacy_Camera")
         case "microphone":
             ask(.audio, pane: "Privacy_Microphone")
+        case "bluetooth":
+            askBluetooth()
         default:
             break
+        }
+    }
+
+    /// Kept alive while macOS asks: creating a manager is what brings up the prompt.
+    private static var bluetoothAsker: CBCentralManager?
+
+    /// Same as `ask`, for Bluetooth.
+    private static func askBluetooth() {
+        let settings = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Bluetooth")
+        guard CBManager.authorization == .notDetermined else {
+            if let settings { NSWorkspace.shared.open(settings) }
+            return
+        }
+        NSApp.activate(ignoringOtherApps: true)
+        bluetoothAsker = CBCentralManager(delegate: nil, queue: nil, options: [CBCentralManagerOptionShowPowerAlertKey: false])
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+            if CBManager.authorization == .notDetermined, let settings {
+                NSWorkspace.shared.open(settings)
+            }
         }
     }
 
