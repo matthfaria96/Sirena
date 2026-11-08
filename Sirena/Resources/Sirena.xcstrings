@@ -13822,16 +13822,6 @@
         }
       }
     },
-    "Turn on Dock Previews above: they notice when a window is minimized.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ligue as Prévias do Dock acima: são elas que percebem quando uma janela é minimizada."
-          }
-        }
-      }
-    },
     "Minimizing Windows": {
       "localizations": {
         "pt-BR": {
@@ -13898,6 +13888,116 @@
           "stringUnit": {
             "state": "translated",
             "value": "O Sirena deixa o minimizar e os cliques no Dock por conta do macOS."
+          }
+        }
+      }
+    },
+    "Needs Dock Previews, which notice when a window is minimized.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Precisa das Prévias do Dock, que percebem quando uma janela é minimizada."
+          }
+        }
+      }
+    },
+    "Hides all of its windows": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esconde todas as janelas dele"
+          }
+        }
+      }
+    },
+    "What macOS does": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O que o macOS faz"
+          }
+        }
+      }
+    },
+    "Clicking the app in front": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clicar no app da frente"
+          }
+        }
+      }
+    },
+    "Follows the minimize mode above.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Segue o modo de minimizar acima."
+          }
+        }
+      }
+    },
+    "Their settings are below, by topic.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Os ajustes delas estão abaixo, por assunto."
+          }
+        }
+      }
+    },
+    "When they show": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quando aparecem"
+          }
+        }
+      }
+    },
+    "What they show": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O que mostram"
+          }
+        }
+      }
+    },
+    "Window buttons": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Botões das janelas"
+          }
+        }
+      }
+    },
+    "Look": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aparência"
+          }
+        }
+      }
+    },
+    "The preview covers the app name macOS shows above the Dock icon.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A prévia cobre o nome do app que o macOS mostra acima do ícone no Dock."
           }
         }
       }

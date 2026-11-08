@@ -65,7 +65,7 @@ struct MinimizeModePicker: View {
 // MARK: - Drawings
 
 /// A window: title bar with three dots, a body.
-private struct MiniWindow: View {
+struct MiniWindow: View {
     var width: CGFloat
     var height: CGFloat
     var dashed = false
@@ -93,7 +93,7 @@ private struct MiniWindow: View {
 }
 
 /// The Dock: a pill with three icons, the middle one the app.
-private struct MiniDock: View {
+struct MiniDock: View {
     var highlighted = false
 
     var body: some View {
@@ -149,6 +149,26 @@ private struct HideModeDrawing: View {
                     .background(.background, in: Circle())
             }
             .frame(height: 44)
+            MiniDock(highlighted: true)
+        }
+    }
+}
+
+/// A preview card over the app's Dock icon, with two of its windows.
+struct DockPreviewDrawing: View {
+    var body: some View {
+        VStack(spacing: 3) {
+            HStack(spacing: 5) {
+                MiniWindow(width: 34, height: 23)
+                MiniWindow(width: 34, height: 23)
+            }
+            .padding(6)
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 7, style: .continuous).strokeBorder(Color.secondary.opacity(0.3), lineWidth: 0.8))
+            .shadow(color: .black.opacity(0.18), radius: 3, y: 1)
+            Image(systemName: "arrowtriangle.down.fill")
+                .font(.system(size: 6))
+                .foregroundStyle(.secondary)
             MiniDock(highlighted: true)
         }
     }

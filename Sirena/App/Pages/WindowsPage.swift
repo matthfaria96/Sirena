@@ -141,33 +141,19 @@ private struct DockTab: View {
 
     var body: some View {
         Form {
-            Section {
-                FeatureSwitch(module: .dock, title: L("Dock Previews"),
-                              caption: L("Hover an app in the Dock to see its windows, and click one to bring it forward."))
-                if manager.isOn(.dock) && !hasScreenRecording {
-                    LabeledContent {
-                        Button(L("Allow…")) { DockController.requestScreenRecordingPermission() }
-                    } label: {
-                        Text(L("Screen Recording"))
-                        Text(L("Needed to show window thumbnails. Without it, previews show only titles and icons."))
-                    }
-                }
-            }
-
-            if manager.isOn(.dock) {
-                SirenaDockSettingsSections()
-            }
-
-            // Two modes: macOS as it is, or every window hidden at once (the Dock click follows).
+            // 1. Minimizing: the main choice, first.
             Section {
                 MinimizeModePicker(hidesApp: $hidesApp)
                 if hidesApp && !manager.isOn(.dock) {
-                    Label(L("Turn on Dock Previews above: they notice when a window is minimized."), systemImage: "exclamationmark.triangle.fill")
-                        .foregroundStyle(.orange)
-                        .font(.callout)
+                    LabeledContent {
+                        Button(L("Turn On")) { manager.setEnabled(.dock, true) }
+                    } label: {
+                        Label(L("Needs Dock Previews, which notice when a window is minimized."), systemImage: "exclamationmark.triangle.fill")
+                            .foregroundStyle(.orange)
+                    }
                 }
             } header: {
-                Text(L("Minimizing Windows"))
+                SettingsSubheader(L("Minimizing Windows"), symbol: "macwindow.on.rectangle")
             } footer: {
                 Text(hidesApp
                      ? L("Works with the yellow button, ⌘M, Minimize All and a click on the app in front in the Dock. Click the app in the Dock, or pick it with ⌘ Tab, and every window comes back at once.")
@@ -176,10 +162,55 @@ private struct DockTab: View {
                     .foregroundStyle(.secondary)
             }
 
+            // 2. What clicking things in the Dock does.
             Section {
+                LabeledContent {
+                    Text(hidesApp ? L("Hides all of its windows") : L("What macOS does"))
+                        .foregroundStyle(.secondary)
+                } label: {
+                    Text(L("Clicking the app in front"))
+                    Text(L("Follows the minimize mode above."))
+                }
                 Toggle(L("Clicking a Dock folder reveals it in Finder instead of showing its contents"), isOn: $tweaks.dockFoldersOpenInFinder)
+                if manager.isOn(.dock) {
+                    DockQuitClickToggle()
+                }
             } header: {
-                Text(L("Dock Clicks"))
+                SettingsSubheader(L("Dock Clicks"), symbol: "cursorarrow.click.2")
+            }
+
+            // 3. The previews: a switch, then their own sub-topics.
+            Section {
+                HStack(alignment: .center, spacing: 14) {
+                    DockPreviewDrawing()
+                        .frame(width: 110, height: 86)
+                        .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    VStack(alignment: .leading, spacing: 0) {
+                        FeatureSwitch(module: .dock, title: L("Dock Previews"),
+                                      caption: L("Hover an app in the Dock to see its windows, and click one to bring it forward."))
+                    }
+                }
+                .padding(.vertical, 2)
+                if manager.isOn(.dock) && !hasScreenRecording {
+                    LabeledContent {
+                        Button(L("Allow…")) { DockController.requestScreenRecordingPermission() }
+                    } label: {
+                        Text(L("Screen Recording"))
+                        Text(L("Needed to show window thumbnails. Without it, previews show only titles and icons."))
+                    }
+                }
+            } header: {
+                SettingsSubheader(L("Dock Previews"), symbol: "rectangle.on.rectangle")
+            } footer: {
+                if manager.isOn(.dock) {
+                    Text(L("Their settings are below, by topic."))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            if manager.isOn(.dock) {
+                SirenaDockSettingsSections()
             }
         }
         .formStyle(.grouped)
