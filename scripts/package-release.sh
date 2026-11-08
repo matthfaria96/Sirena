@@ -7,7 +7,7 @@
 # distribuir sem conta paga de desenvolvedor, este script assina ad hoc
 # (CODE_SIGN_IDENTITY=-) e desliga o Hardened Runtime, que só é necessário para
 # notarizar e passa a exigir que os frameworks embutidos tenham o mesmo Team ID.
-# Depois, se existir ~/Documents/witchmymac-release/sign-app.sh, reassina com o
+# Depois, se existir ~/Documents/VSCode/witchmymac-release/sign-app.sh, reassina com o
 # certificado witchmymac (ver abaixo), ainda sem Hardened Runtime.
 set -eu
 
@@ -35,9 +35,12 @@ VERSION=$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" "$APP/Co
 # permissões (Acessibilidade, Gravação de Tela…) a cada atualização. O Sparkle
 # aceita a atualização pela assinatura EdDSA do DMG e confere que a assinatura de
 # código do app novo é válida. Sem o script (outro Mac), fica a assinatura ad hoc.
-SIGN_APP="$HOME/Documents/witchmymac-release/sign-app.sh"
+SIGN_APP="$HOME/Documents/VSCode/witchmymac-release/sign-app.sh"
 if [ -f "$SIGN_APP" ]; then
   sh "$SIGN_APP" "$APP"
+else
+  # Sem o certificado o macOS esquece as permissões a cada atualização: avisa bem alto.
+  echo "AVISO: $SIGN_APP não encontrado, o app fica com assinatura ad hoc" >&2
 fi
 codesign --verify --deep --strict --verbose=2 "$APP"
 
@@ -51,6 +54,10 @@ ditto "$APP" "$STAGE/Sirena.app"
 ln -s /Applications "$STAGE/Applications"
 hdiutil create -volname Sirena -srcfolder "$STAGE" -ov -format UDZO "$OUT/Sirena-$VERSION.dmg"
 rm -rf "$STAGE"
+
+# O Xcode registra o build no LaunchServices: tira o registro para o Mac não ver dois
+# Sirena com o mesmo identificador (o instalado em /Applications e este).
+/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -u "$APP" 2>/dev/null || true
 
 echo
 echo "Pronto em $OUT:"
