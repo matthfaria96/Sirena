@@ -43,6 +43,15 @@ final class HomeOrder {
         UserDefaults.standard.set(orders, forKey: Self.key)
     }
 
+    /// Moves an item already in a saved order to right before `target` (nothing to do without one).
+    func place(_ id: String, before target: String, group: String) {
+        guard var order = orders[group], order.contains(target) else { return }
+        order.removeAll { $0 == id }
+        order.insert(id, at: order.firstIndex(of: target) ?? order.count)
+        orders[group] = order
+        UserDefaults.standard.set(orders, forKey: Self.key)
+    }
+
     func reset(_ group: String) {
         orders[group] = nil
         UserDefaults.standard.set(orders, forKey: Self.key)

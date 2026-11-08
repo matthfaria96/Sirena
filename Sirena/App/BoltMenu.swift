@@ -16,7 +16,7 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
     // Atalhos
     case clipboard, pinWindow, textCapture, screenCapture, pomodoro, colorPicker, screenBrush, mirror
     // Controladores
-    case keepAwake, displayOff, dimScreens, devices, sound
+    case keepAwake, dimScreens, displayOff, devices, sound
 
     var id: String { rawValue }
 
@@ -192,14 +192,19 @@ final class BoltMenuSettings {
             items.insert(.screenCapture)
             UserDefaults.standard.set(true, forKey: "boltMenu.addedScreenCapture")
         }
-        if !UserDefaults.standard.bool(forKey: "boltMenu.addedDimScreens") {
+        if !UserDefaults.standard.bool(forKey: "boltMenu.addedDimScreens.v2") {
             // Only where it can do something: a Mac with one display doesn't need the row.
             // Read from Core Graphics: this can run before AppKit knows the screens.
             var displays: UInt32 = 0
             CGGetActiveDisplayList(0, nil, &displays)
             if displays > 1 { items.insert(.dimScreens) }
-            HomeOrder.shared.insert(BoltMenuItem.dimScreens.rawValue, before: BoltMenuItem.devices.rawValue, group: "controls")
-            UserDefaults.standard.set(true, forKey: "boltMenu.addedDimScreens")
+            HomeOrder.shared.insert(BoltMenuItem.dimScreens.rawValue, before: BoltMenuItem.displayOff.rawValue, group: "controls")
+            UserDefaults.standard.set(true, forKey: "boltMenu.addedDimScreens.v2")
+        }
+        // A first build put it after Desligar monitor: it belongs right above it.
+        if !UserDefaults.standard.bool(forKey: "boltMenu.dimScreensAboveDisplayOff") {
+            HomeOrder.shared.place(BoltMenuItem.dimScreens.rawValue, before: BoltMenuItem.displayOff.rawValue, group: "controls")
+            UserDefaults.standard.set(true, forKey: "boltMenu.dimScreensAboveDisplayOff")
         }
         if !UserDefaults.standard.bool(forKey: "boltMenu.addedDevices") {
             items.insert(.devices)
@@ -207,6 +212,9 @@ final class BoltMenuSettings {
             UserDefaults.standard.set(true, forKey: "boltMenu.addedDevices")
         }
         enabled = items
+        // didSet doesn't run in init: save now, or what the migrations added is gone next launch
+        // while their flags say they already ran.
+        UserDefaults.standard.set(items.map(\.rawValue).sorted(), forKey: Self.key)
     }
 
     /// The menu's see-through Liquid Glass look; off by default so it reads over any window.
