@@ -12,6 +12,7 @@ import AppKit
 import ApplicationServices
 import Carbon.HIToolbox
 import DockKit
+import os
 
 /// Owns the tap's lifetime and the Accessibility trust checks.
 @MainActor
@@ -109,6 +110,8 @@ final class TweaksController {
         if engine.start() { self.engine = engine }
     }
 }
+
+private let minimizeLog = os.Logger(subsystem: "com.matheusfaria.Sirena", category: "MinimizeButton")
 
 // MARK: - Settings snapshot
 
@@ -294,15 +297,23 @@ final class TweaksEngine: @unchecked Sendable {
         guard settings.anyClickTweak, event.flags.intersection(Self.modifierMask).isEmpty else { return event }
 
         let point = event.location
+        // "Ocultar tudo": first the window the click really lands on (the event names it), in
+        // case it is a minimize button. The Dock's windows can't be trusted for this: some of
+        // them span the screen.
+        if settings.minimizeHides {
+            if let window = Self.windowClicked(event) {
+                if minimizeButtonClick(event, at: point, in: window) == nil { return nil }
+            } else {
+                minimizeLog.debug("click: no regular window under the pointer (window #\(event.getIntegerValueField(.mouseEventWindowUnderMousePointer), privacy: .public))")
+            }
+        }
         // Cheapest first: a click away from the Dock's windows needs no window list.
         guard Self.mayBeOnDock(point) else { return event }
         // Then: which window is under the pointer?
         guard let window = Self.windowUnderPoint(point) else { return event }
 
         // (The green button is handled by the Windows feature, see TweaksSettings.)
-        guard window.isDock else {
-            return settings.minimizeHides ? minimizeButtonClick(event, at: point, in: window) : event
-        }
+        guard window.isDock else { return event }
         return dockClick(event, at: point, dockPID: window.pid, settings: settings)
     }
 
@@ -383,6 +394,22 @@ final class TweaksEngine: @unchecked Sendable {
             dockFramesDate = Date()
         }
         return dockFrames.contains { $0.contains(point) }
+    }
+
+    /// The regular window the click lands on, from the window number the event carries.
+    private static func windowClicked(_ event: CGEvent) -> WindowHit? {
+        let number = CGWindowID(event.getIntegerValueField(.mouseEventWindowUnderMousePointer))
+        guard number != 0 else { return nil }
+        // The array holds raw window numbers, not NSNumbers (a CFArray with no callbacks).
+        var raw = UnsafeRawPointer(bitPattern: UInt(number))
+        guard let ids = CFArrayCreate(kCFAllocatorDefault, &raw, 1, nil),
+              let list = CGWindowListCreateDescriptionFromArray(ids) as? [[String: Any]],
+              let info = list.first,
+              let pid = info[kCGWindowOwnerPID as String] as? pid_t,
+              (info[kCGWindowLayer as String] as? Int) == 0,
+              let bounds = info[kCGWindowBounds as String] as? NSDictionary,
+              let frame = CGRect(dictionaryRepresentation: bounds) else { return nil }
+        return WindowHit(pid: pid, layer: 0, frame: frame, isDock: false)
     }
 
     private static func windowUnderPoint(_ point: CGPoint) -> WindowHit? {
@@ -479,10 +506,14 @@ final class TweaksEngine: @unchecked Sendable {
               window.pid != Self.ownPID else { return event }
         let appElement = Self.element(AXUIElementCreateApplication(window.pid))
         var hit: AXUIElement?
-        guard AXUIElementCopyElementAtPosition(appElement, Float(point.x), Float(point.y), &hit) == .success,
-              let button = hit.map(Self.element),
-              Self.string(button, kAXSubroleAttribute) == kAXMinimizeButtonSubrole,
-              let app = NSRunningApplication(processIdentifier: window.pid) else { return event }
+        let result = AXUIElementCopyElementAtPosition(appElement, Float(point.x), Float(point.y), &hit)
+        let subrole = hit.map(Self.element).flatMap { Self.string($0, kAXSubroleAttribute) }
+        guard result == .success, let button = hit.map(Self.element), subrole == kAXMinimizeButtonSubrole,
+              let app = NSRunningApplication(processIdentifier: window.pid) else {
+            minimizeLog.notice("corner click in pid \(window.pid, privacy: .public): AX \(result.rawValue, privacy: .public), subrole \(subrole ?? "-", privacy: .public): not the minimize button")
+            return event
+        }
+        minimizeLog.notice("minimize button in pid \(window.pid, privacy: .public): hiding instead")
         // Like a real button: released outside it, nothing happens.
         let frame = Self.frame(of: button)
         return hold(event, releaseRect: frame?.insetBy(dx: -4, dy: -4)) { Self.onMain { app.hide() } }
@@ -514,6 +545,13 @@ final class TweaksEngine: @unchecked Sendable {
     private func keyDown(_ event: CGEvent) -> CGEvent? {
         let code = event.getIntegerValueField(.keyboardEventKeycode)
         rewrittenKeys[code] = nil
+        // ⌃⌥⇧⌘⎋ always gets out, even if the Carbon hot key didn't register.
+        if EmergencyExit.isShortcut(keyCode: code, flags: event.flags) {
+            AccessibilityGuard.shared.disableAllTaps()
+            DispatchQueue.global(qos: .userInteractive).asyncAfter(deadline: .now() + 2) { exit(0) }
+            Self.onMain { NSApp.terminate(nil) }
+            return nil
+        }
         let settings = TweaksSnapshot.current
         guard settings.anyKeyTweak else { return event }
         let modifiers = event.flags.intersection(Self.modifierMask)

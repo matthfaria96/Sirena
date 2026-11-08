@@ -22,6 +22,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.mainMenu = MainMenu.make()
+        // A Quit request from outside (Dock, updates, scripts) quits right away. AppKit's own
+        // handler first validates terminate: through the responder chain, and a SwiftUI
+        // window in front can turn that down, which cancelled the quit ("Cancelado pelo usuário").
+        NSAppleEventManager.shared().setEventHandler(self, andSelector: #selector(handleQuitEvent(_:withReply:)),
+                                                     forEventClass: AEEventClass(kCoreEventClass),
+                                                     andEventID: AEEventID(kAEQuitApplication))
 
         // SIRENA_SHOWCASE=1: site screenshots from a renamed copy. Nothing starts (no modules,
         // taps, mixer, updater, menu bar icon or onboarding); see Showcase.swift and CLAUDE.md.
@@ -105,6 +111,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if environment["SIRENA_SHOW_MIRROR"] == "1" {
             MirrorController.shared.show()
         }
+    }
+
+    @objc private func handleQuitEvent(_ event: NSAppleEventDescriptor, withReply reply: NSAppleEventDescriptor) {
+        NSApp.terminate(nil)
     }
 
     func applicationWillTerminate(_ notification: Notification) {

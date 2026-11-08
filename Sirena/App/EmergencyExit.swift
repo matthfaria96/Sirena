@@ -9,6 +9,9 @@
 import AppKit
 import DockKit
 import MASShortcut
+import os
+
+private let log = os.Logger(subsystem: "com.matheusfaria.Sirena", category: "EmergencyExit")
 
 @MainActor
 enum EmergencyExit {
@@ -18,10 +21,22 @@ enum EmergencyExit {
 
     static func register() {
         let shortcut = MASShortcut(keyCode: keyCode, modifierFlags: modifiers)
-        MASShortcutMonitor.shared().register(shortcut) { run() }
+        let registered = MASShortcutMonitor.shared().register(shortcut) { run() }
+        if registered {
+            log.notice("⌃⌥⇧⌘⎋ registered")
+        } else {
+            log.error("⌃⌥⇧⌘⎋ could not be registered; Tweaks' key tap still catches it")
+        }
+    }
+
+    /// The key press itself, for a key tap that sees it first (Tweaks): same shortcut, any thread.
+    nonisolated static func isShortcut(keyCode code: Int64, flags: CGEventFlags) -> Bool {
+        code == 53 && flags.intersection([.maskControl, .maskAlternate, .maskShift, .maskCommand])
+            == [.maskControl, .maskAlternate, .maskShift, .maskCommand]
     }
 
     static func run() {
+        log.notice("emergency exit")
         AccessibilityGuard.shared.disableAllTaps()
         DispatchQueue.global(qos: .userInteractive).asyncAfter(deadline: .now() + 2) { exit(0) }
         NSApp.terminate(nil)
