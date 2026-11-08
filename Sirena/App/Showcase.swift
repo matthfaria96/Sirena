@@ -27,7 +27,7 @@ enum Showcase {
     static func start(mainWindow: MainWindowController) {
         let environment = ProcessInfo.processInfo.environment
         Task {
-            await ClipboardController.shared.loadShowcaseHistory(demoClipboard)
+            await ClipboardController.shared.loadShowcaseHistory(demoClipboard, images: [(demoImage(), "com.apple.Preview", 4)])
             if environment["SIRENA_SHOW_PANEL"] == "1" {
                 showPanel(inline: environment["SIRENA_PANEL_INLINE"].flatMap(BoltMenuItem.init(rawValue:)))
             } else {
@@ -77,6 +77,25 @@ enum Showcase {
         self.popover = popover
     }
 
+    /// A made-up picture for the clipboard history: a soft gradient with a few shapes.
+    private static func demoImage() -> Data {
+        let size = NSSize(width: 640, height: 400)
+        let image = NSImage(size: size, flipped: false) { rect in
+            NSGradient(colors: [NSColor(red: 0.55, green: 0.36, blue: 0.96, alpha: 1),
+                                NSColor(red: 0.98, green: 0.55, blue: 0.35, alpha: 1)])?
+                .draw(in: rect, angle: -35)
+            NSColor.white.withAlphaComponent(0.85).setFill()
+            NSBezierPath(ovalIn: NSRect(x: 70, y: 210, width: 120, height: 120)).fill()
+            NSColor.white.withAlphaComponent(0.35).setFill()
+            NSBezierPath(roundedRect: NSRect(x: 240, y: 90, width: 330, height: 60), xRadius: 30, yRadius: 30).fill()
+            NSBezierPath(roundedRect: NSRect(x: 240, y: 180, width: 250, height: 36), xRadius: 18, yRadius: 18).fill()
+            return true
+        }
+        guard let tiff = image.tiffRepresentation, let bitmap = NSBitmapImageRep(data: tiff),
+              let png = bitmap.representation(using: .png, properties: [:]) else { return Data() }
+        return png
+    }
+
     /// Fictional copies: (text, source app bundle id, minutes ago, pinned).
     private static let demoClipboard: [(text: String, app: String, minutesAgo: Double, pinned: Bool)] = [
         ("Meeting notes: launch review moved to Thursday, 3 PM", "com.apple.Notes", 2, false),
@@ -85,7 +104,7 @@ enum Showcase {
         ("brew install --cask sirena-demo", "com.apple.Terminal", 18, false),
         ("Thanks for the update! I'll send the final mockups by Friday.", "com.apple.mail", 27, false),
         ("1600 Example Avenue, Springfield", "com.apple.Notes", 45, false),
-        ("let greeting = \"Hello, world\"", "com.apple.TextEdit", 63, false),
+        ("func greet(_ name: String) -> String {\n    let greeting = \"Hello, \\(name)\"\n    return greeting\n}", "com.apple.dt.Xcode", 63, false),
         ("Quarterly report – final.pdf", "com.apple.finder", 90, false),
         ("hello@example.com", "com.apple.mail", 240, true)
     ]

@@ -256,19 +256,22 @@ private struct SirenaHistoryRow: View {
     .accessibilityAddTraits(.isButton)
   }
 
-  @ViewBuilder
   private var leadingIcon: some View {
-    if item.hasImage {
-      SirenaThumbnailView(item: item)
-    } else {
-      Image(nsImage: item.applicationImage.nsImage)
-        .resizable()
-        .aspectRatio(contentMode: .fit)
-        .frame(width: 22, height: 22)
+    ClipPreviewTile(
+      preview: item.clipPreview,
+      thumbnail: item.thumbnailImage,
+      appIcon: item.applicationImage.nsImage,
+      size: 28
+    )
+    .onAppear {
+      if item.clipPreview == .image { item.ensureThumbnailImage() }
     }
   }
 
   private var title: String {
+    if case .files(let urls) = item.clipPreview {
+      return urls.map(\.lastPathComponent).joined(separator: ", ")
+    }
     if item.hasImage {
       return item.title.isEmpty ? "Imagem" : item.title
     }
@@ -280,10 +283,14 @@ private struct SirenaHistoryRow: View {
     let time = Self.relativeFormatter.localizedString(
       for: item.item.lastCopiedAt, relativeTo: Date()
     )
-    if let app = item.application, !app.isEmpty {
-      return "\(app) · \(time)"
+    var parts: [String] = []
+    if let caption = item.clipPreview.caption, item.clipPreview != .image || !item.title.isEmpty,
+       caption.caseInsensitiveCompare(title) != .orderedSame {
+      parts.append(caption)
     }
-    return time
+    if let app = item.application, !app.isEmpty { parts.append(app) }
+    parts.append(time)
+    return parts.joined(separator: " · ")
   }
 
   private var hoverButtons: some View {
@@ -307,28 +314,5 @@ private struct SirenaHistoryRow: View {
       .help("Apagar")
     }
     .transition(.opacity)
-  }
-}
-
-/// Lazily generated image thumbnail for image items.
-private struct SirenaThumbnailView: View {
-  let item: HistoryItemDecorator
-
-  var body: some View {
-    Group {
-      if let thumbnail = item.thumbnailImage {
-        Image(nsImage: thumbnail)
-          .resizable()
-          .aspectRatio(contentMode: .fill)
-      } else {
-        Image(systemName: "photo")
-          .foregroundStyle(.secondary)
-      }
-    }
-    .frame(width: 26, height: 22)
-    .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
-    .onAppear {
-      item.ensureThumbnailImage()
-    }
   }
 }

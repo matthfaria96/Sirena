@@ -19,6 +19,8 @@ final class SirenaStatusItem: NSObject {
     /// What a click shows, in a popover below the icon.
     var panelProvider: (() -> NSViewController)?
     private var popover: NSPopover?
+    /// The app that was in front when the panel opened (the panel itself activates Sirena).
+    private(set) var appBeforePanel: NSRunningApplication?
 
     var button: NSStatusBarButton? { statusItem?.button }
 
@@ -87,6 +89,10 @@ final class SirenaStatusItem: NSObject {
         popover.delegate = self
         popover.contentViewController = content
         self.popover = popover
+        // Opening the panel brings Sirena forward: remember who was in front, to paste there.
+        if let front = NSWorkspace.shared.frontmostApplication, front != NSRunningApplication.current {
+            appBeforePanel = front
+        }
         MainActor.assumeIsolated { SirenaActivation.activateForTool() }
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
     }

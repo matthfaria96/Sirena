@@ -17,6 +17,9 @@ public struct SirenaClipboardSettings: View {
   @Default(.pinTo) private var pinTo
   @Default(.ignoreEvents) private var isPaused
   @State private var storage = StorageSettingsPane.ViewModel()
+  @AppStorage(ClipboardMenuSettings.countKey) private var menuCount = ClipboardMenuSettings.defaultCount
+  @AppStorage(ClipboardMenuSettings.previewsKey) private var menuPreviews = true
+  @AppStorage(ClipboardMenuSettings.clickPastesKey) private var menuClickPastes = false
 
   public init() {}
 
@@ -42,6 +45,24 @@ public struct SirenaClipboardSettings: View {
         }
       } header: {
         Text(SL("When choosing an item"))
+      }
+
+      Section {
+        Picker(SL("Items shown"), selection: $menuCount) {
+          ForEach(ClipboardMenuSettings.counts, id: \.self) { count in
+            Text(SL("\(count) items")).tag(count)
+          }
+        }
+        Toggle(isOn: $menuPreviews) {
+          Text(SL("Show previews"))
+          Text(SL("Images, colors, links and files get a small preview; resting the pointer on one shows it bigger."))
+        }
+        Toggle(isOn: $menuClickPastes) {
+          Text(SL("A click pastes"))
+          Text(SL("Clicking an item pastes it into the app you were using. Off, a click only copies it. ⌥-click always does the other one."))
+        }
+      } header: {
+        Text(SL("In the menu bar panel"))
       }
 
       Section {

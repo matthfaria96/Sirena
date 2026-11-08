@@ -13481,6 +13481,146 @@
           }
         }
       }
+    },
+    "Code": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Código"
+          }
+        }
+      }
+    },
+    "and %lld more": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "e mais %lld"
+          }
+        }
+      }
+    },
+    "copied %lld times": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "copiado %lld vezes"
+          }
+        }
+      }
+    },
+    "Search copies": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscar nas cópias"
+          }
+        }
+      }
+    },
+    "Clear search": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limpar busca"
+          }
+        }
+      }
+    },
+    "(empty)": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "(vazio)"
+          }
+        }
+      }
+    },
+    "Paste Without Formatting": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Colar sem Formatação"
+          }
+        }
+      }
+    },
+    "Click to paste, ⌥-click to copy": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clique para colar, ⌥-clique para copiar"
+          }
+        }
+      }
+    },
+    "Click to copy, ⌥-click to paste": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clique para copiar, ⌥-clique para colar"
+          }
+        }
+      }
+    },
+    "Items shown": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Itens mostrados"
+          }
+        }
+      }
+    },
+    "Images, colors, links and files get a small preview; resting the pointer on one shows it bigger.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Imagens, cores, links e arquivos ganham uma pequena pré-visualização; deixar o ponteiro sobre um item mostra ela maior."
+          }
+        }
+      }
+    },
+    "A click pastes": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Um clique cola"
+          }
+        }
+      }
+    },
+    "Clicking an item pastes it into the app you were using. Off, a click only copies it. ⌥-click always does the other one.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clicar num item cola ele no app que você estava usando. Desligado, o clique só copia. ⌥-clique sempre faz o contrário."
+          }
+        }
+      }
+    },
+    "In the menu bar panel": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No painel da barra de menus"
+          }
+        }
+      }
     }
   }
 }

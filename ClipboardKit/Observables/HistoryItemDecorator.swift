@@ -61,6 +61,15 @@ class HistoryItemDecorator: Identifiable, Hashable, HasVisibility {
   // 10k characters seems to be more than enough on large displays
   var text: String { previewText.string.shortened(to: 10_000) }
 
+  // Sirena: what the item is, for its preview tile (contents never change, so worked out once).
+  @ObservationIgnored
+  private(set) lazy var clipPreview: ClipPreview = ClipPreview.detect(
+    text: item.fileURLs.isEmpty ? (item.text ?? item.previewableText) : "",
+    fileURLs: item.fileURLs,
+    hasImage: item.imageData != nil,
+    isUniversalClipboard: item.universalClipboard
+  )
+
   var isPinned: Bool { item.pin != nil }
   var isUnpinned: Bool { item.pin == nil }
 
