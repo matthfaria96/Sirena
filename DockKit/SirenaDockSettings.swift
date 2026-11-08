@@ -54,7 +54,7 @@ private struct DockPreviewsPage: View {
                 Section {
                     Toggle(isOn: $minimizeHidesAllWindows) {
                         Text(SL("Minimizing hides all of the app's windows at once"))
-                        Text(SL("When an app has 3 or more windows open, minimizing one of them (yellow button or ⌘M) hides them all right away, instead of macOS shrinking them one by one. Click the app in the Dock, or pick it with ⌘ Tab, and they all come back together. With 1 or 2 windows, minimizing works as usual."))
+                        Text(SL("Minimizing a window (yellow button, ⌘M or Minimize All) hides all of the app's windows right away, instead of macOS shrinking them one by one. Click the app in the Dock, or pick it with ⌘ Tab, and they all come back together."))
                     }
                 } header: {
                     Text(SL("All windows at once"))

@@ -5,12 +5,10 @@
 /// with 8 windows takes seconds either way, and nothing outside the app can skip that. Hiding
 /// the app takes every window away at once and brings them all back at once.
 ///
-/// With the option on (the default), minimizing a window (yellow button, ⌘M) in an app with
-/// 3 or more open windows hides the whole app right away; the minimized window is brought back
-/// while the app is hidden (invisible, the app stays hidden), so the Dock icon or ⌘ Tab shows
-/// every window again together. With 1 or 2 windows, minimizing stays as it is. ⌥⌘M (Minimize
-/// All) is left to macOS: with "minimize into application icon" on, the windows it takes away
-/// drop out of Accessibility at once, so there is nothing to follow.
+/// With the option on (the default), minimizing a window (yellow button, ⌘M, Minimize All) hides
+/// the whole app right away, however many windows it has; the rest of a Minimize All then goes
+/// by unseen and fast. The minimized windows are brought back while the app is hidden (invisible,
+/// the app stays hidden), so the Dock icon or ⌘ Tab shows every window again together.
 ///
 /// Driven by the Accessibility notification for minimized windows (no event tap). Everything runs
 /// on its own queue: AX calls never touch the main thread or the observer callback.
@@ -18,6 +16,9 @@
 import AppKit
 import ApplicationServices
 import Defaults
+import os
+
+private let log = Logger(subsystem: "com.matheusfaria.Sirena", category: "MinimizeHidesApp")
 
 extension Defaults.Keys {
     static let minimizeHidesAllWindows = Key<Bool>("minimizeHidesAllWindows", default: true)
@@ -26,7 +27,7 @@ extension Defaults.Keys {
 final class MinimizeHidesApp: @unchecked Sendable {
     static let shared = MinimizeHidesApp()
 
-    /// From how many open windows minimizing hides the whole app.
+    /// From how many windows Sirena's own minimizing (option off) skips the animations.
     static let minimumWindows = 3
     /// Time for a hide to land, and the quiet that ends a burst, before windows come back.
     private static let hideSettleDelay: TimeInterval = 0.35
@@ -54,15 +55,24 @@ final class MinimizeHidesApp: @unchecked Sendable {
 
     /// Called from the AX observer callback (main thread) for every minimized window.
     func windowMinimized(_ window: AXUIElement, pid: pid_t) {
-        guard Self.isEnabled, pid != ProcessInfo.processInfo.processIdentifier else { return }
+        guard pid != ProcessInfo.processInfo.processIdentifier else { return }
+        guard Self.isEnabled else {
+            log.notice("window minimized in pid \(pid, privacy: .public): option off")
+            return
+        }
+        log.notice("window minimized in pid \(pid, privacy: .public)")
         queue.async { self.handle(window, pid: pid) }
     }
 
     // MARK: - On the queue
 
     private func handle(_ window: AXUIElement, pid: pid_t) {
+        let name = NSRunningApplication(processIdentifier: pid)?.localizedName ?? "pid \(pid)"
         if let until = ownMinimizeUntil[pid] {
-            if until > Date() { return }
+            if until > Date() {
+                log.notice("\(name, privacy: .public): minimized by Sirena itself, left alone")
+                return
+            }
             ownMinimizeUntil[pid] = nil
         }
 
@@ -71,19 +81,21 @@ final class MinimizeHidesApp: @unchecked Sendable {
             session.lastEvent = Date()
             session.pending.append(window)
             sessions[pid] = session
+            log.notice("\(name, privacy: .public): another window of the same burst")
             scheduleFlush(pid, attempt: 1)
             return
         }
 
-        let app = AXUIElementCreateApplication(pid)
-        AXUIElementSetMessagingTimeout(app, 0.5)
-        guard !Self.bool(app, kAXHiddenAttribute) else { return }
-        let others = Self.standardWindows(of: app).filter { !CFEqual($0, window) && !Self.bool($0, kAXMinimizedAttribute) }
-        guard others.count + 1 >= Self.minimumWindows else { return }
-
+        // Nothing here asks the app anything: while it animates (⌥⌘M goes window by window)
+        // it answers Accessibility late or not at all, and the hide has to land right away.
+        guard let running = NSRunningApplication(processIdentifier: pid), !running.isHidden else {
+            log.notice("\(name, privacy: .public): window minimized while hidden, left alone")
+            return
+        }
+        log.notice("\(name, privacy: .public): hiding the app")
         sessions[pid] = Session(pending: [window])
         DispatchQueue.main.async {
-            NSRunningApplication(processIdentifier: pid)?.hide()
+            running.hide()
         }
         scheduleFlush(pid, attempt: 1)
     }
@@ -99,22 +111,24 @@ final class MinimizeHidesApp: @unchecked Sendable {
         guard var session = sessions[pid] else { return }
         // Still minimizing: a newer event has its own flush coming.
         guard Date().timeIntervalSince(session.lastEvent) >= Self.hideSettleDelay * 0.9 else { return }
-        let app = AXUIElementCreateApplication(pid)
-        AXUIElementSetMessagingTimeout(app, 0.5)
-        guard Self.bool(app, kAXHiddenAttribute) else {
+        guard NSRunningApplication(processIdentifier: pid)?.isHidden == true else {
             // Not hidden (yet, or the app came back on its own): never restore in plain sight.
             // The windows then stay minimized, as macOS left them.
             if attempt < 8 {
                 scheduleFlush(pid, attempt: attempt + 1)
             } else {
+                log.error("pid \(pid, privacy: .public): the app never hid, windows left minimized")
                 sessions[pid] = nil
             }
             return
         }
-        let windows = session.pending.filter { Self.bool($0, kAXMinimizedAttribute) }
+        let windows = session.pending
+        // An earlier check already brought these back.
+        guard !windows.isEmpty else { return }
         session.pending.removeAll()
         sessions[pid] = session
-        windows.forEach(restore)
+        log.notice("pid \(pid, privacy: .public): bringing \(windows.count, privacy: .public) windows back behind the hidden app")
+        windows.forEach { restore($0, pid: pid, attempt: 1) }
         // Keep the session a moment so late notifications of this burst are still collected.
         queue.asyncAfter(deadline: .now() + Self.sessionQuietTime) {
             guard let current = self.sessions[pid], current.pending.isEmpty,
@@ -125,30 +139,16 @@ final class MinimizeHidesApp: @unchecked Sendable {
 
     /// Brings a window back while its app is hidden: no animation is seen, the app stays hidden,
     /// and the window shows with the others when the app comes back.
-    private func restore(_ window: AXUIElement) {
-        AXUIElementSetMessagingTimeout(window, 0.5)
-        AXUIElementSetAttributeValue(window, kAXMinimizedAttribute as CFString, kCFBooleanFalse)
-    }
-
-    // MARK: - AX helpers
-
-    private static func bool(_ element: AXUIElement, _ attribute: String) -> Bool {
-        var value: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(element, attribute as CFString, &value) == .success else { return false }
-        return (value as? Bool) ?? false
-    }
-
-    private static func string(_ element: AXUIElement, _ attribute: String) -> String? {
-        var value: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(element, attribute as CFString, &value) == .success else { return nil }
-        return value as? String
-    }
-
-    /// Regular document windows (no panels, sheets or palettes).
-    private static func standardWindows(of app: AXUIElement) -> [AXUIElement] {
-        var value: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(app, kAXWindowsAttribute as CFString, &value) == .success,
-              let windows = value as? [AXUIElement] else { return [] }
-        return windows.filter { string($0, kAXSubroleAttribute) == kAXStandardWindowSubrole }
+    private func restore(_ window: AXUIElement, pid: pid_t, attempt: Int) {
+        // The user brought the app back meanwhile: macOS restores the rest its own way.
+        guard NSRunningApplication(processIdentifier: pid)?.isHidden == true else { return }
+        AXUIElementSetMessagingTimeout(window, 1.0)
+        let result = AXUIElementSetAttributeValue(window, kAXMinimizedAttribute as CFString, kCFBooleanFalse)
+        // Still busy (finishing its own minimizing): try again shortly.
+        if result == .cannotComplete, attempt < 6 {
+            queue.asyncAfter(deadline: .now() + 0.3) { self.restore(window, pid: pid, attempt: attempt + 1) }
+        } else if result != .success {
+            log.error("pid \(pid, privacy: .public): could not bring a window back (\(result.rawValue, privacy: .public))")
+        }
     }
 }

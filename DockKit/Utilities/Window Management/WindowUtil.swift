@@ -1867,16 +1867,17 @@ extension WindowUtil {
         var windowsToMinimize = windows.filter { !$0.isMinimized && $0.app.bundleIdentifier != ownBundleId }
         guard !windowsToMinimize.isEmpty else { return }
 
-        // Sirena: macOS minimizes one window at a time, inside the app. With 3 or more windows of
-        // an app, hide it instead (the option) or minimize them all while it is hidden, which
-        // skips the animations (≈0.2 s for all instead of ≈0.3 s each).
+        // Sirena: macOS minimizes one window at a time, inside the app. With the option on, hide
+        // the app instead; off, 3 or more windows are minimized while it is hidden, which skips
+        // the animations (≈0.2 s for all instead of ≈0.3 s each).
         let byApp = Dictionary(grouping: windowsToMinimize, by: { $0.app.processIdentifier })
-        for (pid, appWindows) in byApp where appWindows.count >= MinimizeHidesApp.minimumWindows {
+        for (pid, appWindows) in byApp {
             guard let app = appWindows.first?.app else { continue }
-            windowsToMinimize.removeAll { $0.app.processIdentifier == pid }
             if MinimizeHidesApp.isEnabled {
+                windowsToMinimize.removeAll { $0.app.processIdentifier == pid }
                 app.hide()
-            } else {
+            } else if appWindows.count >= MinimizeHidesApp.minimumWindows {
+                windowsToMinimize.removeAll { $0.app.processIdentifier == pid }
                 minimizeAllAtOnce(appWindows, app: app)
             }
         }
