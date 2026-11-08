@@ -47,6 +47,15 @@ struct GeneralPage: View {
                                                  recordingObserver: recordingObserver)
                         .frame(width: 150, height: 22)
                 }
+                SettingsSeparator(indented: true)
+                SettingsRow(L("Emergency quit"), detail: L("Quits Sirena right away from any app, if something ever stops responding. Always this shortcut."), symbol: "exclamationmark.octagon") {
+                    Text(EmergencyExit.symbols)
+                        .font(.body.weight(.medium))
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 3)
+                        .background(.quaternary.opacity(0.6), in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+                }
             }
         }
         .toolbar { BackToHomeButton() }

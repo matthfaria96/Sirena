@@ -17,6 +17,10 @@ final class SirenaShortcutValidator: MASShortcutValidator {
 
     override func isShortcutAlreadyTaken(bySystem shortcut: MASShortcut!,
                                          explanation: AutoreleasingUnsafeMutablePointer<NSString?>!) -> Bool {
+        if let shortcut, EmergencyExit.matches(shortcut) {
+            explanation?.pointee = String(format: L("Sirena already uses this shortcut for “%@”."), L("Emergency quit")) as NSString
+            return true
+        }
         if let shortcut, let owner = Self.sirenaOwner(of: shortcut, except: ownKey) {
             explanation?.pointee = String(format: L("Sirena already uses this shortcut for “%@”."), owner) as NSString
             return true

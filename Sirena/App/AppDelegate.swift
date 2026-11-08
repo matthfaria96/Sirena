@@ -48,6 +48,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Watches Accessibility from launch: every event tap goes away the moment it is revoked.
         AccessibilityGuard.shared.activate()
+        // ⌃⌥⇧⌘⎋ quits Sirena from anywhere, taps switched off first.
+        EmergencyExit.register()
 
         // SIRENA_TAP_CHECK=1: only the features that hold event taps (Windows, Dock, ⌘ Tab,
         // tweaks) and the guard; no menu bar icon, onboarding, mixer or Finder extension. A

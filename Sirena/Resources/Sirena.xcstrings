@@ -13621,6 +13621,26 @@
           }
         }
       }
+    },
+    "Emergency quit": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saída de emergência"
+          }
+        }
+      }
+    },
+    "Quits Sirena right away from any app, if something ever stops responding. Always this shortcut.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fecha o Sirena na hora, de qualquer app, se algo parar de responder. É sempre este atalho."
+          }
+        }
+      }
     }
   }
 }

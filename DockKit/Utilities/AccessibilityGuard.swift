@@ -168,6 +168,15 @@ public final class AccessibilityGuard: @unchecked Sendable {
         log.notice("\(name, privacy: .public): event tap created")
     }
 
+    /// Emergency exit (⌃⌥⇧⌘⎋): every registered tap off at once, from whatever thread asks.
+    public func disableAllTaps() {
+        let ports = lock.withLock { taps.values.map(\.port) }
+        for port in ports {
+            CGEvent.tapEnable(tap: port, enable: false)
+        }
+        log.error("Emergency exit: disabled \(ports.count) event taps")
+    }
+
     public func unregister(_ tap: CFMachPort) {
         let removed = lock.withLock { taps.removeValue(forKey: ObjectIdentifier(tap)) }
         if let removed {
