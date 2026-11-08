@@ -66,43 +66,23 @@ private struct WindowsTab: View {
                     LabeledContent {
                         Button(L("Allow…")) { AppDelegate.instance.windowManagement.requestAuthorization() }
                     } label: {
-                        Label {
-                            Text(L("Accessibility"))
-                            Text(L("Needed to move and resize windows and to use the switcher."))
-                        } icon: {
-                            Image(systemName: "accessibility").foregroundStyle(.orange)
-                        }
+                        Text(L("Accessibility"))
+                        Text(L("Needed to move and resize windows and to use the switcher."))
                     }
                 } header: {
-                    Text(L("App Permissions"))
+                    SettingsSubheader(L("App Permissions"), symbol: "exclamationmark.triangle.fill")
                 }
             }
 
-            // Rectangle: shortcuts and snapping.
+            // 1. Arranging windows (Rectangle): the switch, then its sub-topics.
             Section {
-                FeatureSwitch(module: .windows, title: L("Arrange windows"),
-                              caption: L("Snap, resize and move windows with shortcuts or by dragging to the screen edges."))
+                FeatureDrawingRow {
+                    ArrangeDrawing()
+                } content: {
+                    FeatureSwitch(module: .windows, title: L("Arrange windows"),
+                                  caption: L("Snap, resize and move windows with shortcuts or by dragging to the screen edges."))
+                }
                 if manager.isOn(.windows) {
-                    Toggle(isOn: $tweaks.greenButtonFills) {
-                        Text(L("Fill window when clicking green traffic light button"))
-                        Text(L("Like a double-click on the title bar, instead of full screen. Click again to restore the size."))
-                    }
-                }
-            } header: {
-                Text(L("Apps & Windows"))
-            }
-
-            if manager.isOn(.windows) {
-                Section {
-                    Toggle(isOn: $advanced.animation()) {
-                        Text(L("Advanced mode"))
-                        Text(L("Snap areas: what each edge and corner of the screen does when you drag a window there."))
-                    }
-                }
-                if advanced {
-                    SnapAreaSettingsView()
-                }
-                Section {
                     LabeledContent {
                         Button(L("Open Shortcuts")) { PageNavigator.shared.requestedTab = "shortcuts" }
                     } label: {
@@ -110,14 +90,38 @@ private struct WindowsTab: View {
                         Text(L("Every window and switcher shortcut is in the Shortcuts tab."))
                     }
                 }
+            } header: {
+                SettingsSubheader(L("Arrange Windows"), symbol: "rectangle.split.2x2")
             }
 
-            // Sirena's ⌘ Tab switcher (from Vorssaint).
+            if manager.isOn(.windows) {
+                Section {
+                    PictureCardPicker(selection: $tweaks.greenButtonFills, choices: [
+                        PictureChoice(false, L("Full screen, like macOS"),
+                                      detail: L("The window takes the whole screen in its own space; the menu bar and the Dock go away.")) {
+                            GreenButtonDrawing(fills: false)
+                        },
+                        PictureChoice(true, L("Fill the screen"),
+                                      detail: L("Like a double-click on the title bar: the window fills the screen and stays with the others. Click again to restore its size.")) {
+                            GreenButtonDrawing(fills: true)
+                        }
+                    ])
+                } header: {
+                    SettingsSubheader(L("Green button"), parent: L("Arrange Windows"), symbol: "plus.circle.fill")
+                }
+                SnapAreaSettingsView(showsDetails: $advanced)
+            }
+
+            // 2. Sirena's ⌘ Tab switcher (from Vorssaint).
             Section {
-                FeatureSwitch(module: .switcher, title: L("Window Switcher"),
-                              caption: ModuleID.switcher.summary)
+                FeatureDrawingRow {
+                    SwitcherDrawing()
+                } content: {
+                    FeatureSwitch(module: .switcher, title: L("Window Switcher"),
+                                  caption: ModuleID.switcher.summary)
+                }
             } header: {
-                Text(L("⌘ Tab"))
+                SettingsSubheader(L("⌘ Tab"), symbol: "rectangle.stack")
             }
             if manager.isOn(.switcher) {
                 WindowSwitcherSettingsView()

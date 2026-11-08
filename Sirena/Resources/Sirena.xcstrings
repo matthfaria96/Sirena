@@ -2902,26 +2902,6 @@
         }
       }
     },
-    "Fill window when clicking green traffic light button": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Preencher a janela ao clicar no botão verde"
-          }
-        }
-      }
-    },
-    "Apps & Windows": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Apps e janelas"
-          }
-        }
-      }
-    },
     "Unminimize all windows instead of one when clicking Dock icon": {
       "localizations": {
         "pt-BR": {
@@ -4752,16 +4732,6 @@
         }
       }
     },
-    "Window switcher": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Alternador de janelas"
-          }
-        }
-      }
-    },
     "Layout": {
       "localizations": {
         "pt-BR": {
@@ -4777,7 +4747,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Previews das janelas"
+            "value": "Prévias das janelas"
           }
         }
       }
@@ -5168,16 +5138,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Escolha como cada app aparece. Apps sem regra usam a opção acima."
-          }
-        }
-      }
-    },
-    "Window thumbnails": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Miniaturas das janelas"
           }
         }
       }
@@ -9312,26 +9272,6 @@
         }
       }
     },
-    "Like a double-click on the title bar, instead of full screen. Click again to restore the size.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Como um clique duplo na barra de título, em vez de tela cheia. Clique de novo para voltar ao tamanho anterior."
-          }
-        }
-      }
-    },
-    "Advanced mode": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Modo avançado"
-          }
-        }
-      }
-    },
     "⌘ Tab": {
       "localizations": {
         "pt-BR": {
@@ -9558,16 +9498,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Digite o novo atalho"
-          }
-        }
-      }
-    },
-    "Snap areas: what each edge and corner of the screen does when you drag a window there.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Áreas de encaixe: o que cada borda e canto da tela faz quando você arrasta uma janela até lá."
           }
         }
       }
@@ -13998,6 +13928,126 @@
           "stringUnit": {
             "state": "translated",
             "value": "A prévia cobre o nome do app que o macOS mostra acima do ícone no Dock."
+          }
+        }
+      }
+    },
+    "Arrange Windows": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Organizar Janelas"
+          }
+        }
+      }
+    },
+    "Full screen, like macOS": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tela cheia, como o macOS"
+          }
+        }
+      }
+    },
+    "The window takes the whole screen in its own space; the menu bar and the Dock go away.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A janela ocupa a tela inteira num espaço só dela; a barra de menus e o Dock somem."
+          }
+        }
+      }
+    },
+    "Fill the screen": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preencher a tela"
+          }
+        }
+      }
+    },
+    "Like a double-click on the title bar: the window fills the screen and stays with the others. Click again to restore its size.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Como um clique duplo na barra de título: a janela preenche a tela e continua junto das outras. Clique de novo para voltar ao tamanho anterior."
+          }
+        }
+      }
+    },
+    "Green button": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Botão verde"
+          }
+        }
+      }
+    },
+    "Customize snap areas": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajustar as áreas de encaixe"
+          }
+        }
+      }
+    },
+    "What each edge and corner of the screen does when you drag a window there, and how dragging looks.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O que cada borda e canto da tela faz quando você arrasta uma janela até lá, e como fica o arrasto."
+          }
+        }
+      }
+    },
+    "Dragging to the edges": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arrastar até as bordas"
+          }
+        }
+      }
+    },
+    "While dragging": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Durante o arrasto"
+          }
+        }
+      }
+    },
+    "How it works": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Como funciona"
+          }
+        }
+      }
+    },
+    "Which windows show up": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quais janelas aparecem"
           }
         }
       }

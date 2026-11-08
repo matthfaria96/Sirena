@@ -7,6 +7,7 @@
 // options of Vorssaint's SwitcherSettings page.
 
 import AppKit
+import DockKit
 import ApplicationServices
 import SwiftUI
 import UniformTypeIdentifiers
@@ -40,6 +41,9 @@ struct WindowSwitcherSettingsView: View {
 
     private enum Layout: String, Hashable { case windows, icons, simple }
 
+    /// Every sub-topic here belongs to ⌘ Tab.
+    private var parent: String { L("⌘ Tab") }
+
     private var layout: Binding<Layout> {
         Binding(
             get: { simpleMode ? .simple : (iconRowMode ? .icons : .windows) },
@@ -59,7 +63,7 @@ struct WindowSwitcherSettingsView: View {
     var body: some View {
         Group {
             if !accessibilityGranted || (!screenRecordingGranted && SwitcherSupport.capturesPreviews(simpleMode: simpleMode)) {
-                Section(L("Permission required")) {
+                Section {
                     if !accessibilityGranted {
                         permissionRow(L("Accessibility"),
                                       caption: L("Needed to read keys while the switcher is open and to focus, close and quit windows."),
@@ -75,36 +79,33 @@ struct WindowSwitcherSettingsView: View {
                             _ = CGRequestScreenCaptureAccess()
                         }
                     }
+                } header: {
+                    SettingsSubheader(L("Permission required"), parent: parent, symbol: "exclamationmark.triangle.fill")
                 }
             }
 
-            Section(L("Window switcher")) {
-                Picker(L("Layout"), selection: layout) {
-                    Text(L("Window previews")).tag(Layout.windows)
-                    Text(L("Large icons")).tag(Layout.icons)
-                    Text(L("Simple list")).tag(Layout.simple)
-                }
+            Section {
+                PictureCardPicker(selection: layout, choices: [
+                    PictureChoice(Layout.windows, L("Window previews")) { SwitcherLayoutDrawing(kind: .previews) },
+                    PictureChoice(Layout.icons, L("Large icons")) { SwitcherLayoutDrawing(kind: .icons) },
+                    PictureChoice(Layout.simple, L("Simple list")) { SwitcherLayoutDrawing(kind: .list) }
+                ], drawingHeight: 56)
                 Text(layoutCaption)
                     .font(.caption).foregroundStyle(.secondary)
-
-            }
-
-            Section(L("Options")) {
-                LabeledContent {
-                    HStack {
-                        Slider(value: appearanceDelayBinding,
-                               in: Double(SwitcherSupport.appearanceDelayMillisecondsRange.lowerBound)
-                                   ... Double(SwitcherSupport.appearanceDelayMillisecondsRange.upperBound),
-                               step: 25)
-                            .frame(width: 140)
-                        Text("\(SwitcherSupport.sanitizedAppearanceDelay(milliseconds: appearanceDelay)) ms")
-                            .font(.caption.monospacedDigit()).foregroundStyle(.secondary)
-                            .frame(width: 52, alignment: .trailing)
+                if SwitcherSupport.capturesPreviews(simpleMode: simpleMode) {
+                    Picker(L("Preview size"), selection: $previewSize) {
+                        Text(L("Small")).tag("small")
+                        Text(L("Normal")).tag("normal")
+                        Text(L("Large")).tag("large")
+                        Text(L("Extra large")).tag("xlarge")
                     }
-                } label: {
-                    Text(L("Appearance delay"))
-                    Text(L("How long the shortcut must be held before the switcher appears."))
+                    .onChange(of: previewSize) { _, _ in sync() }
+                    Toggle(isOn: $minimalPreviews) {
+                        Text(L("Minimal previews"))
+                        Text(L("Hide titles, buttons and decorative details in switcher previews. The selection stays visible."))
+                    }
                 }
+                Toggle(supportsLiquidGlass ? L("Liquid Glass background") : L("Translucent background"), isOn: $liquidGlass)
                 LabeledContent {
                     HStack {
                         Slider(value: maxColumnsBinding,
@@ -120,6 +121,38 @@ struct WindowSwitcherSettingsView: View {
                     Text(L("Maximum columns"))
                     Text(L("Wraps onto more rows after this many items. Useful on ultrawide displays."))
                 }
+                if simpleMode || iconRowMode {
+                    Toggle(isOn: $shortcutHints) {
+                        Text(L("Show shortcut hints"))
+                        Text(L("Shows the app and window shortcuts below the icons."))
+                    }
+                }
+                if SwitcherSupport.capturesPreviews(simpleMode: simpleMode) {
+                    SwitcherBundleListSection(
+                        key: SwitcherDefaultsKey.switcherPreviewExcludedApps,
+                        title: L("Pause in these apps"),
+                        caption: L("Window thumbnails stop while one of these apps is in front."))
+                }
+            } header: {
+                SettingsSubheader(L("Look"), parent: parent, symbol: "eye")
+            }
+
+            Section {
+                LabeledContent {
+                    HStack {
+                        Slider(value: appearanceDelayBinding,
+                               in: Double(SwitcherSupport.appearanceDelayMillisecondsRange.lowerBound)
+                                   ... Double(SwitcherSupport.appearanceDelayMillisecondsRange.upperBound),
+                               step: 25)
+                            .frame(width: 140)
+                        Text("\(SwitcherSupport.sanitizedAppearanceDelay(milliseconds: appearanceDelay)) ms")
+                            .font(.caption.monospacedDigit()).foregroundStyle(.secondary)
+                            .frame(width: 52, alignment: .trailing)
+                    }
+                } label: {
+                    Text(L("Appearance delay"))
+                    Text(L("How long the shortcut must be held before the switcher appears."))
+                }
                 Toggle(isOn: $instantSelection) {
                     Text(L("Instant selection"))
                     Text(L("Moves the highlight and scroll position immediately as you browse apps and windows."))
@@ -128,12 +161,11 @@ struct WindowSwitcherSettingsView: View {
                     Text(L("Pin search with S"))
                     Text(L("S starts a search and pins the switcher open, so typing no longer produces special characters when your shortcut uses ⌥, and a search starting with Q or W no longer closes the window or quits the app by mistake."))
                 }
-                if simpleMode || iconRowMode {
-                    Toggle(isOn: $shortcutHints) {
-                        Text(L("Show shortcut hints"))
-                        Text(L("Shows the app and window shortcuts below the icons."))
-                    }
-                }
+            } header: {
+                SettingsSubheader(L("How it works"), parent: parent, symbol: "keyboard")
+            }
+
+            Section {
                 Toggle(isOn: $mergeTabs) {
                     Text(L("Show one entry per app"))
                     Text(L("Collapses all of an app’s windows into one entry in the switcher, instead of one entry per window."))
@@ -150,6 +182,14 @@ struct WindowSwitcherSettingsView: View {
                     Toggle(L("Treat hidden apps like minimized windows"), isOn: $hiddenLikeMinimized)
                         .onChange(of: hiddenLikeMinimized) { _, _ in sync() }
                 }
+                Toggle(isOn: $currentSpaceOnly) {
+                    Text(L("Show only the current desktop"))
+                    Text(L("Lists windows from the current desktop. Fullscreen windows from other desktops also appear while “Show fullscreen windows” is on."))
+                }
+                Toggle(isOn: $currentDisplayOnly) {
+                    Text(L("Show only the current display"))
+                    Text(L("Lists only windows on the display under the pointer. If that display has no windows, the switcher does not open."))
+                }
                 Picker(selection: $screenPlacement) {
                     Text(L("Display with the pointer")).tag(SwitcherScreenPlacement.pointer.rawValue)
                     Text(L("Display with the menu bar")).tag(SwitcherScreenPlacement.menuBar.rawValue)
@@ -158,14 +198,8 @@ struct WindowSwitcherSettingsView: View {
                     Text(L("Show on"))
                     Text(L("Which display the switcher opens on when more than one is connected."))
                 }
-                Toggle(isOn: $currentDisplayOnly) {
-                    Text(L("Show only the current display"))
-                    Text(L("Lists only windows on the display under the pointer. If that display has no windows, the switcher does not open."))
-                }
-                Toggle(isOn: $currentSpaceOnly) {
-                    Text(L("Show only the current desktop"))
-                    Text(L("Lists windows from the current desktop. Fullscreen windows from other desktops also appear while “Show fullscreen windows” is on."))
-                }
+            } header: {
+                SettingsSubheader(L("Which windows show up"), parent: parent, symbol: "macwindow.on.rectangle")
             }
 
             Section {
@@ -185,28 +219,9 @@ struct WindowSwitcherSettingsView: View {
                 }
                 SwitcherAppRulesSection()
             } header: {
-                Text(L("Rules by app"))
+                SettingsSubheader(L("Rules by app"), parent: parent, symbol: "app.badge.checkmark")
             } footer: {
                 Text(L("Choose how each app appears. Apps without a rule use the choice above."))
-            }
-
-            Section(L("Window thumbnails")) {
-                Picker(L("Preview size"), selection: $previewSize) {
-                    Text(L("Small")).tag("small")
-                    Text(L("Normal")).tag("normal")
-                    Text(L("Large")).tag("large")
-                    Text(L("Extra large")).tag("xlarge")
-                }
-                .onChange(of: previewSize) { _, _ in sync() }
-                Toggle(supportsLiquidGlass ? L("Liquid Glass background") : L("Translucent background"), isOn: $liquidGlass)
-                Toggle(isOn: $minimalPreviews) {
-                    Text(L("Minimal previews"))
-                    Text(L("Hide titles, buttons and decorative details in switcher previews. The selection stays visible."))
-                }
-                SwitcherBundleListSection(
-                    key: SwitcherDefaultsKey.switcherPreviewExcludedApps,
-                    title: L("Pause in these apps"),
-                    caption: L("Window thumbnails stop while one of these apps is in front."))
             }
         }
         .onAppear {

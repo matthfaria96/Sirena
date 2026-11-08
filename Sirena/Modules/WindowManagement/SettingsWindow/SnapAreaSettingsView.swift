@@ -1,5 +1,6 @@
 /// SnapAreaSettingsView.swift
 
+import DockKit
 import SwiftUI
 import Combine
 
@@ -189,15 +190,23 @@ final class SnapAreaViewModel {
 
 struct SnapAreaSettingsView: View {
     @State private var viewModel = SnapAreaViewModel()
+    /// "Ajustar as áreas de encaixe": the drag feedback and each area of the screen.
+    @Binding var showsDetails: Bool
+
+    init(showsDetails: Binding<Bool> = .constant(true)) {
+        _showsDetails = showsDetails
+    }
+
+    private var arrangeParent: String { L("Arrange Windows") }
 
     private var landscapeHeaderTitle: String {
         viewModel.isPortraitConnected ? String(localized: "Landscape Snap Areas") : String(localized: "Snap Areas")
     }
     
-    /// Sections for the grouped Form of the Janelas tab (advanced mode).
+    /// Sections for the grouped Form of the Janelas tab: dragging to the edges first, the
+    /// details only once "Ajustar as áreas de encaixe" is on.
     var body: some View {
         Group {
-            // General Toggles
             Section {
                 Toggle(isOn: $viewModel.windowSnapping) {
                     HStack(spacing: 6) {
@@ -211,9 +220,15 @@ struct SnapAreaSettingsView: View {
                         InfoButton(L("When you drag a snapped window away from its area, it goes back to the size it had before snapping."))
                     }
                 }
+                Toggle(isOn: $showsDetails.animation()) {
+                    Text(L("Customize snap areas"))
+                    Text(L("What each edge and corner of the screen does when you drag a window there, and how dragging looks."))
+                }
+            } header: {
+                SettingsSubheader(L("Dragging to the edges"), parent: arrangeParent, symbol: "arrow.up.left.and.down.right.and.arrow.up.right.and.down.left")
             }
-            
-            // Customization Options
+
+            if showsDetails {
             Section {
                 Toggle(isOn: $viewModel.hapticFeedback) {
                     HStack(spacing: 6) {
@@ -259,14 +274,15 @@ struct SnapAreaSettingsView: View {
                     }
                 }
                 }
+            } header: {
+                SettingsSubheader(L("While dragging"), parent: arrangeParent, symbol: "hand.draw")
             }
             
             // Landscape Inline Section
             Section {
                 SnapAreaGridView(viewModel: viewModel, orientation: .landscape)
             } header: {
-                Label(landscapeHeaderTitle, systemImage: "rectangle.inset.filled")
-                    .font(.headline)
+                SettingsSubheader(landscapeHeaderTitle, parent: arrangeParent, symbol: "rectangle.inset.filled")
             }
             
             // Portrait Inline Section (Wrapped in Group for proper Form structural updates)
@@ -275,10 +291,10 @@ struct SnapAreaSettingsView: View {
                     Section {
                         SnapAreaGridView(viewModel: viewModel, orientation: .portrait)
                     } header: {
-                        Label("Portrait Snap Areas", systemImage: "rectangle.portrait.inset.filled")
-                            .font(.headline)
+                        SettingsSubheader(String(localized: "Portrait Snap Areas"), parent: arrangeParent, symbol: "rectangle.portrait.inset.filled")
                     }
                 }
+            }
             }
         }
         .animation(.easeInOut(duration: 0.2), value: viewModel.footprintBlur)
