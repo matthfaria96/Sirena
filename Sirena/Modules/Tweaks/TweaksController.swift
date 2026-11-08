@@ -388,8 +388,11 @@ final class TweaksEngine: @unchecked Sendable {
                   let layer = window[kCGWindowLayer as String] as? Int,
                   let pid = window[kCGWindowOwnerPID as String] as? pid_t else { continue }
             let owner = window[kCGWindowOwnerName as String] as? String
-            // Front-most window under the pointer decides; Sirena's own windows are left alone.
-            guard pid != ownPID else { return nil }
+            // Front-most window under the pointer decides. Sirena's own windows are looked
+            // through: the Dock preview panel overlaps the top of the icon it belongs to (its
+            // transparent margin), and the click still reaches the Dock. Whether it really is
+            // a Dock icon is checked next, through Accessibility.
+            guard pid != ownPID else { continue }
             if owner == "Dock" && layer == Int(CGWindowLevelForKey(.dockWindow)) {
                 return WindowHit(pid: pid, layer: layer, frame: frame, isDock: true)
             }
