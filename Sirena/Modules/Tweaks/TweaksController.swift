@@ -127,14 +127,13 @@ private struct TweaksSnapshot {
         func flag(_ key: String) -> Bool { defaults.object(forKey: key) as? Bool ?? true }
         // The Finder tweaks follow Melhorias' switch; the Dock ones live on Janela e Dock.
         let finder = TweaksController.finderTweaksOn
-        // One choice decides how windows are put away: the minimize mode (Dock tab).
+        // The minimize mode (Dock tab) decides the Dock click too: "Ocultar tudo" hides the app
+        // in front when its icon is clicked; "Como o macOS" leaves the click to macOS.
         let hidesApp = SirenaMinimize.hidesApp
-        let click = DockActiveAppClick(rawValue: defaults.string(forKey: "tweaks.dockActiveAppClick") ?? "") ?? .minimizeWindows
         return TweaksSnapshot(
             greenButtonFills: flag("tweaks.greenButtonFills"),
-            dockActiveAppClick: click == .nothing ? .nothing : (hidesApp ? .hideApp : .minimizeWindows),
-            // Hiding leaves nothing minimized: restoring them all only matters in the macOS mode.
-            dockUnminimizeAll: !hidesApp && flag("tweaks.dockUnminimizeAll"),
+            dockActiveAppClick: hidesApp ? .hideApp : .nothing,
+            dockUnminimizeAll: false,
             dockFoldersOpenInFinder: flag("tweaks.dockFoldersOpenInFinder"),
             finderCutAndPaste: finder && flag("tweaks.finderCutAndPaste"),
             finderCutSound: flag("tweaks.finderCutSound"),
@@ -414,10 +413,7 @@ final class TweaksEngine: @unchecked Sendable {
             return hold(event) { Self.onMain { NSWorkspace.shared.open(url) } }
         }
 
-        guard subrole == "AXApplicationDockItem",
-              let app = NSWorkspace.shared.runningApplications.first(where: {
-                  $0.bundleURL?.standardizedFileURL == url.standardizedFileURL
-              }) else { return event }
+        guard subrole == "AXApplicationDockItem", let app = Self.runningApp(forDockItemAt: url) else { return event }
 
         // Never against Sirena itself: AX calls into one's own process run AppKit
         // synchronously on this tap thread, which crashes. macOS handles the click.
@@ -432,8 +428,9 @@ final class TweaksEngine: @unchecked Sendable {
             case .nothing:
                 break
             case .minimizeWindows:
-                let toMinimize = windows.filter { !PinAX.isMinimized($0) }
-                return hold(event) { Self.minimizeAtOnce(toMinimize, of: app) }
+                return hold(event) {
+                    for window in windows where !PinAX.isMinimized(window) { PinAX.minimize(window) }
+                }
             case .hideApp:
                 return hold(event) { Self.onMain { app.hide() } }
             }
@@ -450,23 +447,18 @@ final class TweaksEngine: @unchecked Sendable {
         return event
     }
 
-    /// macOS minimizes one window at a time, animating each inside the app. With the app hidden
-    /// first, they all go down at once (≈0.2 s for all), then the app is shown again. Runs off
-    /// the tap thread: nothing here waits on it.
-    private static func minimizeAtOnce(_ windows: [AXUIElement], of app: NSRunningApplication) {
-        guard windows.count > 1 else {
-            windows.forEach(PinAX.minimize)
-            return
+    /// Dock icon URL → bundle id, read from disk once per app (only touched on the tap thread).
+    nonisolated(unsafe) private static var dockBundleIDs: [URL: String] = [:]
+
+    private static func runningApp(forDockItemAt url: URL) -> NSRunningApplication? {
+        let running = NSWorkspace.shared.runningApplications
+        let bundleID = dockBundleIDs[url] ?? Bundle(url: url)?.bundleIdentifier
+        if let bundleID { dockBundleIDs[url] = bundleID }
+        if let bundleID,
+           let app = running.first(where: { $0.bundleIdentifier == bundleID }) {
+            return app
         }
-        onMain { app.hide() }
-        DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + 0.15) {
-            windows.forEach(PinAX.minimize)
-            // Show the app again once they are all down (at most 2 s).
-            for _ in 0 ..< 40 where !windows.allSatisfy(PinAX.isMinimized) {
-                usleep(50_000)
-            }
-            onMain { app.unhide() }
-        }
+        return running.first { $0.bundleURL?.standardizedFileURL == url.standardizedFileURL }
     }
 
     private static func standardWindows(of pid: pid_t) -> [AXUIElement] {

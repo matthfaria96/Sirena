@@ -49,12 +49,6 @@ final class TweaksSettings {
     // Dock
     var dockActiveAppClick: DockActiveAppClick { didSet { save(dockActiveAppClick.rawValue, "tweaks.dockActiveAppClick") } }
     var dockUnminimizeAll: Bool { didSet { save(dockUnminimizeAll, "tweaks.dockUnminimizeAll") } }
-    /// Clicking the app in front in the Dock puts its windows away; how (hide the app or
-    /// minimize every window) follows the minimize mode on the Dock tab.
-    var dockClickPutsAway: Bool {
-        get { dockActiveAppClick != .nothing }
-        set { dockActiveAppClick = newValue ? .minimizeWindows : .nothing }
-    }
     var dockFoldersOpenInFinder: Bool { didSet { save(dockFoldersOpenInFinder, "tweaks.dockFoldersOpenInFinder") } }
 
     // Finder

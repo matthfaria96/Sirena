@@ -158,31 +158,20 @@ private struct DockTab: View {
                 SirenaDockSettingsSections()
             }
 
-            // One choice says how windows are put away; the Dock click follows it.
+            // Two modes: macOS as it is, or every window hidden at once (the Dock click follows).
             Section {
-                Picker(L("Minimizing"), selection: $hidesApp) {
-                    Text(L("Hides the app: all windows go and come back together")).tag(true)
-                    Text(L("Sends each window to the Dock, like macOS")).tag(false)
-                }
+                MinimizeModePicker(hidesApp: $hidesApp)
                 if hidesApp && !manager.isOn(.dock) {
                     Label(L("Turn on Dock Previews above: they notice when a window is minimized."), systemImage: "exclamationmark.triangle.fill")
                         .foregroundStyle(.orange)
                         .font(.callout)
                 }
-                Toggle(isOn: $tweaks.dockClickPutsAway) {
-                    Text(L("Clicking the app in front in the Dock puts its windows away"))
-                    Text(hidesApp ? L("Hides the app, like minimizing. Click it again to bring everything back.")
-                                  : L("Minimizes all of its windows at once, without the one-by-one animation."))
-                }
-                if !hidesApp {
-                    Toggle(L("Unminimize all windows instead of one when clicking Dock icon"), isOn: $tweaks.dockUnminimizeAll)
-                }
             } header: {
                 Text(L("Minimizing Windows"))
             } footer: {
                 Text(hidesApp
-                     ? L("Minimizing a window (yellow button, ⌘M or Minimize All) hides all of the app's windows at once, instead of macOS shrinking them one by one. Click the app in the Dock, or pick it with ⌘ Tab, and they all come back together.")
-                     : L("Each window goes into the Dock, as macOS does it. Bringing them back, macOS animates one window at a time."))
+                     ? L("Works with the yellow button, ⌘M, Minimize All and a click on the app in front in the Dock. Click the app in the Dock, or pick it with ⌘ Tab, and every window comes back at once.")
+                     : L("Sirena leaves minimizing and Dock clicks to macOS."))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

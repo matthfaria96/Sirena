@@ -13822,72 +13822,12 @@
         }
       }
     },
-    "Minimizing": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ao minimizar"
-          }
-        }
-      }
-    },
-    "Hides the app: all windows go and come back together": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Esconde o app: todas as janelas saem e voltam juntas"
-          }
-        }
-      }
-    },
-    "Sends each window to the Dock, like macOS": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Manda cada janela para o Dock, como o macOS"
-          }
-        }
-      }
-    },
     "Turn on Dock Previews above: they notice when a window is minimized.": {
       "localizations": {
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
             "value": "Ligue as Prévias do Dock acima: são elas que percebem quando uma janela é minimizada."
-          }
-        }
-      }
-    },
-    "Clicking the app in front in the Dock puts its windows away": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Clicar no app da frente no Dock tira as janelas dele da tela"
-          }
-        }
-      }
-    },
-    "Hides the app, like minimizing. Click it again to bring everything back.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Esconde o app, como ao minimizar. Clique de novo para trazer tudo de volta."
-          }
-        }
-      }
-    },
-    "Minimizes all of its windows at once, without the one-by-one animation.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Minimiza todas as janelas dele de uma vez, sem a animação uma por uma."
           }
         }
       }
@@ -13902,22 +13842,62 @@
         }
       }
     },
-    "Minimizing a window (yellow button, ⌘M or Minimize All) hides all of the app's windows at once, instead of macOS shrinking them one by one. Click the app in the Dock, or pick it with ⌘ Tab, and they all come back together.": {
+    "Like macOS": {
       "localizations": {
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Minimizar uma janela (botão amarelo, ⌘M ou Minimizar Todas) esconde todas as janelas do app de uma vez, em vez de o macOS encolher uma por uma. Clique no app no Dock, ou escolha ele pelo ⌘ Tab, e todas voltam juntas."
+            "value": "Como o macOS"
           }
         }
       }
     },
-    "Each window goes into the Dock, as macOS does it. Bringing them back, macOS animates one window at a time.": {
+    "Nothing changes: each window shrinks into the Dock and comes back one at a time.": {
       "localizations": {
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cada janela vai para o Dock, como o macOS faz. Na volta, o macOS anima uma janela por vez."
+            "value": "Nada muda: cada janela encolhe para o Dock e volta uma de cada vez."
+          }
+        }
+      }
+    },
+    "Hide everything": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ocultar tudo"
+          }
+        }
+      }
+    },
+    "Minimizing, or clicking the app in the Dock, hides all of its windows. They all come back together.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minimizar, ou clicar no app no Dock, esconde todas as janelas dele. Elas voltam todas juntas."
+          }
+        }
+      }
+    },
+    "Works with the yellow button, ⌘M, Minimize All and a click on the app in front in the Dock. Click the app in the Dock, or pick it with ⌘ Tab, and every window comes back at once.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vale para o botão amarelo, o ⌘M, o Minimizar Todas e o clique no app da frente no Dock. Clique no app no Dock, ou escolha ele pelo ⌘ Tab, e todas as janelas voltam de uma vez."
+          }
+        }
+      }
+    },
+    "Sirena leaves minimizing and Dock clicks to macOS.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Sirena deixa o minimizar e os cliques no Dock por conta do macOS."
           }
         }
       }

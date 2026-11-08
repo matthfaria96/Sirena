@@ -54,8 +54,32 @@ final class MinimizeHidesApp: @unchecked Sendable {
     // Touched only on `queue`.
     private var sessions: [pid_t: Session] = [:]
     private var ownMinimizeUntil: [pid_t: Date] = [:]
+    /// Windows of apps that come back on their own when a window is restored while hidden
+    /// (Catalyst apps such as WhatsApp): they stay minimized until the app is shown again.
+    private var deferred: [pid_t: [AXUIElement]] = [:]
+    /// Bundle ids of those apps, learned the first time it happens.
+    private static let restoreOnShowKey = "minimizeHidesApp.restoreOnShow"
 
-    private init() {}
+    private init() {
+        NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.didUnhideApplicationNotification, object: nil, queue: nil
+        ) { [weak self] note in
+            guard let app = note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication else { return }
+            let pid = app.processIdentifier
+            self?.queue.async { self?.restoreDeferred(pid) }
+        }
+    }
+
+    private static func restoresOnShow(_ bundleID: String?) -> Bool {
+        guard let bundleID else { return false }
+        return UserDefaults.standard.stringArray(forKey: restoreOnShowKey)?.contains(bundleID) == true
+    }
+
+    private static func learnRestoresOnShow(_ bundleID: String?) {
+        guard let bundleID, !restoresOnShow(bundleID) else { return }
+        UserDefaults.standard.set((UserDefaults.standard.stringArray(forKey: restoreOnShowKey) ?? []) + [bundleID],
+                                  forKey: restoreOnShowKey)
+    }
 
     static var isEnabled: Bool { Defaults[.minimizeHidesAllWindows] }
 
@@ -138,8 +162,22 @@ final class MinimizeHidesApp: @unchecked Sendable {
         guard !windows.isEmpty else { return }
         session.pending.removeAll()
         sessions[pid] = session
-        log.notice("pid \(pid, privacy: .public): bringing \(windows.count, privacy: .public) windows back behind the hidden app")
-        windows.forEach { restore($0, pid: pid, attempt: 1) }
+        let bundleID = NSRunningApplication(processIdentifier: pid)?.bundleIdentifier
+        if Self.restoresOnShow(bundleID) {
+            deferred[pid, default: []] += windows
+            log.notice("pid \(pid, privacy: .public): \(windows.count, privacy: .public) windows come back when the app is shown")
+        } else {
+            log.notice("pid \(pid, privacy: .public): bringing \(windows.count, privacy: .public) windows back behind the hidden app")
+            windows.forEach { restore($0, pid: pid, attempt: 1) }
+            // Some apps show themselves when a window comes back: hide again, and from now on
+            // keep their windows minimized until they are shown.
+            queue.asyncAfter(deadline: .now() + 0.7) {
+                guard let app = NSRunningApplication(processIdentifier: pid), !app.isHidden else { return }
+                log.notice("pid \(pid, privacy: .public): came back on its own, hidden again; restoring on show from now on")
+                Self.learnRestoresOnShow(app.bundleIdentifier)
+                DispatchQueue.main.async { app.hide() }
+            }
+        }
         // Keep the session a moment so late notifications of this burst are still collected.
         queue.asyncAfter(deadline: .now() + Self.sessionQuietTime) {
             guard let current = self.sessions[pid], current.pending.isEmpty,
@@ -150,16 +188,23 @@ final class MinimizeHidesApp: @unchecked Sendable {
 
     /// Brings a window back while its app is hidden: no animation is seen, the app stays hidden,
     /// and the window shows with the others when the app comes back.
-    private func restore(_ window: AXUIElement, pid: pid_t, attempt: Int) {
+    private func restore(_ window: AXUIElement, pid: pid_t, attempt: Int, whileHidden: Bool = true) {
         // The user brought the app back meanwhile: macOS restores the rest its own way.
-        guard NSRunningApplication(processIdentifier: pid)?.isHidden == true else { return }
+        if whileHidden, NSRunningApplication(processIdentifier: pid)?.isHidden != true { return }
         AXUIElementSetMessagingTimeout(window, 1.0)
         let result = AXUIElementSetAttributeValue(window, kAXMinimizedAttribute as CFString, kCFBooleanFalse)
         // Still busy (finishing its own minimizing): try again shortly.
         if result == .cannotComplete, attempt < 6 {
-            queue.asyncAfter(deadline: .now() + 0.3) { self.restore(window, pid: pid, attempt: attempt + 1) }
+            queue.asyncAfter(deadline: .now() + 0.3) { self.restore(window, pid: pid, attempt: attempt + 1, whileHidden: whileHidden) }
         } else if result != .success {
             log.error("pid \(pid, privacy: .public): could not bring a window back (\(result.rawValue, privacy: .public))")
         }
+    }
+
+    /// The app was shown (Dock, ⌘ Tab): bring back the windows kept minimized for it.
+    private func restoreDeferred(_ pid: pid_t) {
+        guard let windows = deferred.removeValue(forKey: pid), !windows.isEmpty else { return }
+        log.notice("pid \(pid, privacy: .public): shown, bringing \(windows.count, privacy: .public) windows back")
+        windows.forEach { restore($0, pid: pid, attempt: 1, whileHidden: false) }
     }
 }
