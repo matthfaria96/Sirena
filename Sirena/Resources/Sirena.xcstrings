@@ -13801,6 +13801,36 @@
           }
         }
       }
+    },
+    "Color of the app in use": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cor do app em uso"
+          }
+        }
+      }
+    },
+    "The menu, ⌘ Tab and the Dock previews take on a touch of the color of the app you are using, taken from its icon.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O menu, o ⌘ Tab e as prévias do Dock ganham um toque da cor do app que você está usando, tirada do ícone dele."
+          }
+        }
+      }
+    },
+    "Color strength": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Intensidade da cor"
+          }
+        }
+      }
     }
   }
 }

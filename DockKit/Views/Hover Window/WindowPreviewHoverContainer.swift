@@ -279,6 +279,7 @@ struct WindowPreviewHoverContainer: View {
             bestGuessMonitor: bestGuessMonitor,
             mockPreviewActive: mockPreviewActive,
             content: { windowGridContent() },
+            highlightColor: appTint,
             backgroundAppearance: backgroundAppearance,
             cornerRadius: radii.container
         )
@@ -837,6 +838,16 @@ struct WindowPreviewHoverContainer: View {
                 stopEdgeScroll()
             }
         }
+    }
+
+    /// Sirena: the glass takes the color of the app shown (the selected one in the switcher).
+    private var appTint: Color? {
+        let windows = previewStateCoordinator.windows
+        let index = previewStateCoordinator.currIndex
+        let app = previewStateCoordinator.windowSwitcherActive
+            ? (windows.indices.contains(index) ? windows[index].app : nil)
+            : windows.first?.app
+        return AppAccentColor.shared.tint(for: app).map { Color(nsColor: $0) }
     }
 
     private func loadAppIcon() {

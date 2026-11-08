@@ -12,6 +12,8 @@ struct GeneralPage: View {
     @State private var launchOnLogin = Defaults.launchOnLogin.enabled
     @State private var recordingObserver = ShortcutRecordingObserver()
     @State private var permissions = PermissionsState()
+    @AppStorage(AppAccentColor.enabledKey) private var appTint = false
+    @AppStorage(AppAccentColor.strengthKey) private var appTintStrength = AppAccentColor.defaultStrength
 
     var body: some View {
         SettingsColumn {
@@ -40,6 +42,17 @@ struct GeneralPage: View {
                 SettingsRow(L("Transparent menu"), detail: supportsLiquidGlass ? L("Liquid Glass you can see through. Off, the menu keeps a solid backing that reads over white windows.") : L("A translucent menu you can see through. Off, the menu keeps a solid backing that reads over white windows."), symbol: "circle.dotted.circle") {
                     Toggle("", isOn: Binding(get: { BoltMenuSettings.shared.clearGlass },
                                              set: { BoltMenuSettings.shared.clearGlass = $0 })).settingsSwitch()
+                }
+                SettingsSeparator(indented: true)
+                SettingsRow(L("Color of the app in use"), detail: L("The menu, ⌘ Tab and the Dock previews take on a touch of the color of the app you are using, taken from its icon."), symbol: "paintpalette") {
+                    Toggle("", isOn: $appTint).settingsSwitch()
+                }
+                if appTint {
+                    SettingsSeparator(indented: true)
+                    SettingsRow(L("Color strength"), symbol: "circle.lefthalf.filled") {
+                        Slider(value: $appTintStrength, in: 0.2...1)
+                            .frame(width: 150)
+                    }
                 }
                 SettingsSeparator(indented: true)
                 SettingsRow(L("Open Sirena on Home"), detail: L("From any app."), symbol: "keyboard") {

@@ -9,6 +9,7 @@
 import AppKit
 import AVFoundation
 import ClipboardKit
+import DockKit
 import SwiftUI
 
 enum BoltMenuItem: String, CaseIterable, Identifiable {
@@ -238,6 +239,9 @@ final class BoltMenuSettings {
 
 struct BoltMenuView: View {
     @State private var settings = BoltMenuSettings.shared
+    @State private var accent = AppAccentColor.shared
+    @AppStorage(AppAccentColor.enabledKey) private var tintEnabled = false
+    @AppStorage(AppAccentColor.strengthKey) private var tintStrength = AppAccentColor.defaultStrength
     let close: () -> Void
     /// Inline panels under the shortcut row (camera peek and the last copies).
     @State private var showsPeek = false
@@ -321,10 +325,17 @@ struct BoltMenuView: View {
         .frame(width: 344)
         // Liquid Glass alone vanishes over white windows: a body under it keeps the menu legible.
         .background {
-            if !BoltMenuSettings.shared.clearGlass {
-                Color(nsColor: .windowBackgroundColor).opacity(0.9)
-                    .padding(-30)
+            ZStack {
+                if !BoltMenuSettings.shared.clearGlass {
+                    Color(nsColor: .windowBackgroundColor).opacity(0.9)
+                }
+                // The color of the app you were using, over the glass.
+                if tintEnabled, let tint = accent.current {
+                    Color(nsColor: tint).opacity(0.28 * tintStrength)
+                        .animation(.easeOut(duration: 0.3), value: tint)
+                }
             }
+            .padding(-30)
         }
         .animation(.snappy(duration: 0.28), value: showsPeek)
         .animation(.snappy(duration: 0.28), value: showsHistory)

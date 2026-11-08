@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Vorssaint
 
+import DockKit
 import SwiftUI
 
 private enum SwitcherIconStyle {
@@ -55,6 +56,21 @@ struct SwitcherView: View {
     @AppStorage(SwitcherDefaultsKey.switcherShortcut) private var switcherShortcutStorage = SwitcherGlobalShortcut.switcherDefault.storageValue
     @AppStorage(SwitcherDefaultsKey.switcherWindowShortcut) private var switcherWindowShortcutStorage = SwitcherGlobalShortcut.switcherWindowDefault.storageValue
 
+    @AppStorage(AppAccentColor.enabledKey) private var tintEnabled = false
+    @AppStorage(AppAccentColor.strengthKey) private var tintStrength = AppAccentColor.defaultStrength
+
+    /// Sirena: the glass takes the color of the selected window's app.
+    @ViewBuilder
+    private var selectionTint: some View {
+        if tintEnabled, switcher.windows.indices.contains(switcher.selectedIndex),
+           let tint = AppAccentColor.shared.tint(forPID: switcher.windows[switcher.selectedIndex].pid) {
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .fill(Color(nsColor: tint).opacity(0.24 * tintStrength))
+                .animation(.easeOut(duration: 0.2), value: tint)
+                .allowsHitTesting(false)
+        }
+    }
+
     var body: some View {
         if SwitcherSupport.usesIconRowLayout(iconRowMode: iconRowMode,
                                              simpleMode: simpleMode),
@@ -74,7 +90,7 @@ struct SwitcherView: View {
             }
         }
         .padding(SwitcherGrid.padding)
-        .background(SwitcherHUDBackdrop(cornerRadius: 24))
+        .background(SwitcherHUDBackdrop(cornerRadius: 24).overlay(selectionTint))
         .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
         .overlay(alignment: .topTrailing) {
             searchChip
