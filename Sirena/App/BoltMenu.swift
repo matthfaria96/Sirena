@@ -15,7 +15,7 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
     // Atalhos
     case clipboard, pinWindow, textCapture, screenCapture, pomodoro, colorPicker, screenBrush, mirror
     // Controladores
-    case keepAwake, displayOff, devices, sound
+    case keepAwake, displayOff, dimScreens, devices, sound
 
     var id: String { rawValue }
 
@@ -39,6 +39,7 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
         case .screenCapture, .pomodoro, .colorPicker, .screenBrush: return module?.title ?? ""
         case .keepAwake: return L("Keep Display On")
         case .displayOff: return ModuleID.displayOff.title
+        case .dimScreens: return L("Dim Other Screens")
         case .mirror: return L("Peek Camera")
         case .devices: return L("Connected Devices")
         case .sound: return L("Sound Mixer")
@@ -58,6 +59,7 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
         case .mirror: return L("A quick look at yourself before a call.")
         case .keepAwake: return L("Keeps the display on for as long as you want.")
         case .displayOff: return L("Turns the screen off with one click, after a countdown.")
+        case .dimScreens: return L("Darkens the screens you are not using, with two or more displays.")
         case .devices: return L("Your Bluetooth accessories and how much battery they have.")
         case .sound: return L("Each app's volume and where the sound goes.")
         }
@@ -90,6 +92,7 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
         case .screenBrush: return L("Turns the screen into a canvas to draw, highlight and point. Esc to leave.")
         case .keepAwake: return L("Keeps the Mac and the display from sleeping, for the time you choose or indefinitely. The time is remembered.")
         case .displayOff: return L("Click to start the countdown; you can cancel before the screen goes dark.")
+        case .dimScreens: return L("With two or more displays, the ones you are not using fade to dark after a moment and light up again when the pointer gets there.")
         case .mirror: return L("Opens the camera below the menu bar for a quick look at yourself, with a countdown. It closes by itself after 10 seconds (changeable on its page).")
         case .devices: return L("Shows the keyboards, mice, headphones and other Bluetooth devices connected to the Mac, with their battery.")
         case .sound: return L("Volume of the Mac and of each app, the sound output and the microphone, all in one place.")
@@ -104,6 +107,7 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
         case .screenCapture, .pomodoro, .colorPicker, .screenBrush: return module?.symbol ?? "circle"
         case .keepAwake: return "cup.and.saucer.fill"
         case .displayOff: return ModuleID.displayOff.symbol
+        case .dimScreens: return "display.2"
         case .mirror: return "camera.fill"
         case .devices: return "dot.radiowaves.left.and.right"
         case .sound: return "slider.vertical.3"
@@ -118,6 +122,7 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
         case .screenCapture, .pomodoro, .colorPicker, .screenBrush: return module?.tint ?? .accentColor
         case .keepAwake: return ModuleID.keepAwake.tint
         case .displayOff: return ModuleID.displayOff.tint
+        case .dimScreens: return .indigo
         case .mirror: return ModuleID.mirror.tint
         case .devices: return .blue
         case .sound: return .purple
@@ -135,7 +140,7 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
         case .colorPicker: return .colorPicker
         case .screenBrush: return .screenBrush
         case .keepAwake: return .keepAwake
-        case .displayOff: return .displayOff
+        case .displayOff, .dimScreens: return .displayOff
         case .mirror: return .mirror
         case .sound: return .mixer
         default: return nil
@@ -172,7 +177,7 @@ final class BoltMenuSettings {
     private init() {
         let saved = UserDefaults.standard.stringArray(forKey: Self.key)
         var items = saved.map { Set($0.compactMap(BoltMenuItem.init)) }
-            ?? Set(BoltMenuItem.allCases).subtracting([.sound])
+            ?? Set(BoltMenuItem.allCases).subtracting([.sound, .dimScreens])
         // Pomodoro, Color Picker and Freehand Drawing came later: show them once to everyone.
         if !UserDefaults.standard.bool(forKey: "boltMenu.addedFocusColorBrush") {
             items.formUnion([.pomodoro, .colorPicker, .screenBrush])
@@ -185,6 +190,15 @@ final class BoltMenuSettings {
         if !UserDefaults.standard.bool(forKey: "boltMenu.addedScreenCapture") {
             items.insert(.screenCapture)
             UserDefaults.standard.set(true, forKey: "boltMenu.addedScreenCapture")
+        }
+        if !UserDefaults.standard.bool(forKey: "boltMenu.addedDimScreens") {
+            // Only where it can do something: a Mac with one display doesn't need the row.
+            // Read from Core Graphics: this can run before AppKit knows the screens.
+            var displays: UInt32 = 0
+            CGGetActiveDisplayList(0, nil, &displays)
+            if displays > 1 { items.insert(.dimScreens) }
+            HomeOrder.shared.insert(BoltMenuItem.dimScreens.rawValue, before: BoltMenuItem.devices.rawValue, group: "controls")
+            UserDefaults.standard.set(true, forKey: "boltMenu.addedDimScreens")
         }
         if !UserDefaults.standard.bool(forKey: "boltMenu.addedDevices") {
             items.insert(.devices)
@@ -648,6 +662,8 @@ private struct ControlRow: View {
             .help(item.detail)
         case .displayOff:
             DisplayOffRow(item: item)
+        case .dimScreens:
+            DimScreensRow(item: item)
         case .devices:
             ConnectedDevicesSection()
         default:
@@ -693,6 +709,38 @@ private struct DisplayOffRow: View {
             .id(delay)
         }
         .help(item.detail)
+    }
+}
+
+/// Dim the other screens: icon, its state, and the switch.
+private struct DimScreensRow: View {
+    let item: BoltMenuItem
+    @State private var dimmer = ScreenDimmer.shared
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 10) {
+            GlassIcon(symbol: item.symbol, tint: item.tint, size: 32, isOn: dimmer.isDimming)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(item.title)
+                    .font(.callout.weight(.medium))
+                    .lineLimit(1)
+                Text(status)
+                    .font(.caption)
+                    .foregroundStyle(dimmer.isDimming ? .green : .secondary)
+                    .lineLimit(1)
+            }
+            Spacer(minLength: 6)
+            Toggle(item.title, isOn: $dimmer.isEnabled)
+                .toggleStyle(.switch)
+                .controlSize(.small)
+                .labelsHidden()
+        }
+        .help(item.detail)
+    }
+
+    private var status: String {
+        guard dimmer.isEnabled else { return L("Turned off") }
+        return dimmer.hasSeveralScreens ? L("Turned on") : L("Waiting for a second display")
     }
 }
 

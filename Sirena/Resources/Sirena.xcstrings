@@ -13641,6 +13641,166 @@
           }
         }
       }
+    },
+    "The one with the pointer": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A que está com o ponteiro"
+          }
+        }
+      }
+    },
+    "The one with the focused window": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A que está com a janela em foco"
+          }
+        }
+      }
+    },
+    "2 seconds": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2 segundos"
+          }
+        }
+      }
+    },
+    "Dim Other Screens": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escurecer Outras Telas"
+          }
+        }
+      }
+    },
+    "Darkens the screens you are not using, with two or more displays.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escurece as telas que você não está usando, com dois ou mais monitores."
+          }
+        }
+      }
+    },
+    "With two or more displays, the ones you are not using fade to dark after a moment and light up again when the pointer gets there.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Com dois ou mais monitores, os que você não está usando escurecem depois de um instante e voltam a acender quando o ponteiro chega lá."
+          }
+        }
+      }
+    },
+    "Waiting for a second display": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esperando um segundo monitor"
+          }
+        }
+      }
+    },
+    "The screens you are not using fade to dark after a moment and light up again as soon as the pointer gets there. Clicks go through, and screen recordings and calls show them as they are.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "As telas que você não está usando escurecem depois de um instante e voltam a acender assim que o ponteiro chega lá. Os cliques passam direto, e gravações de tela e chamadas mostram as telas como elas são."
+          }
+        }
+      }
+    },
+    "Darkness": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escuridão"
+          }
+        }
+      }
+    },
+    "Wait before dimming": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esperar antes de escurecer"
+          }
+        }
+      }
+    },
+    "Screen in use": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tela em uso"
+          }
+        }
+      }
+    },
+    "Dim full-screen apps too": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escurecer apps em tela cheia também"
+          }
+        }
+      }
+    },
+    "Off, a video or app in full screen on another display stays bright.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desligado, um vídeo ou app em tela cheia em outro monitor continua claro."
+          }
+        }
+      }
+    },
+    "Following the focused window needs Accessibility; without it, the pointer decides.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seguir a janela em foco precisa de Acessibilidade; sem ela, vale o ponteiro."
+          }
+        }
+      }
+    },
+    "Only one display is connected: it starts working when you connect another.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Só um monitor está conectado: começa a funcionar quando você conectar outro."
+          }
+        }
+      }
+    },
+    "On: %lld displays": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ligado: %lld monitores"
+          }
+        }
+      }
     }
   }
 }

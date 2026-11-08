@@ -37,10 +37,14 @@ final class DisplayOffController: ObservableObject {
 
     // MARK: - Lifecycle
 
-    func start() {}
+    func start() {
+        // Dimming the screens you are not using lives on the same page.
+        ScreenDimmer.shared.start()
+    }
 
     func terminate() {
         cancel()
+        ScreenDimmer.shared.stop()
     }
 
     // MARK: - Countdown
