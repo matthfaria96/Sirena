@@ -192,16 +192,8 @@ final class BoltMenuSettings {
             items.insert(.screenCapture)
             UserDefaults.standard.set(true, forKey: "boltMenu.addedScreenCapture")
         }
-        if !UserDefaults.standard.bool(forKey: "boltMenu.addedDimScreens.v2") {
-            // Only where it can do something: a Mac with one display doesn't need the row.
-            // Read from Core Graphics: this can run before AppKit knows the screens.
-            var displays: UInt32 = 0
-            CGGetActiveDisplayList(0, nil, &displays)
-            if displays > 1 { items.insert(.dimScreens) }
-            HomeOrder.shared.insert(BoltMenuItem.dimScreens.rawValue, before: BoltMenuItem.displayOff.rawValue, group: "controls")
-            UserDefaults.standard.set(true, forKey: "boltMenu.addedDimScreens.v2")
-        }
-        // A first build put it after Desligar monitor: it belongs right above it.
+        // Escurecer outras telas starts out of the menu, like the sound mixer: it shows once its
+        // card on Home is switched on. In a saved card order it goes right above Desligar monitor.
         if !UserDefaults.standard.bool(forKey: "boltMenu.dimScreensAboveDisplayOff") {
             HomeOrder.shared.place(BoltMenuItem.dimScreens.rawValue, before: BoltMenuItem.displayOff.rawValue, group: "controls")
             UserDefaults.standard.set(true, forKey: "boltMenu.dimScreensAboveDisplayOff")
