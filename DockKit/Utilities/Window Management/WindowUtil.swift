@@ -1864,11 +1864,29 @@ extension WindowUtil {
         guard !windows.isEmpty else { return }
 
         let ownBundleId = Bundle.main.bundleIdentifier
-        let windowsToMinimize = windows.filter { !$0.isMinimized && $0.app.bundleIdentifier != ownBundleId }
+        var windowsToMinimize = windows.filter { !$0.isMinimized && $0.app.bundleIdentifier != ownBundleId }
+        guard !windowsToMinimize.isEmpty else { return }
+
+        // Sirena: macOS minimizes one window at a time, inside the app. With 3 or more windows of
+        // an app, hide it instead (the option) or minimize them all while it is hidden, which
+        // skips the animations (≈0.2 s for all instead of ≈0.3 s each).
+        let byApp = Dictionary(grouping: windowsToMinimize, by: { $0.app.processIdentifier })
+        for (pid, appWindows) in byApp where appWindows.count >= MinimizeHidesApp.minimumWindows {
+            guard let app = appWindows.first?.app else { continue }
+            windowsToMinimize.removeAll { $0.app.processIdentifier == pid }
+            if MinimizeHidesApp.isEnabled {
+                app.hide()
+            } else {
+                minimizeAllAtOnce(appWindows, app: app)
+            }
+        }
         guard !windowsToMinimize.isEmpty else { return }
 
         for window in windowsToMinimize {
             updateCachedWindowState(window, isMinimized: true)
+        }
+        for pid in Set(windowsToMinimize.map(\.app.processIdentifier)) {
+            MinimizeHidesApp.shared.markOwnMinimize(pid: pid)
         }
 
         // Perform AX operations concurrently in background
@@ -1879,6 +1897,32 @@ extension WindowUtil {
                         try? window.axElement.setAttribute(kAXMinimizedAttribute, true)
                     }
                 }
+            }
+        }
+    }
+
+    /// Sirena: hide the app, minimize its windows while nothing is seen, show it again once
+    /// they are all down. A real minimize, without the window-by-window animation.
+    private static func minimizeAllAtOnce(_ windows: [WindowInfo], app: NSRunningApplication) {
+        MinimizeHidesApp.shared.markOwnMinimize(pid: app.processIdentifier)
+        for window in windows {
+            updateCachedWindowState(window, isMinimized: true)
+        }
+        let wasHidden = app.isHidden
+        app.hide()
+        Task.detached(priority: .userInitiated) {
+            try? await Task.sleep(nanoseconds: 150_000_000)
+            for window in windows {
+                try? window.axElement.setAttribute(kAXMinimizedAttribute, true)
+            }
+            // Wait (up to 2 s) until every window reports minimized before showing the app.
+            for _ in 0 ..< 40 {
+                let allDown = windows.allSatisfy { (try? $0.axElement.isMinimized()) == true }
+                if allDown { break }
+                try? await Task.sleep(nanoseconds: 50_000_000)
+            }
+            if !wasHidden {
+                await MainActor.run { _ = app.unhide() }
             }
         }
     }

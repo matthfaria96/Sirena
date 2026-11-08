@@ -516,6 +516,10 @@ func axObserverCallback(observer: AXObserver, element: AXUIElement, notification
     guard let userData else { return }
     let pid = pid_t(Int(bitPattern: userData))
     let notification = notificationName as String
+    // Sirena: reacts right away (before the debounce below) when the option hides the app.
+    if notification == kAXWindowMiniaturizedNotification {
+        MinimizeHidesApp.shared.windowMinimized(element, pid: pid)
+    }
     var key = "\(pid)-\(notification)"
     if notification == kAXTitleChangedNotification, let windowID = try? element.cgWindowId() {
         key += "-\(windowID)"

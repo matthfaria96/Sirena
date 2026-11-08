@@ -7,6 +7,11 @@
 import Defaults
 import SwiftUI
 
+/// Sirena's own strings on this page (DockDoor's keep their own table).
+private func SL(_ key: String.LocalizationValue) -> String {
+    String(localized: key, table: "Sirena", bundle: .main)
+}
+
 /// DockDoor's Dock previews and their look, as sections for a grouped Form on Sirena's
 /// "Janela e Dock" page. DockDoor's own window switcher is gone: Sirena's switcher
 /// (from Vorssaint) does ⌘ Tab.
@@ -42,9 +47,19 @@ private struct DockPreviewsPage: View {
     @Default(.enabledTrafficLightButtons) var enabledTrafficLightButtons
     @Default(.trafficLightButtonScale) var trafficLightButtonScale
     @Default(.showMassActionButtons) var showMassActionButtons
+    @Default(.minimizeHidesAllWindows) var minimizeHidesAllWindows
 
     var body: some View {
         Group {
+                Section {
+                    Toggle(isOn: $minimizeHidesAllWindows) {
+                        Text(SL("Minimizing hides all of the app's windows at once"))
+                        Text(SL("When an app has 3 or more windows open, minimizing one of them (yellow button or ⌘M) hides them all right away, instead of macOS shrinking them one by one. Click the app in the Dock, or pick it with ⌘ Tab, and they all come back together. With 1 or 2 windows, minimizing works as usual."))
+                    }
+                } header: {
+                    Text(SL("All windows at once"))
+                }
+
                 Section("Window Display") {
                     Picker("Window sort order", selection: $windowPreviewSortOrder) {
                         ForEach(WindowPreviewSortOrder.allCases.filter { !$0.isWindowSwitcherOnly }) { order in

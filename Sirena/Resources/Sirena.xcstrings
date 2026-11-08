@@ -13831,6 +13831,36 @@
           }
         }
       }
+    },
+    "All windows at once": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todas as janelas de uma vez"
+          }
+        }
+      }
+    },
+    "Minimizing hides all of the app's windows at once": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minimizar esconde todas as janelas do app de uma vez"
+          }
+        }
+      }
+    },
+    "When an app has 3 or more windows open, minimizing one of them (yellow button or ⌘M) hides them all right away, instead of macOS shrinking them one by one. Click the app in the Dock, or pick it with ⌘ Tab, and they all come back together. With 1 or 2 windows, minimizing works as usual.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quando um app tem 3 ou mais janelas abertas, minimizar uma delas (botão amarelo ou ⌘M) esconde todas na hora, em vez de o macOS encolher uma por uma. Clique no app no Dock, ou escolha ele pelo ⌘ Tab, e todas voltam juntas. Com 1 ou 2 janelas, minimizar funciona como sempre."
+          }
+        }
+      }
     }
   }
 }
