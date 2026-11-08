@@ -75,6 +75,28 @@ final class MinimizeHidesApp: @unchecked Sendable {
         return UserDefaults.standard.stringArray(forKey: restoreOnShowKey)?.contains(bundleID) == true
     }
 
+    /// Whether a window brought back behind this hidden app would show anyway: apps that
+    /// learned it, and every Electron app (Discord, Slack, VS Code…), which puts a restored
+    /// window back on screen while the app stays marked hidden.
+    private static func restoresOnShow(_ app: NSRunningApplication?) -> Bool {
+        guard let app else { return false }
+        if restoresOnShow(app.bundleIdentifier) { return true }
+        guard let url = app.bundleURL else { return false }
+        let electron = url.appendingPathComponent("Contents/Frameworks/Electron Framework.framework")
+        return FileManager.default.fileExists(atPath: electron.path)
+    }
+
+    /// The app has a regular window on screen right now (window server, not the app).
+    private static func hasWindowOnScreen(pid: pid_t) -> Bool {
+        let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]] ?? []
+        return windows.contains { info in
+            guard (info[kCGWindowOwnerPID as String] as? pid_t) == pid,
+                  (info[kCGWindowLayer as String] as? Int) == 0,
+                  let bounds = info[kCGWindowBounds as String] as? [String: CGFloat] else { return false }
+            return (bounds["Width"] ?? 0) >= 100 && (bounds["Height"] ?? 0) >= 100
+        }
+    }
+
     private static func learnRestoresOnShow(_ bundleID: String?) {
         guard let bundleID, !restoresOnShow(bundleID) else { return }
         UserDefaults.standard.set((UserDefaults.standard.stringArray(forKey: restoreOnShowKey) ?? []) + [bundleID],
@@ -162,21 +184,14 @@ final class MinimizeHidesApp: @unchecked Sendable {
         guard !windows.isEmpty else { return }
         session.pending.removeAll()
         sessions[pid] = session
-        let bundleID = NSRunningApplication(processIdentifier: pid)?.bundleIdentifier
-        if Self.restoresOnShow(bundleID) {
+        let running = NSRunningApplication(processIdentifier: pid)
+        if Self.restoresOnShow(running) {
             deferred[pid, default: []] += windows
             log.notice("pid \(pid, privacy: .public): \(windows.count, privacy: .public) windows come back when the app is shown")
         } else {
             log.notice("pid \(pid, privacy: .public): bringing \(windows.count, privacy: .public) windows back behind the hidden app")
             windows.forEach { restore($0, pid: pid, attempt: 1) }
-            // Some apps show themselves when a window comes back: hide again, and from now on
-            // keep their windows minimized until they are shown.
-            queue.asyncAfter(deadline: .now() + 0.7) {
-                guard let app = NSRunningApplication(processIdentifier: pid), !app.isHidden else { return }
-                log.notice("pid \(pid, privacy: .public): came back on its own, hidden again; restoring on show from now on")
-                Self.learnRestoresOnShow(app.bundleIdentifier)
-                DispatchQueue.main.async { app.hide() }
-            }
+            queue.asyncAfter(deadline: .now() + 0.5) { self.checkStaysAway(pid, windows: windows, attempt: 1) }
         }
         // Keep the session a moment so late notifications of this burst are still collected.
         queue.asyncAfter(deadline: .now() + Self.sessionQuietTime) {
@@ -198,6 +213,34 @@ final class MinimizeHidesApp: @unchecked Sendable {
             queue.asyncAfter(deadline: .now() + 0.3) { self.restore(window, pid: pid, attempt: attempt + 1, whileHidden: whileHidden) }
         } else if result != .success {
             log.error("pid \(pid, privacy: .public): could not bring a window back (\(result.rawValue, privacy: .public))")
+        }
+    }
+
+    /// After bringing windows back behind a hidden app, make sure nothing shows. An app may
+    /// show itself again (it unhides), or put the window on screen while still marked hidden
+    /// (Electron, which is caught beforehand, or others). Either way the app is remembered and,
+    /// from then on, its windows stay minimized until it is shown.
+    private func checkStaysAway(_ pid: pid_t, windows: [AXUIElement], attempt: Int) {
+        guard let app = NSRunningApplication(processIdentifier: pid) else { return }
+        if !app.isHidden {
+            log.notice("pid \(pid, privacy: .public): came back on its own, hidden again; restoring on show from now on")
+            Self.learnRestoresOnShow(app.bundleIdentifier)
+            DispatchQueue.main.async { app.hide() }
+            return
+        }
+        if Self.hasWindowOnScreen(pid: pid) {
+            log.notice("pid \(pid, privacy: .public): window on screen while hidden, minimized again; restoring on show from now on")
+            Self.learnRestoresOnShow(app.bundleIdentifier)
+            for window in windows {
+                AXUIElementSetMessagingTimeout(window, 1.0)
+                AXUIElementSetAttributeValue(window, kAXMinimizedAttribute as CFString, kCFBooleanTrue)
+            }
+            deferred[pid, default: []] += windows
+            return
+        }
+        // Slow apps take a moment to put the window back: look once more.
+        if attempt < 3 {
+            queue.asyncAfter(deadline: .now() + 0.5) { self.checkStaysAway(pid, windows: windows, attempt: attempt + 1) }
         }
     }
 
