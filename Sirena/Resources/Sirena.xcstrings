@@ -2922,16 +2922,6 @@
         }
       }
     },
-    "When clicking an active app in the Dock": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ao clicar no app ativo no Dock"
-          }
-        }
-      }
-    },
     "Unminimize all windows instead of one when clicking Dock icon": {
       "localizations": {
         "pt-BR": {
@@ -13832,32 +13822,102 @@
         }
       }
     },
-    "All windows at once": {
+    "Minimizing": {
       "localizations": {
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Todas as janelas de uma vez"
+            "value": "Ao minimizar"
           }
         }
       }
     },
-    "Minimizing hides all of the app's windows at once": {
+    "Hides the app: all windows go and come back together": {
       "localizations": {
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Minimizar esconde todas as janelas do app de uma vez"
+            "value": "Esconde o app: todas as janelas saem e voltam juntas"
           }
         }
       }
     },
-    "Minimizing a window (yellow button, ⌘M or Minimize All) hides all of the app's windows right away, instead of macOS shrinking them one by one. Click the app in the Dock, or pick it with ⌘ Tab, and they all come back together.": {
+    "Sends each window to the Dock, like macOS": {
       "localizations": {
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Minimizar uma janela (botão amarelo, ⌘M ou Minimizar Todas) esconde todas as janelas do app na hora, em vez de o macOS encolher uma por uma. Clique no app no Dock, ou escolha ele pelo ⌘ Tab, e todas voltam juntas."
+            "value": "Manda cada janela para o Dock, como o macOS"
+          }
+        }
+      }
+    },
+    "Turn on Dock Previews above: they notice when a window is minimized.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ligue as Prévias do Dock acima: são elas que percebem quando uma janela é minimizada."
+          }
+        }
+      }
+    },
+    "Clicking the app in front in the Dock puts its windows away": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clicar no app da frente no Dock tira as janelas dele da tela"
+          }
+        }
+      }
+    },
+    "Hides the app, like minimizing. Click it again to bring everything back.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esconde o app, como ao minimizar. Clique de novo para trazer tudo de volta."
+          }
+        }
+      }
+    },
+    "Minimizes all of its windows at once, without the one-by-one animation.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minimiza todas as janelas dele de uma vez, sem a animação uma por uma."
+          }
+        }
+      }
+    },
+    "Minimizing Windows": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minimizar Janelas"
+          }
+        }
+      }
+    },
+    "Minimizing a window (yellow button, ⌘M or Minimize All) hides all of the app's windows at once, instead of macOS shrinking them one by one. Click the app in the Dock, or pick it with ⌘ Tab, and they all come back together.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minimizar uma janela (botão amarelo, ⌘M ou Minimizar Todas) esconde todas as janelas do app de uma vez, em vez de o macOS encolher uma por uma. Clique no app no Dock, ou escolha ele pelo ⌘ Tab, e todas voltam juntas."
+          }
+        }
+      }
+    },
+    "Each window goes into the Dock, as macOS does it. Bringing them back, macOS animates one window at a time.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cada janela vai para o Dock, como o macOS faz. Na volta, o macOS anima uma janela por vez."
           }
         }
       }

@@ -21,7 +21,18 @@ import os
 private let log = Logger(subsystem: "com.matheusfaria.Sirena", category: "MinimizeHidesApp")
 
 extension Defaults.Keys {
-    static let minimizeHidesAllWindows = Key<Bool>("minimizeHidesAllWindows", default: true)
+    static let minimizeHidesAllWindows = Key<Bool>(SirenaMinimize.hidesAppKey, default: true)
+}
+
+/// The minimize mode, as Sirena's Dock tab and Tweaks see it.
+public enum SirenaMinimize {
+    /// true: minimizing hides the app (all windows go and come back together).
+    /// false: windows minimize to the Dock, as macOS does.
+    public static let hidesAppKey = "minimizeHidesAllWindows"
+
+    public static var hidesApp: Bool {
+        UserDefaults.standard.object(forKey: hidesAppKey) as? Bool ?? true
+    }
 }
 
 final class MinimizeHidesApp: @unchecked Sendable {

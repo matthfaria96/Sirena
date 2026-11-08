@@ -7,11 +7,6 @@
 import Defaults
 import SwiftUI
 
-/// Sirena's own strings on this page (DockDoor's keep their own table).
-private func SL(_ key: String.LocalizationValue) -> String {
-    String(localized: key, table: "Sirena", bundle: .main)
-}
-
 /// DockDoor's Dock previews and their look, as sections for a grouped Form on Sirena's
 /// "Janela e Dock" page. DockDoor's own window switcher is gone: Sirena's switcher
 /// (from Vorssaint) does ⌘ Tab.
@@ -36,9 +31,6 @@ private struct DockPreviewsPage: View {
     @Default(.previewHoverAction) var previewHoverAction
     @Default(.tapEquivalentInterval) var tapEquivalentInterval
     @Default(.enableCmdRightClickQuit) var enableCmdRightClickQuit
-    @Default(.shouldHideOnDockItemClick) var shouldHideOnDockItemClick
-    @Default(.dockClickAction) var dockClickAction
-    @Default(.restoreAllMinimizedWindowsOnDockClick) var restoreAllMinimizedWindowsOnDockClick
     @Default(.bufferFromDock) var bufferFromDock
     @Default(.dockPreviewControlPosition) var dockPreviewControlPosition
     @Default(.showWindowTitle) var showWindowTitle
@@ -47,19 +39,9 @@ private struct DockPreviewsPage: View {
     @Default(.enabledTrafficLightButtons) var enabledTrafficLightButtons
     @Default(.trafficLightButtonScale) var trafficLightButtonScale
     @Default(.showMassActionButtons) var showMassActionButtons
-    @Default(.minimizeHidesAllWindows) var minimizeHidesAllWindows
 
     var body: some View {
         Group {
-                Section {
-                    Toggle(isOn: $minimizeHidesAllWindows) {
-                        Text(SL("Minimizing hides all of the app's windows at once"))
-                        Text(SL("Minimizing a window (yellow button, ⌘M or Minimize All) hides all of the app's windows right away, instead of macOS shrinking them one by one. Click the app in the Dock, or pick it with ⌘ Tab, and they all come back together."))
-                    }
-                } header: {
-                    Text(SL("All windows at once"))
-                }
-
                 Section("Window Display") {
                     Picker("Window sort order", selection: $windowPreviewSortOrder) {
                         ForEach(WindowPreviewSortOrder.allCases.filter { !$0.isWindowSwitcherOnly }) { order in
@@ -93,13 +75,7 @@ private struct DockPreviewsPage: View {
                     SliderRow(title: "Preview Hover Action Delay", value: $tapEquivalentInterval,
                               range: 0 ... 2, step: 0.1, format: "%.1f s")
                         .disabled(previewHoverAction == .none)
-                    Toggle("Hide all app windows on dock icon click", isOn: $shouldHideOnDockItemClick)
-                    if shouldHideOnDockItemClick {
-                        Picker("Dock Click Action", selection: $dockClickAction) {
-                            ForEach(DockClickAction.allCases, id: \.self) { Text($0.localizedName).tag($0) }
-                        }
-                        Toggle("Restore all minimized windows on dock icon click", isOn: $restoreAllMinimizedWindowsOnDockClick)
-                    }
+                    // Clicks on Dock icons: Sirena's "Minimizar janelas" section, below.
                     Toggle("CMD + Right Click on dock icon to quit app", isOn: $enableCmdRightClickQuit)
                     SliderRow(title: "Window Buffer from Dock (pixels)", value: $bufferFromDock,
                               range: -100 ... 100, step: 5, format: "%.0f px")

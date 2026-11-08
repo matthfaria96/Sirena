@@ -38,6 +38,9 @@ public final class DockController: NSObject {
         started = true
 
         Defaults[.launched] = true
+        // Sirena: clicks on Dock icons belong to Tweaks ("Minimizar janelas" on the Dock tab).
+        // DockDoor's own click handling would act on the same click a second time.
+        Defaults[.shouldHideOnDockItemClick] = false
         reconcileImagePreviewWithPermission()
         SirenaSwitcherShortcuts.applyDefaultOnce()
 

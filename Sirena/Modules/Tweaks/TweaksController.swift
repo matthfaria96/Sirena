@@ -127,10 +127,14 @@ private struct TweaksSnapshot {
         func flag(_ key: String) -> Bool { defaults.object(forKey: key) as? Bool ?? true }
         // The Finder tweaks follow Melhorias' switch; the Dock ones live on Janela e Dock.
         let finder = TweaksController.finderTweaksOn
+        // One choice decides how windows are put away: the minimize mode (Dock tab).
+        let hidesApp = SirenaMinimize.hidesApp
+        let click = DockActiveAppClick(rawValue: defaults.string(forKey: "tweaks.dockActiveAppClick") ?? "") ?? .minimizeWindows
         return TweaksSnapshot(
             greenButtonFills: flag("tweaks.greenButtonFills"),
-            dockActiveAppClick: DockActiveAppClick(rawValue: defaults.string(forKey: "tweaks.dockActiveAppClick") ?? "") ?? .minimizeWindows,
-            dockUnminimizeAll: flag("tweaks.dockUnminimizeAll"),
+            dockActiveAppClick: click == .nothing ? .nothing : (hidesApp ? .hideApp : .minimizeWindows),
+            // Hiding leaves nothing minimized: restoring them all only matters in the macOS mode.
+            dockUnminimizeAll: !hidesApp && flag("tweaks.dockUnminimizeAll"),
             dockFoldersOpenInFinder: flag("tweaks.dockFoldersOpenInFinder"),
             finderCutAndPaste: finder && flag("tweaks.finderCutAndPaste"),
             finderCutSound: flag("tweaks.finderCutSound"),
@@ -428,9 +432,8 @@ final class TweaksEngine: @unchecked Sendable {
             case .nothing:
                 break
             case .minimizeWindows:
-                return hold(event) {
-                    for window in windows where !PinAX.isMinimized(window) { PinAX.minimize(window) }
-                }
+                let toMinimize = windows.filter { !PinAX.isMinimized($0) }
+                return hold(event) { Self.minimizeAtOnce(toMinimize, of: app) }
             case .hideApp:
                 return hold(event) { Self.onMain { app.hide() } }
             }
@@ -445,6 +448,25 @@ final class TweaksEngine: @unchecked Sendable {
             }
         }
         return event
+    }
+
+    /// macOS minimizes one window at a time, animating each inside the app. With the app hidden
+    /// first, they all go down at once (≈0.2 s for all), then the app is shown again. Runs off
+    /// the tap thread: nothing here waits on it.
+    private static func minimizeAtOnce(_ windows: [AXUIElement], of app: NSRunningApplication) {
+        guard windows.count > 1 else {
+            windows.forEach(PinAX.minimize)
+            return
+        }
+        onMain { app.hide() }
+        DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + 0.15) {
+            windows.forEach(PinAX.minimize)
+            // Show the app again once they are all down (at most 2 s).
+            for _ in 0 ..< 40 where !windows.allSatisfy(PinAX.isMinimized) {
+                usleep(50_000)
+            }
+            onMain { app.unhide() }
+        }
     }
 
     private static func standardWindows(of pid: pid_t) -> [AXUIElement] {
