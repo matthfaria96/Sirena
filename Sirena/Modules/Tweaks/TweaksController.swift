@@ -117,6 +117,8 @@ private struct TweaksSnapshot {
     let greenButtonFills: Bool
     let dockActiveAppClick: DockActiveAppClick
     let dockUnminimizeAll: Bool
+    /// "Ocultar tudo": the yellow button and ⌘M hide the app instead of minimizing.
+    let minimizeHides: Bool
     let dockFoldersOpenInFinder: Bool
     let finderCutAndPaste: Bool
     let finderCutSound: Bool
@@ -134,6 +136,7 @@ private struct TweaksSnapshot {
             greenButtonFills: flag("tweaks.greenButtonFills"),
             dockActiveAppClick: hidesApp ? .hideApp : .nothing,
             dockUnminimizeAll: false,
+            minimizeHides: hidesApp,
             dockFoldersOpenInFinder: flag("tweaks.dockFoldersOpenInFinder"),
             finderCutAndPaste: finder && flag("tweaks.finderCutAndPaste"),
             finderCutSound: flag("tweaks.finderCutSound"),
@@ -142,10 +145,10 @@ private struct TweaksSnapshot {
     }
 
     var anyClickTweak: Bool {
-        dockActiveAppClick != .nothing || dockUnminimizeAll || dockFoldersOpenInFinder
+        dockActiveAppClick != .nothing || dockUnminimizeAll || dockFoldersOpenInFinder || minimizeHides
     }
 
-    var anyKeyTweak: Bool { finderCutAndPaste || finderDeleteMovesToTrash }
+    var anyKeyTweak: Bool { finderCutAndPaste || finderDeleteMovesToTrash || minimizeHides }
 }
 
 // MARK: - Engine (runs on its own thread)
@@ -297,7 +300,9 @@ final class TweaksEngine: @unchecked Sendable {
         guard let window = Self.windowUnderPoint(point) else { return event }
 
         // (The green button is handled by the Windows feature, see TweaksSettings.)
-        guard window.isDock else { return event }
+        guard window.isDock else {
+            return settings.minimizeHides ? minimizeButtonClick(event, at: point, in: window) : event
+        }
         return dockClick(event, at: point, dockPID: window.pid, settings: settings)
     }
 
@@ -464,6 +469,38 @@ final class TweaksEngine: @unchecked Sendable {
         return running.first { $0.bundleURL?.standardizedFileURL == url.standardizedFileURL }
     }
 
+    // MARK: Yellow button
+
+    /// "Ocultar tudo": a click on a window's minimize button hides the app instead, so the
+    /// window never shrinks into the Dock. Only clicks in the corner where the buttons live
+    /// ask Accessibility what is under the pointer.
+    private func minimizeButtonClick(_ event: CGEvent, at point: CGPoint, in window: WindowHit) -> CGEvent? {
+        guard point.y - window.frame.minY <= 52, point.x - window.frame.minX <= 120,
+              window.pid != Self.ownPID else { return event }
+        let appElement = Self.element(AXUIElementCreateApplication(window.pid))
+        var hit: AXUIElement?
+        guard AXUIElementCopyElementAtPosition(appElement, Float(point.x), Float(point.y), &hit) == .success,
+              let button = hit.map(Self.element),
+              Self.string(button, kAXSubroleAttribute) == kAXMinimizeButtonSubrole,
+              let app = NSRunningApplication(processIdentifier: window.pid) else { return event }
+        // Like a real button: released outside it, nothing happens.
+        let frame = Self.frame(of: button)
+        return hold(event, releaseRect: frame?.insetBy(dx: -4, dy: -4)) { Self.onMain { app.hide() } }
+    }
+
+    private static func frame(of element: AXUIElement) -> CGRect? {
+        var positionValue: CFTypeRef?
+        var sizeValue: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(element, kAXPositionAttribute as CFString, &positionValue) == .success,
+              AXUIElementCopyAttributeValue(element, kAXSizeAttribute as CFString, &sizeValue) == .success,
+              let positionValue, let sizeValue else { return nil }
+        var position = CGPoint.zero
+        var size = CGSize.zero
+        AXValueGetValue(positionValue as! AXValue, .cgPoint, &position)
+        AXValueGetValue(sizeValue as! AXValue, .cgSize, &size)
+        return CGRect(origin: position, size: size)
+    }
+
     private static func standardWindows(of pid: pid_t) -> [AXUIElement] {
         let app = element(AXUIElementCreateApplication(pid))
         var value: CFTypeRef?
@@ -480,6 +517,19 @@ final class TweaksEngine: @unchecked Sendable {
         let settings = TweaksSnapshot.current
         guard settings.anyKeyTweak else { return event }
         let modifiers = event.flags.intersection(Self.modifierMask)
+
+        // "Ocultar tudo": ⌘M hides the app it goes to instead of minimizing its window.
+        if settings.minimizeHides, Int(code) == kVK_ANSI_M, modifiers == [.maskCommand] {
+            let pid = pid_t(event.getIntegerValueField(.eventTargetUnixProcessID))
+            guard pid > 0, pid != Self.ownPID,
+                  let app = NSRunningApplication(processIdentifier: pid), app.activationPolicy == .regular
+            else { return event }
+            if event.getIntegerValueField(.keyboardEventAutorepeat) == 0 {
+                Self.onMain { app.hide() }
+            }
+            return nil
+        }
+
         let isCut = Int(code) == kVK_ANSI_X && modifiers == [.maskCommand] && settings.finderCutAndPaste
         let isPaste = Int(code) == kVK_ANSI_V && modifiers == [.maskCommand] && settings.finderCutAndPaste
         let isDelete = Int(code) == kVK_Delete && modifiers.isEmpty && settings.finderDeleteMovesToTrash
