@@ -62,7 +62,8 @@ at once and tells the owners (via `observe`) to tear down, on regain to recreate
 - In the callback: disable notices go to `AccessibilityGuard.shared.tapDisabled` (or
   `passthroughIfTapUnsafe`), never `tapEnable(…, true)`; pass every event straight through while
   `!AccessibilityGuard.isTrusted`; no synchronous main-thread/AX waits on that path.
-- Policy (timeouts re-enabled only while trusted, max 3 per minute per tap) lives in
+- Policy (timeouts re-enabled only while trusted, max 3 per minute per tap; a tap that used that up
+  gets another try after 60 s, same budget, never after the emergency exit) lives in
   `EventTapPolicy.swift`, tested by `scripts/test-event-tap-policy.sh` (no app, no TCC).
 - Checking without Accessibility: a renamed copy (other bundle id, no `PlugIns/`) with `LSEnvironment`
   `SIRENA_TAP_CHECK=1` starts only the tap modules and the guard (no menu bar icon, onboarding, mixer or

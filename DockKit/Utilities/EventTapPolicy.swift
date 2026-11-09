@@ -25,6 +25,15 @@ enum EventTapDisableAction: Equatable {
 }
 
 enum EventTapPolicy {
+    /// How long a tap that used up its re-enables stays off before it gets another try. As long
+    /// as the limiter's window, so a retry always goes through the same 3-per-minute budget.
+    static let givenUpRetryDelay: TimeInterval = 60
+
+    /// Whether a tap left off at `givenUpAt` may be tried again. Never without trust.
+    static func mayRetryGivenUpTap(givenUpAt: TimeInterval, now: TimeInterval, trusted: Bool) -> Bool {
+        trusted && (now - givenUpAt >= givenUpRetryDelay || now < givenUpAt)
+    }
+
     /// `limiterAllows` is only consulted (and only spends budget) for a trusted timeout.
     static func action(for kind: EventTapDisableKind, trusted: Bool,
                        limiterAllows: () -> Bool) -> EventTapDisableAction {

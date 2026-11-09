@@ -3,6 +3,9 @@ import Carbon.HIToolbox.Events
 import Cocoa
 import Defaults
 import IOKit
+import os
+
+private let dockHealthLog = os.Logger(subsystem: "com.matheusfaria.Sirena", category: "DockObserver")
 
 struct ApplicationInfo: Sendable {
     let processIdentifier: pid_t
@@ -73,6 +76,8 @@ final class DockObserver {
     private var postingCanaryMisses = 0
     private var lastPostingCanaryUptime: TimeInterval = 0
     private var subscribedDockList: AXUIElement?
+    private var dockUnresponsiveChecks = 0
+    private var reportedMissingSubscription = false
     private var awaitingAccessibilityGrant = false
 
     // Cmd+Tab switcher monitoring (accessed from extension file)
@@ -196,12 +201,23 @@ final class DockObserver {
         if let subscribedElement = subscribedDockList {
             var role: CFTypeRef?
             let result = AXUIElementCopyAttributeValue(subscribedElement, kAXRoleAttribute as CFString, &role)
-            if result == .invalidUIElement || result == .cannotComplete {
+            // cannotComplete is the Dock taking longer than the AX timeout: the subscription is
+            // still good, and rebuilding it while the Dock is busy is what used to lose it.
+            dockUnresponsiveChecks = result == .cannotComplete ? dockUnresponsiveChecks + 1 : 0
+            if result == .invalidUIElement || dockUnresponsiveChecks >= 3 {
+                dockUnresponsiveChecks = 0
+                dockHealthLog.notice("Dock subscription stale (AX \(result.rawValue, privacy: .public)), rebuilding")
                 reset()
             }
-        } else if axObserver != nil {
-            // We have an observer but no subscribed element reference - reset to fix state
-            reset()
+        } else {
+            // A setup that failed partway (the Dock busy after waking, or still starting at
+            // login) subscribed to nothing: without this, hover previews stayed dead.
+            if !reportedMissingSubscription {
+                reportedMissingSubscription = true
+                dockHealthLog.error("No subscription to the Dock, retrying every 5 s")
+            }
+            teardownObserver()
+            setupSelectedDockItemObserver()
         }
 
         if let subscribedElement = subscribedDockList,
@@ -270,6 +286,7 @@ final class DockObserver {
     private func updateCanPostEvents(_ canPostEvents: Bool) {
         DockObserver.canPostEvents = canPostEvents
         DebugLogger.log("DockObserver", details: "Event posting \(canPostEvents ? "allowed" : "refused"), rebuilding event taps")
+        dockHealthLog.notice("Event posting \(canPostEvents ? "allowed" : "refused", privacy: .public), rebuilding event taps")
         Task { @MainActor in DockController.shared.recoverObserversAndTaps() }
     }
 
@@ -319,6 +336,11 @@ final class DockObserver {
                 CFRunLoopAddSource(CFRunLoopGetCurrent(), AXObserverGetRunLoopSource(axObserver), .commonModes)
             }
             subscribedDockList = axList
+            dockUnresponsiveChecks = 0
+            if reportedMissingSubscription {
+                reportedMissingSubscription = false
+                dockHealthLog.notice("Subscription to the Dock restored")
+            }
         } catch {
             return
         }

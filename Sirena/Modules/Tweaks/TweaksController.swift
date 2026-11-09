@@ -83,17 +83,7 @@ final class TweaksController {
     private func startWhenTrusted() {
         guard isRunning, engine == nil else { return }
         guard AccessibilityGuard.isTrusted else {
-            guard trustTimer == nil else { return }
-            let timer = Timer(timeInterval: 3, repeats: true) { [weak self] _ in
-                MainActor.assumeIsolated {
-                    guard let self, AccessibilityGuard.isTrusted else { return }
-                    self.trustTimer?.invalidate()
-                    self.trustTimer = nil
-                    self.startWhenTrusted()
-                }
-            }
-            RunLoop.main.add(timer, forMode: .common)
-            trustTimer = timer
+            retryStartSoon()
             return
         }
         let engine = TweaksEngine { [weak self] in
@@ -107,7 +97,27 @@ final class TweaksController {
                 }
             }
         }
-        if engine.start() { self.engine = engine }
+        if engine.start() {
+            self.engine = engine
+        } else {
+            // Without this a tap that couldn't be created left the Dock and window tweaks
+            // off until Sirena was reopened.
+            retryStartSoon()
+        }
+    }
+
+    private func retryStartSoon() {
+        guard trustTimer == nil else { return }
+        let timer = Timer(timeInterval: 3, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated {
+                guard let self, AccessibilityGuard.isTrusted else { return }
+                self.trustTimer?.invalidate()
+                self.trustTimer = nil
+                self.startWhenTrusted()
+            }
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        trustTimer = timer
     }
 }
 

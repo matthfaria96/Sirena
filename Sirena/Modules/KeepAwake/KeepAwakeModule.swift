@@ -26,9 +26,10 @@ final class KeepAwakeModule {
 
     func start() {
         isRunning = true
+        viewModel.resumeIfIndefinite()
     }
 
     func terminate() {
-        viewModel.deactivate()
+        viewModel.stopForQuit()
     }
 }

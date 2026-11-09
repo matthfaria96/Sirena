@@ -74,6 +74,19 @@ do {
     expect(reEnables == 3, "a timeout storm re-enables 3 times per minute, got \(reEnables)")
 }
 
+// A tap that used up its budget: another try only after the pause, and never untrusted.
+do {
+    let delay = EventTapPolicy.givenUpRetryDelay
+    expect(delay >= 60, "the pause covers the limiter's window")
+    expect(!EventTapPolicy.mayRetryGivenUpTap(givenUpAt: 100, now: 100 + delay - 1, trusted: true), "too early")
+    expect(EventTapPolicy.mayRetryGivenUpTap(givenUpAt: 100, now: 100 + delay, trusted: true), "due after the pause")
+    expect(!EventTapPolicy.mayRetryGivenUpTap(givenUpAt: 100, now: 100 + delay * 10, trusted: false), "never without trust")
+    expect(EventTapPolicy.mayRetryGivenUpTap(givenUpAt: 500, now: 5, trusted: true), "a clock going backwards doesn't wedge it")
+    var limiter = EventTapReEnableLimiter()
+    for second in 0..<3 { _ = limiter.allow(at: TimeInterval(second)) }
+    expect(limiter.allow(at: 2 + delay), "the retry fits the budget after the pause")
+}
+
 // Trust tracker: edges only.
 do {
     var tracker = AccessibilityTrustTracker(initial: true)

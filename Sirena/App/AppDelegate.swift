@@ -52,6 +52,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
 
+        // Sirena mostly runs with no window on screen, which is what App Nap throttles: its
+        // timers (health checks, keep awake) must keep their pace. The Mac can still sleep.
+        appNapActivity = ProcessInfo.processInfo.beginActivity(
+            options: .userInitiatedAllowingIdleSystemSleep,
+            reason: "Dock, window and keep-awake features run in the background"
+        )
+
         // Watches Accessibility from launch: every event tap goes away the moment it is revoked.
         AccessibilityGuard.shared.activate()
         // ⌃⌥⇧⌘⎋ quits Sirena from anywhere, taps switched off first.
@@ -132,6 +139,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var hasFinishedLaunching = false
     /// SIRENA_UPDATES_ONLY: nothing was started, so there is nothing to stop.
     private var updatesOnly = false
+    private var appNapActivity: NSObjectProtocol?
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         guard hasFinishedLaunching else { return true }

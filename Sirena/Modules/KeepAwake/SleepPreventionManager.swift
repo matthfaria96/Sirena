@@ -15,6 +15,7 @@ final class SleepPreventionManager {
 
     private var sleepAssertionID: IOPMAssertionID?
     private var assertionTimer: Timer?
+    private var isPreventing = false
     private var isUserSessionActive = true
 
     private init() {
@@ -31,19 +32,20 @@ final class SleepPreventionManager {
 
     /// Prevents the system from sleeping
     func preventSleep() {
-        // Start or restart the assertion timer
+        self.isPreventing = true
         self.assertionTimer?.invalidate()
-        self.assertionTimer = Timer.scheduledTimer(
-            withTimeInterval: 10.0,
-            repeats: true
-        ) { [weak self] _ in
+        let timer = Timer(timeInterval: 30.0, repeats: true) { [weak self] _ in
             self?.refreshSleepAssertion()
         }
-        self.assertionTimer?.fire() // Fire immediately
+        // .common: the refresh keeps running while a menu is open.
+        RunLoop.main.add(timer, forMode: .common)
+        self.assertionTimer = timer
+        self.refreshSleepAssertion()
     }
 
     /// Allows the system to sleep normally
     func allowSleep() {
+        self.isPreventing = false
         self.assertionTimer?.invalidate()
         self.assertionTimer = nil
         self.releaseSleepAssertion()
@@ -51,15 +53,13 @@ final class SleepPreventionManager {
 
     // MARK: - Private Methods
 
+    /// The assertion has no timeout, so a late timer can't open a gap: the display sleeps the
+    /// moment none is held if it has been idle long enough. macOS drops it if Sirena dies. The
+    /// periodic refresh only covers an assertion lost some other way (powerd restarting), and
+    /// the new one exists before the old one goes.
     private func refreshSleepAssertion() {
-        guard self.isUserSessionActive else { return }
+        guard self.isPreventing, self.isUserSessionActive else { return }
 
-        // Release existing assertion
-        if let assertionID = sleepAssertionID {
-            IOPMAssertionRelease(assertionID)
-        }
-
-        // Create new assertion
         var assertionID: IOPMAssertionID = 0
         let reason = String(localized: "Caffeine prevents sleep") as CFString
         let result = IOPMAssertionCreateWithDescription(
@@ -68,14 +68,16 @@ final class SleepPreventionManager {
             nil as CFString?,
             nil as CFString?,
             nil as CFString?,
-            8, // Timeout after 8 seconds
+            0, // No timeout: held until released
             nil as CFString?,
             &assertionID
         )
 
-        if result == kIOReturnSuccess {
-            self.sleepAssertionID = assertionID
+        guard result == kIOReturnSuccess else { return }
+        if let previous = self.sleepAssertionID {
+            IOPMAssertionRelease(previous)
         }
+        self.sleepAssertionID = assertionID
     }
 
     private func releaseSleepAssertion() {
@@ -106,10 +108,12 @@ final class SleepPreventionManager {
     @objc
     private func sessionDidResignActive() {
         self.isUserSessionActive = false
+        self.releaseSleepAssertion()
     }
 
     @objc
     private func sessionDidBecomeActive() {
         self.isUserSessionActive = true
+        self.refreshSleepAssertion()
     }
 }

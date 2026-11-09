@@ -103,6 +103,7 @@ class CaffeineViewModel: ObservableObject {
         }
 
         self.isActive = true
+        UserDefaults.standard.set(duration == nil, forKey: PreferenceKeys.resumeIndefinitely)
         SleepPreventionManager.shared.preventSleep()
 
         if UserDefaults.standard.bool(forKey: PreferenceKeys.keepAppsActive) {
@@ -112,6 +113,22 @@ class CaffeineViewModel: ObservableObject {
 
     /// Deactivates Caffeine
     func deactivate() {
+        UserDefaults.standard.set(false, forKey: PreferenceKeys.resumeIndefinitely)
+        self.stop()
+    }
+
+    /// Sirena is quitting: "Indefinitely" stays on for the next launch.
+    func stopForQuit() {
+        self.stop()
+    }
+
+    /// Turns "Indefinitely" back on if Sirena last stopped with it on (quit, update, restart).
+    func resumeIfIndefinite() {
+        guard !self.isActive, UserDefaults.standard.bool(forKey: PreferenceKeys.resumeIndefinitely) else { return }
+        self.activate(withTimeout: 0)
+    }
+
+    private func stop() {
         self.cancelTimers()
         self.timeRemaining = nil
         self.isActive = false
@@ -207,4 +224,5 @@ enum PreferenceKeys {
     static let suppressLaunchMessage = "CASuppressLaunchMessage"
     static let deactivateOnManualSleep = "CADeactivateOnManualSleep"
     static let keepAppsActive = "CAKeepAppsActive"
+    static let resumeIndefinitely = "CAResumeIndefinitely"
 }

@@ -53,6 +53,9 @@ public final class AccessibilityGuard: @unchecked Sendable {
     private var limiters: [String: EventTapReEnableLimiter] = [:]
     private var refusedTaps: Set<String> = []
     private var observers: [UUID: @MainActor (Bool) -> Void] = [:]
+    /// Taps left off after timing out too often, and when (system uptime).
+    private var givenUpTaps: [ObjectIdentifier: TimeInterval] = [:]
+    private var emergencyStopped = false
 
     private var timer: DispatchSourceTimer?
     private var notificationObserver: NSObjectProtocol?
@@ -92,8 +95,10 @@ public final class AccessibilityGuard: @unchecked Sendable {
         let (transition, ports) = lock.withLock { () -> (AccessibilityTrustTransition?, [CFMachPort]) in
             let transition = tracker.update(sample)
             if transition != nil { refusedTaps.removeAll() }
+            if transition == .lost { givenUpTaps.removeAll() }
             return (transition, transition == .lost ? taps.values.map(\.port) : [])
         }
+        retryGivenUpTaps()
         guard let transition else { return }
 
         switch transition {
@@ -116,6 +121,38 @@ public final class AccessibilityGuard: @unchecked Sendable {
                     handler(isTrusted)
                 }
             }
+        }
+    }
+
+    /// Runs on `queue`. A tap that timed out too often used to stay off until Sirena was
+    /// reopened; it comes back after a pause, still under the 3-per-minute budget.
+    private func retryGivenUpTaps() {
+        let now = ProcessInfo.processInfo.systemUptime
+        let due = lock.withLock { () -> [(id: ObjectIdentifier, tap: RegisteredTap)] in
+            guard !emergencyStopped else { return [] }
+            return givenUpTaps.compactMap { id, givenUpAt in
+                guard EventTapPolicy.mayRetryGivenUpTap(givenUpAt: givenUpAt, now: now, trusted: tracker.trusted),
+                      let tap = taps[id] else { return nil }
+                return (id, tap)
+            }
+        }
+        for (id, tap) in due {
+            guard CFMachPortIsValid(tap.port), !CGEvent.tapIsEnabled(tap: tap.port) else {
+                lock.withLock { _ = givenUpTaps.removeValue(forKey: id) }
+                continue
+            }
+            guard AXIsProcessTrusted(), spendReEnable(tap.name) else { continue }
+            lock.withLock { _ = givenUpTaps.removeValue(forKey: id) }
+            CGEvent.tapEnable(tap: tap.port, enable: true)
+            log.notice("\(tap.name, privacy: .public): event tap back on after a pause")
+        }
+    }
+
+    private func markGivenUp(_ tap: CFMachPort) {
+        let now = ProcessInfo.processInfo.systemUptime
+        lock.withLock {
+            guard taps[ObjectIdentifier(tap)] != nil else { return }
+            givenUpTaps[ObjectIdentifier(tap)] = now
         }
     }
 
@@ -170,7 +207,11 @@ public final class AccessibilityGuard: @unchecked Sendable {
 
     /// Emergency exit (⌃⌥⇧⌘⎋): every registered tap off at once, from whatever thread asks.
     public func disableAllTaps() {
-        let ports = lock.withLock { taps.values.map(\.port) }
+        let ports = lock.withLock { () -> [CFMachPort] in
+            emergencyStopped = true
+            givenUpTaps.removeAll()
+            return taps.values.map(\.port)
+        }
         for port in ports {
             CGEvent.tapEnable(tap: port, enable: false)
         }
@@ -178,7 +219,10 @@ public final class AccessibilityGuard: @unchecked Sendable {
     }
 
     public func unregister(_ tap: CFMachPort) {
-        let removed = lock.withLock { taps.removeValue(forKey: ObjectIdentifier(tap)) }
+        let removed = lock.withLock { () -> RegisteredTap? in
+            givenUpTaps.removeValue(forKey: ObjectIdentifier(tap))
+            return taps.removeValue(forKey: ObjectIdentifier(tap))
+        }
         if let removed {
             log.notice("\(removed.name, privacy: .public): event tap removed")
         }
@@ -214,7 +258,8 @@ public final class AccessibilityGuard: @unchecked Sendable {
             }
         case .tearDown:
             if trustedNow {
-                log.error("\(name, privacy: .public): event tap timed out too often, leaving it off")
+                markGivenUp(tap)
+                log.error("\(name, privacy: .public): event tap timed out too often, pausing it")
             }
             queue.async { [weak self] in self?.evaluate() }
         }
@@ -224,9 +269,10 @@ public final class AccessibilityGuard: @unchecked Sendable {
     private func reEnableAfterCheck(_ tap: CFMachPort, name: String) {
         evaluate()
         guard isRegistered(tap), CFMachPortIsValid(tap), !CGEvent.tapIsEnabled(tap: tap) else { return }
-        guard trusted, AXIsProcessTrusted() else { return }
+        guard trusted, AXIsProcessTrusted(), !lock.withLock({ emergencyStopped }) else { return }
         guard spendReEnable(name) else {
-            log.error("\(name, privacy: .public): event tap keeps getting switched off, leaving it off")
+            markGivenUp(tap)
+            log.error("\(name, privacy: .public): event tap keeps getting switched off, pausing it")
             return
         }
         CGEvent.tapEnable(tap: tap, enable: true)
