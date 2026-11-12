@@ -14311,6 +14311,26 @@
           }
         }
       }
+    },
+    "On other displays": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Em outros monitores"
+          }
+        }
+      }
+    },
+    "On %@": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Em %@"
+          }
+        }
+      }
     }
   }
 }

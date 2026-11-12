@@ -125,7 +125,7 @@ Files: `Sirena/Modules/WindowManagement/Zones/`
 |---|---|
 | `ZoneLayout.swift` | Pure geometry: `ZoneNode` (tree of column/row splits with shares), `ZoneGeometry` (regions, frames with gaps, dividers, moving a line, resizing, evening), `ZoneTemplate` (the 6 layouts of the panel) |
 | `ZonePopup.swift` | `ZonePopupGeometry` (one geometry for drawing and hit-testing), the glass panel, `ZoneHint` (the pill at the top middle while dragging), `ZonePreview` (where the window will go) |
-| `ZoneAssist.swift` | Snap Assist: the other zones with the open windows (previews from `SwitcherWindowPreviewProvider.captureViaWindowServer`, grouped by app). Keyboard: arrows move, Tab / ⇧ Tab change zone, Return picks, Esc closes |
+| `ZoneAssist.swift` | Snap Assist: the other zones with the open windows (previews from `SwitcherWindowPreviewProvider.captureViaWindowServer`, grouped by app; windows whose centre is on another display come last, under “Em outros monitores”, dimmed and labelled with that display — `openWindows(for:)` sets `Candidate.otherDisplay`). Keyboard: arrows move, Tab / ⇧ Tab change zone, Return picks, Esc closes |
 | `ZoneGroupDecor.swift` | Dashed group outlines, grips (drag = resize both, click = the grip's menu), "Juntar de novo" bubble |
 | `ZoneController.swift` | The engine: drag hooks, placing, groups, timer, last group per display |
 

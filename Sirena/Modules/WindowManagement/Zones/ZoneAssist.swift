@@ -17,6 +17,8 @@ final class ZoneAssist {
         let pid: pid_t
         let title: String
         let appName: String
+        /// The display it is on, when not the one being filled (shown apart, quieter).
+        var otherDisplay: String?
     }
 
     struct Spot: Identifiable {
@@ -199,14 +201,15 @@ final class ZoneAssistModel {
     var focusSpot = 0
     var focused: CGWindowID?
 
-    /// The candidates in the order they are shown.
-    var ordered: [ZoneAssist.Candidate] { byApp.flatMap(\.windows) }
+    /// The candidates in the order they are shown: this display's first, then the others'.
+    var ordered: [ZoneAssist.Candidate] { (byApp(here: true) + byApp(here: false)).flatMap(\.windows) }
 
-    /// The candidates by app, in the order their first window appears (front to back).
-    var byApp: [(pid: pid_t, name: String, windows: [ZoneAssist.Candidate])] {
+    /// The windows of this display (`here`) or of the other displays, by app, in the order
+    /// their first window appears (front to back).
+    func byApp(here: Bool) -> [(pid: pid_t, name: String, windows: [ZoneAssist.Candidate])] {
         var order: [pid_t] = []
         var groups: [pid_t: [ZoneAssist.Candidate]] = [:]
-        for candidate in candidates {
+        for candidate in candidates where (candidate.otherDisplay == nil) == here {
             if groups[candidate.pid] == nil { order.append(candidate.pid) }
             groups[candidate.pid, default: []].append(candidate)
         }
@@ -271,8 +274,6 @@ private struct SpotView: View {
 
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: 18, style: .continuous)
-        // Narrow zones get smaller cards, so a few still fit side by side.
-        let minimum = min(200, max(130, spot.frame.width / 3.4))
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 16, pinnedViews: []) {
                 if let caption = spot.caption {
@@ -281,31 +282,22 @@ private struct SpotView: View {
                         .foregroundStyle(Color.accentColor)
                         .lineLimit(1)
                 }
-                ForEach(model.byApp, id: \.pid) { app in
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack(spacing: 7) {
-                            if let icon = NSRunningApplication(processIdentifier: app.pid)?.icon {
-                                Image(nsImage: icon).resizable().frame(width: 18, height: 18)
-                            }
-                            Text(app.name)
-                                .font(.system(size: 12.5, weight: .semibold))
-                            if app.windows.count > 1 {
-                                Text("\(app.windows.count)")
-                                    .font(.system(size: 10.5, weight: .bold).monospacedDigit())
-                                    .foregroundStyle(.secondary)
-                                    .padding(.horizontal, 6)
-                                    .padding(.vertical, 1.5)
-                                    .background(Capsule().fill(Color.primary.opacity(0.1)))
-                            }
-                            Spacer(minLength: 0)
-                        }
-                        .padding(.horizontal, 2)
-                        LazyVGrid(columns: [GridItem(.adaptive(minimum: minimum, maximum: 280), spacing: 12)], spacing: 12) {
-                            ForEach(app.windows) { candidate in
-                                CandidateCard(candidate: candidate, preview: model.previews[candidate.id],
-                                              isFocused: isFocused && model.focused == candidate.id) { pick(candidate.id) }
-                            }
-                        }
+                ForEach(model.byApp(here: true), id: \.pid) { app in
+                    appSection(app, elsewhere: false)
+                }
+                let elsewhere = model.byApp(here: false)
+                if !elsewhere.isEmpty {
+                    HStack(spacing: 8) {
+                        Rectangle().fill(Color.primary.opacity(0.15)).frame(height: 1)
+                        Label(L("On other displays"), systemImage: "display.2")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(.secondary)
+                            .fixedSize()
+                        Rectangle().fill(Color.primary.opacity(0.15)).frame(height: 1)
+                    }
+                    .padding(.top, 4)
+                    ForEach(elsewhere, id: \.pid) { app in
+                        appSection(app, elsewhere: true)
                     }
                 }
             }
@@ -318,6 +310,42 @@ private struct SpotView: View {
         .clipShape(shape)
         .shadow(color: .black.opacity(0.25), radius: 18, y: 8)
         .padding(4)
+    }
+
+    /// One app: its header, then its windows. Narrow zones get smaller cards, so a few still fit
+    /// side by side.
+    private func appSection(_ app: (pid: pid_t, name: String, windows: [ZoneAssist.Candidate]), elsewhere: Bool) -> some View {
+        let minimum = min(200, max(130, spot.frame.width / 3.4))
+        return VStack(alignment: .leading, spacing: 8) {
+            appHeader(app)
+                .opacity(elsewhere ? 0.6 : 1)
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: minimum, maximum: 280), spacing: 12)], spacing: 12) {
+                ForEach(app.windows) { candidate in
+                    CandidateCard(candidate: candidate, preview: model.previews[candidate.id],
+                                  isFocused: isFocused && model.focused == candidate.id) { pick(candidate.id) }
+                }
+            }
+        }
+    }
+
+    private func appHeader(_ app: (pid: pid_t, name: String, windows: [ZoneAssist.Candidate])) -> some View {
+        HStack(spacing: 7) {
+            if let icon = NSRunningApplication(processIdentifier: app.pid)?.icon {
+                Image(nsImage: icon).resizable().frame(width: 18, height: 18)
+            }
+            Text(app.name)
+                .font(.system(size: 12.5, weight: .semibold))
+            if app.windows.count > 1 {
+                Text("\(app.windows.count)")
+                    .font(.system(size: 10.5, weight: .bold).monospacedDigit())
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 1.5)
+                    .background(Capsule().fill(Color.primary.opacity(0.1)))
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 2)
     }
 }
 
@@ -361,6 +389,13 @@ private struct CandidateCard: View {
                     .lineLimit(1)
                     .truncationMode(.middle)
                     .frame(maxWidth: .infinity)
+                if let display = candidate.otherDisplay {
+                    Label(display, systemImage: "display")
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                }
             }
             .padding(8)
             .background(RoundedRectangle(cornerRadius: 12, style: .continuous)
@@ -368,11 +403,15 @@ private struct CandidateCard: View {
             .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .strokeBorder(isLit ? Color.accentColor : Color.primary.opacity(0.12), lineWidth: isLit ? 2 : 1))
             .scaleEffect(isLit && !reduceMotion ? 1.03 : 1)
+            // On another display: there to be found, quieter until pointed at.
+            .opacity(candidate.otherDisplay != nil && !isLit ? 0.55 : 1)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(candidate.title.isEmpty ? candidate.appName : "\(candidate.title), \(candidate.appName)")
+        .accessibilityValue(candidate.otherDisplay.map { L("On \($0)") } ?? "")
         .onHover { hovering in withAnimation(.snappy(duration: 0.15)) { isHovering = hovering } }
-        .help(candidate.title.isEmpty ? candidate.appName : "\(candidate.title) — \(candidate.appName)")
+        .help((candidate.title.isEmpty ? candidate.appName : "\(candidate.title) — \(candidate.appName)")
+              + (candidate.otherDisplay.map { " · " + L("On \($0)") } ?? ""))
     }
 }

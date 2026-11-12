@@ -452,7 +452,7 @@ final class ZoneController {
         let free = frames.indices.filter { !taken.contains($0) }.map { (zone: $0, frame: frames[$0]) }
         guard !free.isEmpty else { return }
         let members = Set(placements.filter { $0.value.group == group }.map(\.key))
-        let candidates = openWindows().filter { !members.contains($0.id) && $0.id != placed }
+        let candidates = openWindows(for: screen).filter { !members.contains($0.id) && $0.id != placed }
         guard !candidates.isEmpty else { return }
         assistContext = (screen, template, false)
         assist.show(on: screen, zones: free, candidates: candidates)
@@ -492,7 +492,7 @@ final class ZoneController {
             let name = NSRunningApplication(processIdentifier: placement.pid)?.localizedName ?? ""
             captions[placement.zone] = L("In place of \(name)")
         }
-        let candidates = openWindows().filter { members[$0.id] == nil }
+        let candidates = openWindows(for: screen).filter { members[$0.id] == nil }
         guard !zones.isEmpty, !candidates.isEmpty else {
             NSSound.beep()
             return
@@ -503,7 +503,10 @@ final class ZoneController {
     }
 
     /// The standard windows on the current Space, front to back.
-    private func openWindows() -> [ZoneAssist.Candidate] {
+    /// Each one says which other display it is on, when it isn't on `screen` (its centre decides).
+    private func openWindows(for screen: NSScreen) -> [ZoneAssist.Candidate] {
+        let here = Self.key(for: screen)
+        let screens = NSScreen.screens.map { (frame: $0.frame.screenFlipped, key: Self.key(for: $0), name: $0.localizedName) }
         let own = ProcessInfo.processInfo.processIdentifier
         let infos = WindowUtil.getWindowList(forceRefresh: true).filter {
             $0.level == 0 && $0.pid != own && $0.frame.width >= 80 && $0.frame.height >= 60
@@ -521,7 +524,10 @@ final class ZoneController {
         return infos.compactMap { info in
             guard let element = standard[info.id] else { return nil }
             let appName = NSRunningApplication(processIdentifier: info.pid)?.localizedName ?? info.processName ?? ""
-            return ZoneAssist.Candidate(id: info.id, pid: info.pid, title: element.title ?? "", appName: appName)
+            let display = screens.first { $0.frame.contains(info.frame.centerPoint) }
+            let elsewhere = display.flatMap { $0.key == here ? nil : $0.name }
+            return ZoneAssist.Candidate(id: info.id, pid: info.pid, title: element.title ?? "", appName: appName,
+                                        otherDisplay: elsewhere)
         }
     }
 
