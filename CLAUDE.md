@@ -72,6 +72,22 @@ at once and tells the owners (via `observe`) to tear down, on regain to recreate
   Its prefs land in `~/Library/Preferences/<id>.plist` even with `CFFIXED_USER_HOME`: delete them,
   `tccutil reset All <id>` and `lsregister -u` the copy afterwards.
 
+## Janela e Dock
+
+Every option of that page (key, default, reader), who owns each click/key, the minimize modes,
+the snap layouts and the macOS 27 caveats are mapped in `.planning/codebase/WINDOW-AND-DOCK.md`:
+read it before touching the page and update it in the same commit. The rules that bite:
+- Dock clicks belong to Tweaks (`TweaksEngine.dockClick`); DockDoor's own handling stays off
+  (`shouldHideOnDockItemClick = false`). Never add a second handler for the same click.
+- The minimize mode is `SirenaMinimize.mode` (two stored flags, defaults in `SirenaMinimize`):
+  code reads `mode`; only the Dock tab binds the two keys, with `SirenaMinimize`'s defaults.
+- macOS 27's hit-test over the traffic lights answers their group or the window, not the
+  button: match clicks against the window's button frame (`GreenButtonManager.greenButtonFrame`,
+  `TweaksEngine.minimizeButtonFrame`), after a cheap window-server corner check.
+- Snap layouts (`Sirena/Modules/WindowManagement/Zones/`) ride on `SnappingManager`'s drag
+  handling; they add no event monitor or tap of their own. Their geometry is tested by
+  `scripts/test-zone-layout.sh` (no app, no AX).
+
 ## Showcase mode (site screenshots)
 
 `SIRENA_SHOWCASE=1` (`Sirena/App/Showcase.swift`) is for the witchmymac.com screenshots. Nothing
