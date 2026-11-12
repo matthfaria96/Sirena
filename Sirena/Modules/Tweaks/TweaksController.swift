@@ -142,14 +142,15 @@ private struct TweaksSnapshot {
         func flag(_ key: String) -> Bool { defaults.object(forKey: key) as? Bool ?? true }
         // The Finder tweaks follow Melhorias' switch; the Dock ones live on Janela e Dock.
         let finder = TweaksController.finderTweaksOn
-        // The minimize mode (Dock tab) decides the Dock click too: "Ocultar tudo" hides the app
-        // in front when its icon is clicked; "Como o macOS" leaves the click to macOS.
-        let hidesApp = SirenaMinimize.hidesApp
+        // The minimize mode (Dock tab) decides the Dock click too: "Tudo junto pelo Dock" and
+        // "Ocultar tudo" hide the app in front when its icon is clicked, and bring every window
+        // back on the next click; "Como o macOS" leaves the click to macOS.
+        let mode = SirenaMinimize.mode
         return TweaksSnapshot(
             greenButtonFills: flag("tweaks.greenButtonFills"),
-            dockActiveAppClick: hidesApp ? .hideApp : .nothing,
-            dockUnminimizeAll: false,
-            minimizeHides: hidesApp,
+            dockActiveAppClick: mode == .macOS ? .nothing : .hideApp,
+            dockUnminimizeAll: mode == .dockTogether,
+            minimizeHides: mode == .hideAll,
             dockFoldersOpenInFinder: flag("tweaks.dockFoldersOpenInFinder"),
             finderCutAndPaste: finder && flag("tweaks.finderCutAndPaste"),
             finderCutSound: flag("tweaks.finderCutSound"),
@@ -481,8 +482,9 @@ final class TweaksEngine: @unchecked Sendable {
             }
         }
 
-        // The Dock brings back one minimized window; bring back the rest after it.
-        if settings.dockUnminimizeAll, visible == 0, minimized.count > 1 {
+        // Showing the app (hidden, in the background, or all minimized): the windows minimized
+        // one by one come back with the others.
+        if settings.dockUnminimizeAll, !minimized.isEmpty, app.isHidden || !app.isActive || visible == 0 {
             afterClickAction = {
                 for window in minimized {
                     AXUIElementSetAttributeValue(window, kAXMinimizedAttribute as CFString, kCFBooleanFalse)
@@ -517,16 +519,26 @@ final class TweaksEngine: @unchecked Sendable {
         let appElement = Self.element(AXUIElementCreateApplication(window.pid))
         var hit: AXUIElement?
         let result = AXUIElementCopyElementAtPosition(appElement, Float(point.x), Float(point.y), &hit)
-        let subrole = hit.map(Self.element).flatMap { Self.string($0, kAXSubroleAttribute) }
-        guard result == .success, let button = hit.map(Self.element), subrole == kAXMinimizeButtonSubrole,
+        guard result == .success, let hit = hit.map(Self.element),
+              let frame = Self.minimizeButtonFrame(hit: hit, at: point),
               let app = NSRunningApplication(processIdentifier: window.pid) else {
-            minimizeLog.notice("corner click in pid \(window.pid, privacy: .public): AX \(result.rawValue, privacy: .public), subrole \(subrole ?? "-", privacy: .public): not the minimize button")
+            minimizeLog.notice("corner click in pid \(window.pid, privacy: .public): AX \(result.rawValue, privacy: .public): not the minimize button")
             return event
         }
         minimizeLog.notice("minimize button in pid \(window.pid, privacy: .public): hiding instead")
         // Like a real button: released outside it, nothing happens.
-        let frame = Self.frame(of: button)
-        return hold(event, releaseRect: frame?.insetBy(dx: -4, dy: -4)) { Self.onMain { app.hide() } }
+        return hold(event, releaseRect: frame.insetBy(dx: -4, dy: -4)) { Self.onMain { app.hide() } }
+    }
+
+    /// The minimize button's frame when the click is on it. Up to macOS 26 the hit-test
+    /// answers the button; from macOS 27 it answers the traffic lights' group (or the window),
+    /// so the window's own minimize button is checked against the point.
+    private static func minimizeButtonFrame(hit: AXUIElement, at point: CGPoint) -> CGRect? {
+        if string(hit, kAXSubroleAttribute) == kAXMinimizeButtonSubrole { return frame(of: hit) }
+        let window = string(hit, kAXRoleAttribute) == kAXWindowRole ? hit : child(hit, kAXWindowAttribute)
+        guard let window, let button = child(window, kAXMinimizeButtonAttribute),
+              let frame = frame(of: button), frame.contains(point) else { return nil }
+        return frame
     }
 
     private static func frame(of element: AXUIElement) -> CGRect? {

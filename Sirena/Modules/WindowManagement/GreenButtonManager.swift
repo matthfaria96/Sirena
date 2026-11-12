@@ -68,13 +68,14 @@ class GreenButtonManager {
             guard
                 event.modifierFlags.intersection(.deviceIndependentFlagsMask).isEmpty,
                 let location = event.cgEvent?.location,
+                // Every click on the Mac passes here: only the top-left corner of a window,
+                // where its buttons are, is worth asking Accessibility about.
+                Self.isInButtonsCorner(event, at: location),
                 // Over Sirena's own windows the AX hit-test is answered in-process on this
                 // tap thread, which makes SwiftUI rebuild pages off the main thread (crash).
                 !Self.isOwnWindow(at: location),
                 let element = AccessibilityElement(location),
-                element.isFullScreenButton == true,
-                case let buttonFrame = element.frame,
-                buttonFrame != .null,
+                let buttonFrame = Self.greenButtonFrame(of: element, at: location),
                 let windowElement = element.windowElement
             else {
                 return false
@@ -82,6 +83,26 @@ class GreenButtonManager {
             self.windowElement = windowElement
             self.buttonFrame = buttonFrame
             return true
+    }
+
+    /// Whether `point` falls in the corner of the clicked window that holds its buttons
+    /// (window server only, no Accessibility). An unknown window counts, to be safe.
+    private static func isInButtonsCorner(_ event: NSEvent, at point: CGPoint) -> Bool {
+        guard let number = event.cgEvent?.getIntegerValueField(.mouseEventWindowUnderMousePointer), number > 0,
+              let frame = WindowUtil.getWindowFrame(id: CGWindowID(number)) else { return true }
+        return point.y - frame.minY <= 60 && point.x - frame.minX <= 140
+    }
+
+    /// The green button's frame when `point` is on it. The element under the point is the
+    /// button itself up to macOS 26; from macOS 27 it is usually the traffic lights' group,
+    /// another group of the window or the window, so the window's own button is checked too.
+    private static func greenButtonFrame(of element: AccessibilityElement, at point: CGPoint) -> CGRect? {
+        if element.isFullScreenButton == true {
+            let frame = element.frame
+            return frame == .null ? nil : frame
+        }
+        guard let frame = element.fullScreenButtonFrame, frame.contains(point) else { return nil }
+        return frame
     }
 
     private func filterMouseUp(_ event: NSEvent) -> Bool {

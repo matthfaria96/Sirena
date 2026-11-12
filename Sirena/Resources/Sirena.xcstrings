@@ -14051,6 +14051,116 @@
           }
         }
       }
+    },
+    "Layouts at the top of the screen": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Layouts no topo da tela"
+          }
+        }
+      }
+    },
+    "Drag a window to the top middle of the screen and a panel drops with layouts: let go over a zone to put the window there. Esc cancels.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arraste uma janela até o meio do topo da tela e desce um painel com layouts: solte sobre uma zona para colocar a janela ali. Esc cancela."
+          }
+        }
+      }
+    },
+    "Snap Layouts": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Layouts de Encaixe"
+          }
+        }
+      }
+    },
+    "Drop on a zone · Esc cancels": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solte sobre uma zona · Esc cancela"
+          }
+        }
+      }
+    },
+    "Last group": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Último grupo"
+          }
+        }
+      }
+    },
+    "Join again": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Juntar de novo"
+          }
+        }
+      }
+    },
+    "All together from the Dock": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tudo junto pelo Dock"
+          }
+        }
+      }
+    },
+    "The yellow button minimizes only that window. Clicking the app in the Dock hides all of its windows at once, and brings all of them back.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O botão amarelo minimiza só aquela janela. Clicar no app no Dock esconde todas as janelas dele de uma vez, e traz todas de volta."
+          }
+        }
+      }
+    },
+    "The yellow button and ⌘M minimize only that window. Click the app in front in the Dock and all of its windows go at once; click it again and all of them come back, the minimized ones too.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O botão amarelo e o ⌘M minimizam só aquela janela. Clique no app em uso no Dock e todas as janelas dele saem de uma vez; clique de novo e todas voltam, até as minimizadas."
+          }
+        }
+      }
+    },
+    "Needs “Snap windows by dragging”, above, turned on.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Precisa de “Encaixar janelas ao arrastar”, acima, ligado."
+          }
+        }
+      }
+    },
+    "In the middle of the top edge the panel takes the place of the top snap area; the top corners keep theirs. Windows put in a layout move together: drag the grip between two of them to resize both, click it to let them go.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No meio da borda de cima, o painel ocupa o lugar da área de encaixe de cima; os cantos de cima continuam como estão. As janelas colocadas num layout andam juntas: arraste a alça entre duas delas para redimensionar as duas, clique nela para soltá-las."
+          }
+        }
+      }
     }
   }
 }

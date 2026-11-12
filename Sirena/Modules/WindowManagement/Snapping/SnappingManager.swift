@@ -51,18 +51,6 @@ struct WindowDragGeometry {
         initialFrame?.size == currentFrame.size && initialFrame?.origin != currentFrame.origin
     }
 
-    static func releasedMovement(initialAX: CGRect, initialServer: CGRect, ax: CGRect, server: CGRect?) -> Bool {
-        let serverGeometry = WindowDragGeometry(initialFrame: initialAX, initialServerFrame: initialServer,
-            serverFrame: server, accessibilityFrame: { nil })
-        if serverGeometry?.movedWithoutResizing == true { return true }
-        // The two mouse-down reads may straddle the first native movement.
-        // AX catching up still proves movement against its own baseline, but
-        // a persistent difference between coordinate sources does not.
-        guard let server, WindowAnimationGeometry.near(ax, server, tolerance: 1),
-              !WindowAnimationGeometry.near(initialAX, ax, tolerance: 1) else { return false }
-        return WindowDragGeometry(initialFrame: initialAX, initialServerFrame: nil, serverFrame: nil,
-            accessibilityFrame: { ax })?.movedWithoutResizing == true
-    }
 }
 
 enum DragRestorePlacement {
@@ -296,6 +284,7 @@ class SnappingManager {
             if box?.waitingForPlacement == true { box?.orderOut(nil) }
             guard event.keyCode == 53, nativeGesture.held else { return }
             nativeGesture.cancel()
+            ZoneController.cancelDrag()
             currentSnapArea = nil
             box?.orderOut(nil)
         case .leftMouseDown:
@@ -318,6 +307,17 @@ class SnappingManager {
         case .leftMouseUp:
             nativeGesture.end()
             traceNativeInput(event, phase: "up")
+            // The snap popup: a window let go over one of its zones goes there (and Rectangle's
+            // snapping stands aside); one resized in a zone moves the lines it shares.
+            let droppedInZone = windowMoving
+                && ZoneController.dragEnded(element: windowElement, id: windowId, cancelled: nativeGesture.cancelled)
+            if !windowMoving, initialWindowRect != nil {
+                ZoneController.resizeEnded(element: windowElement, id: windowId)
+            }
+            if droppedInZone {
+                box?.orderOut(nil)
+                currentSnapArea = nil
+            } else {
             if windowMoving, currentSnapArea != nil { WindowAnimator.shared.finish() }
             if currentSnapArea != nil {
                 // A coalesced final drag can leave the preview on the previous screen.
@@ -349,6 +349,7 @@ class SnappingManager {
                         self.currentSnapArea = nil
                     }
                 }
+            }
             }
             finishNativeSizeRestore()
             windowElement = nil
@@ -395,6 +396,14 @@ class SnappingManager {
             }
             if windowMoving {
                 retryNativeSizeRestore(cursor: event.cgEvent?.location)
+                // The snap popup: dragged to the top middle of a display, its layouts show up.
+                if !nativeGesture.cancelled, ZoneController.dragMoved() {
+                    if currentSnapArea != nil {
+                        box?.orderOut(nil)
+                        currentSnapArea = nil
+                    }
+                    return
+                }
                 if !canSnap(event) {
                     if currentSnapArea != nil {
                         box?.orderOut(nil)

@@ -113,9 +113,12 @@ struct WindowSwitcherSettingsView: View {
                                    ... Double(SwitcherSupport.maxColumnsRange.upperBound),
                                step: 1)
                             .frame(width: 140)
+                        // "Automático" in Portuguese: wide enough not to wrap.
                         Text(SwitcherSupport.sanitizedMaxColumns(maxColumns).map(String.init) ?? L("Auto"))
                             .font(.caption.monospacedDigit()).foregroundStyle(.secondary)
-                            .frame(width: 52, alignment: .trailing)
+                            .lineLimit(1)
+                            .fixedSize()
+                            .frame(minWidth: 52, alignment: .trailing)
                     }
                 } label: {
                     Text(L("Maximum columns"))

@@ -125,6 +125,36 @@ struct ArrangeDrawing: View {
     }
 }
 
+/// The snap popup: a window dragged to the top, the panel of layouts dropped above it, one
+/// zone lit.
+struct ZonesDrawing: View {
+    var body: some View {
+        MiniScreen {
+            VStack(spacing: 4) {
+                HStack(spacing: 3) {
+                    ForEach(0..<3, id: \.self) { layout in
+                        HStack(spacing: 1) {
+                            RoundedRectangle(cornerRadius: 1, style: .continuous)
+                                .fill(layout == 0 ? Color.accentColor : Color.secondary.opacity(0.45))
+                            RoundedRectangle(cornerRadius: 1, style: .continuous)
+                                .fill(Color.secondary.opacity(0.45))
+                            if layout == 2 {
+                                RoundedRectangle(cornerRadius: 1, style: .continuous)
+                                    .fill(Color.secondary.opacity(0.45))
+                            }
+                        }
+                        .frame(width: 14, height: 8)
+                    }
+                }
+                .padding(3)
+                .background(RoundedRectangle(cornerRadius: 3, style: .continuous).fill(Color(nsColor: .windowBackgroundColor)))
+                .overlay(RoundedRectangle(cornerRadius: 3, style: .continuous).strokeBorder(Color.secondary.opacity(0.35), lineWidth: 0.6))
+                MiniWindow(width: 44, height: 24)
+            }
+        }
+    }
+}
+
 /// The green button: full screen (menu bar and Dock gone) or filling the screen.
 struct GreenButtonDrawing: View {
     let fills: Bool

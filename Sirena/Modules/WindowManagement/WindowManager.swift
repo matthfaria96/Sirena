@@ -71,7 +71,10 @@ class WindowManager {
         let windowId = parameters.windowId ?? frontmostWindowElement.getWindowId()
 
         let action = parameters.action
-        
+
+        // A window put in a zone by the snap popup isn't any more once an action moves it.
+        ZoneController.noteWindowAction(on: windowId)
+
         if action == .restore {
             guard let windowId else {
                 NSSound.beep()

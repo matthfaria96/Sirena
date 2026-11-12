@@ -485,7 +485,11 @@ final class SharedPreviewWindowCoordinator: NSPanel {
         fullPreviewWindow?.contentView = hostingView
 
         fullPreviewWindow?.setFrame(flippedIconRect, display: true)
-        fullPreviewWindow?.makeKeyAndOrderFront(nil)
+        if fullPreviewWindow?.canBecomeKey == true {
+            fullPreviewWindow?.makeKeyAndOrderFront(nil)
+        } else {
+            fullPreviewWindow?.orderFrontRegardless()
+        }
         publishTapSnapshot()
     }
 
@@ -636,7 +640,8 @@ final class SharedPreviewWindowCoordinator: NSPanel {
 
         setFrame(frame, display: true)
         alphaValue = 1.0
-        makeKeyAndOrderFront(nil)
+        // A borderless panel can't be key: asking only logged a warning on every preview.
+        if canBecomeKey { makeKeyAndOrderFront(nil) } else { orderFrontRegardless() }
         publishTapSnapshot()
 
         if shouldAnimate, let layer = contentView?.layer {
@@ -823,22 +828,6 @@ final class SharedPreviewWindowCoordinator: NSPanel {
                                              centerOnScreen: shouldCenterOnScreen, centeredHoverWindowState: centeredHoverWindowState,
                                              embeddedContentType: embeddedContentType, dockPositionOverride: dockPositionOverride,
                                              dockItemFrameOverride: dockItemFrameOverride, renderStartTime: renderStartTime)
-        }
-    }
-
-    @MainActor
-    func cycleWindows(goBackwards: Bool) {
-        let coordinator = windowSwitcherCoordinator
-        guard !coordinator.windows.isEmpty else { return }
-
-        if coordinator.windowSwitcherActive, coordinator.hasActiveSearch {
-            return
-        }
-
-        if goBackwards {
-            coordinator.cycleBackward()
-        } else {
-            coordinator.cycleForward()
         }
     }
 

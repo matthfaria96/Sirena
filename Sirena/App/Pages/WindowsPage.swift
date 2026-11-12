@@ -58,6 +58,9 @@ private struct WindowsTab: View {
     @State private var tweaks = TweaksSettings.shared
     @State private var hasAccessibility = Showcase.accessibilityShown()
     @AppStorage("windowsAdvancedMode") private var advanced = false
+    @AppStorage(ZoneController.enabledKey) private var snapLayouts = true
+    /// The snap panel rides on drag-to-snap: off, the panel never shows.
+    @State private var snappingOn = !Defaults.windowSnapping.userDisabled
 
     var body: some View {
         Form {
@@ -110,6 +113,30 @@ private struct WindowsTab: View {
                     SettingsSubheader(L("Green button"), parent: L("Arrange Windows"), symbol: "plus.circle.fill")
                 }
                 SnapAreaSettingsView(showsDetails: $advanced)
+
+                // The snap popup: drag a window to the top middle of the screen, pick a zone.
+                Section {
+                    FeatureDrawingRow {
+                        ZonesDrawing()
+                    } content: {
+                        Toggle(isOn: $snapLayouts) {
+                            Text(L("Layouts at the top of the screen"))
+                            Text(L("Drag a window to the top middle of the screen and a panel drops with layouts: let go over a zone to put the window there. Esc cancels."))
+                        }
+                    }
+                    if snapLayouts && !snappingOn {
+                        Label(L("Needs “Snap windows by dragging”, above, turned on."), systemImage: "exclamationmark.triangle.fill")
+                            .foregroundStyle(.orange)
+                    }
+                } header: {
+                    SettingsSubheader(L("Snap Layouts"), parent: L("Arrange Windows"), symbol: "rectangle.split.3x1")
+                } footer: {
+                    if snapLayouts {
+                        Text(L("In the middle of the top edge the panel takes the place of the top snap area; the top corners keep theirs. Windows put in a layout move together: drag the grip between two of them to resize both, click it to let them go."))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
             }
 
             // 2. Sirena's ⌘ Tab switcher (from Vorssaint).
@@ -131,6 +158,9 @@ private struct WindowsTab: View {
         .onReceive(NotificationCenter.default.publisher(for: NSWindow.didBecomeKeyNotification)) { _ in
             hasAccessibility = Showcase.accessibilityShown()
         }
+        .onReceive(NotificationCenter.default.publisher(for: Notification.Name.windowSnapping)) { note in
+            snappingOn = note.object as? Bool ?? !Defaults.windowSnapping.userDisabled
+        }
     }
 
 }
@@ -140,14 +170,15 @@ private struct WindowsTab: View {
 private struct DockTab: View {
     @State private var manager = ModuleManager.shared
     @State private var tweaks = TweaksSettings.shared
-    @AppStorage(SirenaMinimize.hidesAppKey) private var hidesApp = true
+    @AppStorage(SirenaMinimize.hidesAppKey) private var hidesApp = SirenaMinimize.hidesAppDefault
+    @AppStorage(SirenaMinimize.dockTogetherKey) private var dockTogether = SirenaMinimize.dockTogetherDefault
     @State private var hasScreenRecording = Showcase.screenRecordingShown()
 
     var body: some View {
         Form {
             // 1. Minimizing: the main choice, first.
             Section {
-                MinimizeModePicker(hidesApp: $hidesApp)
+                MinimizeModePicker(hidesApp: $hidesApp, dockTogether: $dockTogether)
                 if hidesApp && !manager.isOn(.dock) {
                     LabeledContent {
                         Button(L("Turn On")) { manager.setEnabled(.dock, true) }
@@ -161,6 +192,8 @@ private struct DockTab: View {
             } footer: {
                 Text(hidesApp
                      ? L("Works with the yellow button, ⌘M, Minimize All and a click on the app in front in the Dock. Click the app in the Dock, or pick it with ⌘ Tab, and every window comes back at once.")
+                     : dockTogether
+                     ? L("The yellow button and ⌘M minimize only that window. Click the app in front in the Dock and all of its windows go at once; click it again and all of them come back, the minimized ones too.")
                      : L("Sirena leaves minimizing and Dock clicks to macOS."))
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -169,7 +202,7 @@ private struct DockTab: View {
             // 2. What clicking things in the Dock does.
             Section {
                 LabeledContent {
-                    Text(hidesApp ? L("Hides all of its windows") : L("What macOS does"))
+                    Text(hidesApp || dockTogether ? L("Hides all of its windows") : L("What macOS does"))
                         .foregroundStyle(.secondary)
                 } label: {
                     Text(L("Clicking the app in front"))

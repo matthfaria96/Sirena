@@ -165,6 +165,11 @@ class AccessibilityElement {
         }
     }
 
+    /// A regular document window (not a panel, dialog, sheet or floating palette).
+    var isStandardWindow: Bool {
+        subrole == .standardWindow
+    }
+
     /// A move can release a size restriction imposed by the old screen or Dock edge.
     /// An unconfirmed size refusal may be transient until the window moves on-screen.
     func setImmediateFrame(_ target: CGRect, from before: CGRect, sizeFirst: Bool,
@@ -341,6 +346,14 @@ class AccessibilityElement {
         AXUIElementSetMessagingTimeout(wrappedElement, seconds)
     }
     
+    /// The frame of the window's green button. macOS 27's hit-test over the traffic lights
+    /// answers their group (or the window) instead of the button, so the click is matched
+    /// against this frame.
+    var fullScreenButtonFrame: CGRect? {
+        guard let frame = windowElement?.getElementValue(.fullScreenButton)?.frame, frame != .null else { return nil }
+        return frame
+    }
+
     var isFullScreen: Bool? {
         guard let subrole = windowElement?.getElementValue(.fullScreenButton)?.subrole else { return nil }
         return subrole == .zoomButton

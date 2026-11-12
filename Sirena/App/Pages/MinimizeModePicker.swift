@@ -1,23 +1,36 @@
 /// MinimizeModePicker.swift
 ///
-/// The two minimize modes on the Dock tab, as two cards with a small drawing each:
-/// "Como o macOS" (nothing changes: each window shrinks into the Dock, one at a time) and
-/// "Ocultar tudo" (minimizing, or clicking the app in front in the Dock, hides every window
-/// of the app at once, and they all come back together).
+/// The three minimize modes on the Dock tab, as cards with a small drawing each:
+/// "Como o macOS" (nothing changes: each window shrinks into the Dock, one at a time),
+/// "Tudo junto pelo Dock" (minimizing is macOS's, one window; a click on the app in front in
+/// the Dock hides every window at once and the next one brings all back, minimized ones too)
+/// and "Ocultar tudo" (minimizing a window hides the whole app as well).
 
 import DockKit
 import SwiftUI
 
 struct MinimizeModePicker: View {
     @Binding var hidesApp: Bool
+    @Binding var dockTogether: Bool
 
     var body: some View {
-        HStack(spacing: 12) {
-            card(selected: !hidesApp,
+        HStack(spacing: 10) {
+            card(selected: !hidesApp && !dockTogether,
                  title: L("Like macOS"),
                  detail: L("Nothing changes: each window shrinks into the Dock and comes back one at a time.")) {
                 MacOSModeDrawing()
-            } select: { hidesApp = false }
+            } select: {
+                hidesApp = false
+                dockTogether = false
+            }
+            card(selected: !hidesApp && dockTogether,
+                 title: L("All together from the Dock"),
+                 detail: L("The yellow button minimizes only that window. Clicking the app in the Dock hides all of its windows at once, and brings all of them back.")) {
+                RestoreAllModeDrawing()
+            } select: {
+                hidesApp = false
+                dockTogether = true
+            }
             card(selected: hidesApp,
                  title: L("Hide everything"),
                  detail: L("Minimizing, or clicking the app in the Dock, hides all of its windows. They all come back together.")) {
@@ -128,6 +141,24 @@ private struct MacOSModeDrawing: View {
             }
             .frame(height: 44)
             MiniDock()
+        }
+    }
+}
+
+/// The windows going down into the app's Dock icon together and coming back up.
+private struct RestoreAllModeDrawing: View {
+    var body: some View {
+        VStack(spacing: 4) {
+            HStack(alignment: .bottom, spacing: 6) {
+                MiniWindow(width: 30, height: 22).opacity(0.55)
+                MiniWindow(width: 30, height: 22).opacity(0.55)
+                MiniWindow(width: 30, height: 22).opacity(0.55)
+                Image(systemName: "arrow.up")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundStyle(Color.accentColor)
+            }
+            .frame(height: 44)
+            MiniDock(highlighted: true)
         }
     }
 }

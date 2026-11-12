@@ -5,9 +5,9 @@
 /// with 8 windows takes seconds either way, and nothing outside the app can skip that. Hiding
 /// the app takes every window away at once and brings them all back at once.
 ///
-/// With the option on (the default), minimizing a window (yellow button, ⌘M, Minimize All) hides
-/// the whole app right away, however many windows it has; the rest of a Minimize All then goes
-/// by unseen and fast. The minimized windows are brought back while the app is hidden (invisible,
+/// In "Ocultar tudo" (`SirenaMinimize.Mode.hideAll`), minimizing a window (yellow button, ⌘M,
+/// Minimize All) hides the whole app right away, however many windows it has; the rest of a
+/// Minimize All then goes by unseen and fast. The minimized windows are brought back while the app is hidden (invisible,
 /// the app stays hidden), so the Dock icon or ⌘ Tab shows every window again together.
 ///
 /// Driven by the Accessibility notification for minimized windows (no event tap). Everything runs
@@ -15,23 +15,33 @@
 
 import AppKit
 import ApplicationServices
-import Defaults
 import os
 
 private let log = Logger(subsystem: "com.matheusfaria.Sirena", category: "MinimizeHidesApp")
 
-extension Defaults.Keys {
-    static let minimizeHidesAllWindows = Key<Bool>(SirenaMinimize.hidesAppKey, default: true)
-}
-
-/// The minimize mode, as Sirena's Dock tab and Tweaks see it.
+/// The minimize mode, as Sirena's Dock tab and Tweaks see it. Stored as two flags (the first
+/// one predates the others): `hidesApp` wins, then `dockTogether`.
 public enum SirenaMinimize {
-    /// true: minimizing hides the app (all windows go and come back together).
-    /// false: windows minimize to the Dock, as macOS does.
-    public static let hidesAppKey = "minimizeHidesAllWindows"
+    public enum Mode {
+        /// Nothing changes.
+        case macOS
+        /// The yellow button and ⌘M minimize one window; a click on the app in front in the
+        /// Dock hides all its windows at once, and a click brings all of them back, the
+        /// minimized ones too.
+        case dockTogether
+        /// Like `dockTogether`, but minimizing a window hides the whole app as well.
+        case hideAll
+    }
 
-    public static var hidesApp: Bool {
-        UserDefaults.standard.object(forKey: hidesAppKey) as? Bool ?? true
+    public static let hidesAppKey = "minimizeHidesAllWindows"
+    public static let hidesAppDefault = false
+    public static let dockTogetherKey = "minimizeRestoresAllWindows"
+    public static let dockTogetherDefault = true
+
+    public static var mode: Mode {
+        let defaults = UserDefaults.standard
+        if defaults.object(forKey: hidesAppKey) as? Bool ?? hidesAppDefault { return .hideAll }
+        return defaults.object(forKey: dockTogetherKey) as? Bool ?? dockTogetherDefault ? .dockTogether : .macOS
     }
 }
 
@@ -103,7 +113,8 @@ final class MinimizeHidesApp: @unchecked Sendable {
                                   forKey: restoreOnShowKey)
     }
 
-    static var isEnabled: Bool { Defaults[.minimizeHidesAllWindows] }
+    /// "Ocultar tudo" only.
+    static var isEnabled: Bool { SirenaMinimize.mode == .hideAll }
 
     /// Sirena is about to minimize this app's windows itself: leave those alone.
     func markOwnMinimize(pid: pid_t) {
