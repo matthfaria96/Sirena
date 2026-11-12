@@ -22,14 +22,17 @@ struct ZonePopupGeometry {
     static let margin: CGFloat = 34
 
     let card: CGRect
+    /// The layout (`ZoneTemplate` raw value) of each drawing, in order: each display gets
+    /// its own list (`ZoneTemplate.fitting`), so a drawing's index is not its layout.
+    let templates: [Int]
     /// The last group's drawing, first, when there is one.
     let groupThumb: CGRect?
     let thumbs: [CGRect]
     let zones: [[CGRect]]
     let groupZones: [CGRect]
 
-    init(screen: NSScreen, roots: [ZoneNode], lastGroup: ZoneNode?) {
-        let visible = screen.visibleFrame
+    /// `visible`: the display's visible frame (AppKit coordinates).
+    init(visible: CGRect, templates: [Int], roots: [ZoneNode], lastGroup: ZoneNode?) {
         let aspect = min(max(visible.height > 0 ? visible.width / visible.height : 1.6, 0.6), 2.2)
         let count = CGFloat(roots.count + (lastGroup == nil ? 0 : 1))
         // Big enough to aim at with a window in hand, small enough to fit the display.
@@ -62,6 +65,7 @@ struct ZonePopupGeometry {
                    y: card.minY + padding, width: thumbWidth, height: thumbHeight)
         }
         self.card = card
+        self.templates = templates
         self.groupThumb = groupThumb
         self.thumbs = thumbs
         zones = zip(roots, thumbs).map { root, thumb in
@@ -88,13 +92,14 @@ struct ZonePopupGeometry {
         guard let first = thumbs.first else { return nil }
         let row = CGRect(x: card.minX - 8, y: first.minY - 10, width: card.width + 16, height: first.height + 20)
         guard row.contains(point) else { return nil }
-        let template = thumbs.indices.min { a, b in
+        let index = thumbs.indices.min { a, b in
             Self.distance(point, thumbs[a]) < Self.distance(point, thumbs[b])
         } ?? 0
-        if let groupThumb, Self.distance(point, groupThumb) < Self.distance(point, thumbs[template]) {
+        if let groupThumb, Self.distance(point, groupThumb) < Self.distance(point, thumbs[index]) {
             return .lastGroup
         }
-        let zones = self.zones[template]
+        let template = templates[index]
+        let zones = self.zones[index]
         if let inside = zones.firstIndex(where: { $0.contains(point) }) { return .zone(template: template, zone: inside) }
         let nearest = zones.indices.min { a, b in Self.distance(point, zones[a]) < Self.distance(point, zones[b]) }
         return nearest.map { .zone(template: template, zone: $0) }
@@ -134,6 +139,7 @@ final class ZonePopup {
         self.panel = panel
         let origin = geometry.panelFrame.origin
         model.roots = roots
+        templates = geometry.templates
         model.card = geometry.card.offsetBy(dx: -origin.x, dy: -origin.y)
         model.thumbs = geometry.thumbs.map { $0.offsetBy(dx: -origin.x, dy: -origin.y) }
         model.zones = geometry.zones.map { $0.map { $0.offsetBy(dx: -origin.x, dy: -origin.y) } }
@@ -165,10 +171,13 @@ final class ZonePopup {
         }
     }
 
+    /// The layout of each drawing, to find a hit's drawing.
+    private var templates: [Int] = []
+
     func setHover(_ hover: ZonePopupGeometry.Hit?) {
         let new: [Int]?
         switch hover {
-        case .zone(let template, let zone): new = [template, zone]
+        case .zone(let template, let zone): new = templates.firstIndex(of: template).map { [$0, zone] }
         case .lastGroup: new = [-1, -1]
         case nil: new = nil
         }
@@ -252,7 +261,7 @@ final class ZonePopupModel {
     var groupThumb: CGRect?
     var groupZones: [CGRect] = []
     var groupIcons: [Int: pid_t] = [:]
-    /// [layout, zone] under the pointer ([-1, -1] for the last group).
+    /// [drawing, zone] under the pointer ([-1, -1] for the last group).
     var hover: [Int]?
     var isOpen = false
     /// Opened by the shortcut: the hint speaks of keys.
@@ -330,8 +339,10 @@ private struct ZonePopupView: View {
                 Label(L("Last group"), systemImage: "link")
                     .font(.system(size: 10.5, weight: .semibold))
                     .foregroundStyle(Color.accentColor)
-                    .frame(width: thumb.width + 20)
-                    .offset(x: thumb.minX - 10, y: thumb.maxY + 7)
+                    .lineLimit(1)
+                    // One line even under a portrait display's narrow drawing.
+                    .frame(width: max(thumb.width + 20, 110))
+                    .offset(x: thumb.midX - max(thumb.width + 20, 110) / 2, y: thumb.maxY + 7)
                 Rectangle()
                     .fill(Color.primary.opacity(0.15))
                     .frame(width: 1, height: thumb.height)

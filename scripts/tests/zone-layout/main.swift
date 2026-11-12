@@ -33,12 +33,48 @@ do {
     expect(flush.map(\.width).reduce(0, +) == area.width, "no gap: the zones cover the area exactly")
 }
 
-// The panel's six layouts.
+// The layouts.
 do {
     let counts = ZoneTemplate.allCases.map { ZoneGeometry.regions($0.root, in: area).count }
-    expect(counts == [2, 2, 3, 3, 3, 4], "zones per layout: \(counts)")
+    expect(counts == [2, 2, 3, 3, 3, 4, 2, 3, 4, 4, 6, 3, 5, 2, 3], "zones per layout: \(counts)")
+    for template in ZoneTemplate.allCases {
+        let regions = ZoneGeometry.regions(template.root, in: area)
+        expect(near(regions.map { $0.width * $0.height }.reduce(0, +), area.width * area.height, 2),
+               "\(template): the zones cover the area")
+    }
     let side = ZoneGeometry.regions(ZoneTemplate.mainAndSide.root, in: CGRect(x: 0, y: 0, width: 93, height: 58))
     expect(near(side[0].width, 61), "main + side keeps two thirds for the main zone: \(side)")
+}
+
+// Each display gets the layouts that suit its size and shape.
+do {
+    func names(_ width: CGFloat, _ height: CGFloat) -> [ZoneTemplate] { ZoneTemplate.fitting(CGSize(width: width, height: height)) }
+    let laptop = names(1470, 880)     // 13" MacBook Air
+    let big = names(2560, 1390)       // 27" display
+    let ultrawide = names(3440, 1390) // 34" ultrawide
+    let portrait = names(1080, 1870)  // a 24" display turned
+    let tiny = names(1024, 700)
+    for (name, list, size) in [("laptop", laptop, CGSize(width: 1470, height: 880)), ("big", big, CGSize(width: 2560, height: 1390)),
+                               ("ultrawide", ultrawide, CGSize(width: 3440, height: 1390)),
+                               ("portrait", portrait, CGSize(width: 1080, height: 1870))] {
+        let cramped = list.filter { template in
+            ZoneGeometry.regions(template.root, in: CGRect(origin: .zero, size: size)).contains {
+                $0.width < ZoneTemplate.minimumZone.width - 1 || $0.height < ZoneTemplate.minimumZone.height - 1
+            }
+        }
+        expect(cramped.isEmpty, "\(name): no cramped layout: \(cramped)")
+        expect(Set(list).count == list.count, "\(name): no layout twice")
+    }
+    expect(laptop.first == .twoColumns && laptop.count == 6 && !laptop.contains(.fourColumns),
+           "laptop: halves first, six choices, no four columns: \(laptop)")
+    expect(big.count == 8 && big.contains(.mainAndThreeStack), "27\": more choices: \(big)")
+    expect(ultrawide.first == .threeColumns && ultrawide.contains(.fourColumns) && ultrawide.contains(.centered)
+           && ultrawide.count == 8,
+           "ultrawide: columns and a centred main zone: \(ultrawide)")
+    expect(portrait.first == .twoRows && !portrait.contains(.threeColumns), "portrait: rows first, no thin columns: \(portrait)")
+    expect(tiny.first == .twoColumns && !tiny.contains(.threeColumns) && !tiny.contains(.mainAndSide),
+           "1024 × 700: no thirds, no narrow side zone: \(tiny)")
+    expect(names(600, 400) == [.twoColumns] && names(400, 700) == [.twoRows], "a tiny display still gets its two halves")
 }
 
 // Lines: one per pair of neighbours, and moving one leaves the others alone.

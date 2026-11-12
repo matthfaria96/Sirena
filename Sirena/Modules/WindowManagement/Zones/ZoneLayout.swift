@@ -216,6 +216,8 @@ extension ZoneNode {
 
 enum ZoneTemplate: Int, CaseIterable, Identifiable {
     case twoColumns, mainAndSide, mainAndStack, threeColumns, threeRows, grid
+    case sideAndMain, stackAndMain, mainAndThreeStack, fourColumns, sixths, centered, centerAndStacks
+    case twoRows, topAndTwo
 
     var id: Int { rawValue }
 
@@ -223,10 +225,56 @@ enum ZoneTemplate: Int, CaseIterable, Identifiable {
         switch self {
         case .twoColumns: return .split(.columns, [.zone, .zone])
         case .mainAndSide: return .split(.columns, [.zone, .zone], sizes: [0.66, 0.34])
+        case .sideAndMain: return .split(.columns, [.zone, .zone], sizes: [0.34, 0.66])
         case .mainAndStack: return .split(.columns, [.zone, .split(.rows, [.zone, .zone])])
+        case .stackAndMain: return .split(.columns, [.split(.rows, [.zone, .zone]), .zone])
+        case .mainAndThreeStack: return .split(.columns, [.zone, .split(.rows, [.zone, .zone, .zone])], sizes: [0.6, 0.4])
         case .threeColumns: return .split(.columns, [.zone, .zone, .zone])
+        case .fourColumns: return .split(.columns, [.zone, .zone, .zone, .zone])
         case .threeRows: return .split(.rows, [.zone, .zone, .zone])
+        case .twoRows: return .split(.rows, [.zone, .zone])
+        case .topAndTwo: return .split(.rows, [.zone, .split(.columns, [.zone, .zone])], sizes: [0.55, 0.45])
         case .grid: return .split(.columns, [.split(.rows, [.zone, .zone]), .split(.rows, [.zone, .zone])])
+        case .sixths: return .split(.columns, [.split(.rows, [.zone, .zone]), .split(.rows, [.zone, .zone]),
+                                               .split(.rows, [.zone, .zone])])
+        case .centered: return .split(.columns, [.zone, .zone, .zone], sizes: [0.22, 0.56, 0.22])
+        case .centerAndStacks: return .split(.columns, [.split(.rows, [.zone, .zone]), .zone, .split(.rows, [.zone, .zone])],
+                                             sizes: [0.25, 0.5, 0.25])
         }
+    }
+
+    /// The smallest a zone may be, in points: below that a window gets cramped.
+    static let minimumZone = CGSize(width: 400, height: 260)
+
+    /// The layouts for a display whose usable area is `size`, most useful first. The order
+    /// follows its shape (portrait, near square, regular, ultrawide); layouts whose smallest
+    /// zone would be cramped there are left out (a 13" laptop doesn't get four columns), and a
+    /// small display gets fewer choices than a big one (never more than 8: the panel stays
+    /// short enough to aim at with a window in hand).
+    static func fitting(_ size: CGSize) -> [ZoneTemplate] {
+        let aspect = size.height > 0 ? size.width / size.height : 1.6
+        let preferred: [ZoneTemplate]
+        switch aspect {
+        case ..<1.0:
+            preferred = [.twoRows, .threeRows, .topAndTwo, .grid, .twoColumns, .sixths]
+        case ..<1.3:
+            preferred = [.twoColumns, .twoRows, .grid, .mainAndStack, .topAndTwo, .mainAndSide, .threeRows]
+        case ..<2.0:
+            preferred = [.twoColumns, .mainAndSide, .threeColumns, .mainAndStack, .grid, .sideAndMain,
+                         .stackAndMain, .mainAndThreeStack, .sixths, .centered, .twoRows, .threeRows]
+        default:
+            preferred = [.threeColumns, .centered, .twoColumns, .centerAndStacks, .fourColumns, .mainAndSide,
+                         .mainAndStack, .sixths, .grid, .sideAndMain]
+        }
+        let area = CGRect(origin: .zero, size: size)
+        let roomy = preferred.filter { template in
+            ZoneGeometry.regions(template.root, in: area).allSatisfy {
+                $0.width >= minimumZone.width - 0.5 && $0.height >= minimumZone.height - 0.5
+            }
+        }
+        // However small, a display still gets its two halves.
+        guard !roomy.isEmpty else { return [aspect < 1 ? .twoRows : .twoColumns] }
+        let shown = size.width * size.height < 1800 * 1000 ? 6 : 8
+        return Array(roomy.prefix(shown))
     }
 }

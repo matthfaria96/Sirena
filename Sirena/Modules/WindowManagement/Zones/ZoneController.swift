@@ -206,10 +206,10 @@ final class ZoneController {
     private func keyboardRows() -> [[ZonePopupGeometry.Hit]] {
         guard let geometry = session?.geometry else { return [] }
         if session?.relayout != nil {
-            return [geometry.zones.indices.map { .zone(template: $0, zone: 0) }]
+            return [geometry.templates.map { .zone(template: $0, zone: 0) }]
         }
         var rows: [[ZonePopupGeometry.Hit]] = geometry.groupThumb == nil ? [] : [[.lastGroup]]
-        for (template, zones) in geometry.zones.enumerated() {
+        for (template, zones) in zip(geometry.templates, geometry.zones) {
             rows.append(zones.indices.map { .zone(template: template, zone: $0) })
         }
         return rows
@@ -407,14 +407,17 @@ final class ZoneController {
                            relayout: String? = nil) {
         assist.close()
         let display = Self.key(for: screen)
-        let roots = ZoneTemplate.allCases.map { root($0.rawValue, display: display) }
+        // The layouts that suit this display's size and shape (a portrait display gets rows,
+        // an ultrawide one more columns, a small one no cramped zones).
+        let templates = ZoneTemplate.fitting(layoutArea(screen).size).map(\.rawValue)
+        let roots = templates.map { root($0, display: display) }
         // The last group is offered while at least two of its windows are still around (not
         // while choosing a group's new layout).
         let saved = relayout != nil ? nil : lastGroups[display].flatMap { group -> SavedGroup? in
             let alive = Set(WindowUtil.getWindowList(ids: Array(group.zones.keys), all: true, forceRefresh: true).map(\.id))
             return group.zones.keys.filter(alive.contains).count >= 2 ? group : nil
         }
-        let geometry = ZonePopupGeometry(screen: screen, roots: roots, lastGroup: saved?.root)
+        let geometry = ZonePopupGeometry(visible: screen.visibleFrame, templates: templates, roots: roots, lastGroup: saved?.root)
         session = Session(display: display, screen: screen, geometry: geometry, target: target, relayout: relayout)
         hover = nil
         hint.hide()
