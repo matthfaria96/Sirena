@@ -4,14 +4,6 @@ import QuartzCore
 /// Timing for direct resizing and drag restoration.
 enum WindowAnimationCurve {
     static let duration: TimeInterval = 0.24
-    static let unsnapPlaybackRate: Double = 1.2
-    static let unsnapDuration: TimeInterval = 0.18 / unsnapPlaybackRate
-
-    static func unsnapValue(at progress: Double) -> CGFloat {
-        let t = min(1, max(0, progress))
-        // Quintic smoothstep: zero velocity and acceleration at both endpoints.
-        return CGFloat(t * t * t * (10 + t * (-15 + 6 * t)))
-    }
 
     static func value(at progress: Double) -> CGFloat {
         let t = min(1, max(0, progress))
@@ -25,7 +17,6 @@ enum WindowAnimationCurve {
         return CGFloat(t * t * (10 + t * (-20 + t * (15 - 4 * t))))
     }
 
-
 }
 
 /// Keyboard retargeting and native drag restoration have distinct motion curves.
@@ -36,7 +27,6 @@ enum WindowAnimationProfile {
         min(1, CGFloat(max(0, elapsed)) * 60)
     }
 }
-
 
 /// Shared geometry timing for target-zone previews and window enlargement.
 enum WindowPreviewDeceleration {

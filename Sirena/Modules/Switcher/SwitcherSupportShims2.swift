@@ -70,34 +70,6 @@ enum SwitcherMouseAppExceptionSupport {
     }
 }
 
-enum SwitcherFocusFollowsMouseSupport {
-    static func shouldRestoreFocus(to previousWindowID: CGWindowID,
-                                   reportedFocusedWindowID: CGWindowID?,
-                                   appIsFrontmost: Bool) -> Bool {
-        appIsFrontmost && reportedFocusedWindowID == previousWindowID
-    }
-}
-
-enum SwitcherDockPreviewFrameSupport {
-    static func wasConstrained(_ current: CGRect, original: CGRect, visibleFrame: CGRect) -> Bool {
-        guard !original.isEmpty, !visibleFrame.isEmpty,
-              !visibleFrame.contains(original), !current.isEmpty else { return false }
-        let size = CGSize(width: min(original.width, visibleFrame.width),
-                          height: min(original.height, visibleFrame.height))
-        let moved = CGRect(x: min(max(original.minX, visibleFrame.minX), visibleFrame.maxX - size.width),
-                           y: min(max(original.minY, visibleFrame.minY), visibleFrame.maxY - size.height),
-                           width: size.width, height: size.height)
-        return [original.intersection(visibleFrame), moved].contains { expected in
-            guard !expected.isEmpty, current != original else { return false }
-            let matchesX = abs(current.minX - expected.minX) <= 2
-            let matchesY = abs(current.minY - expected.minY) <= 2
-            let matchesWidth = abs(current.width - expected.width) <= 2
-            let matchesHeight = abs(current.height - expected.height) <= 2
-            return matchesX && matchesY && matchesWidth && matchesHeight
-        }
-    }
-}
-
 /// The switcher panel's backdrop: Liquid Glass when enabled (default in
 /// Sirena), otherwise the classic HUD material.
 struct SwitcherHUDBackdrop: View {

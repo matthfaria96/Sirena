@@ -231,12 +231,6 @@ class SpaceWindowCacheManager {
         return windowCache.keys.filter { !(windowCache[$0]?.isEmpty ?? true) }
     }
 
-    func purgeAll() {
-        for pid in cachedPIDs() {
-            writeCache(pid: pid, windowSet: [])
-        }
-    }
-
     func getAllWindows() -> [WindowInfo] {
         cacheLock.lock()
         defer { cacheLock.unlock() }

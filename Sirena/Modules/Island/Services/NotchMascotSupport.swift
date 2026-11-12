@@ -237,16 +237,6 @@ struct NotchMascotReactionGate {
     }
 }
 
-/// How the Command Bar comes out of the island.
-enum NotchCommandBarStyle: String, CaseIterable, Identifiable {
-    /// A drop falls from the island's lower edge and opens into the bar.
-    case droplet
-    /// The bar opens inside the open island.
-    case island
-
-    var id: String { rawValue }
-}
-
 enum NotchMascotEye: Equatable {
     case open, closed, happy, heart, sleepy, wide, squint
     /// The lid slants down toward the other eye.
@@ -1152,9 +1142,6 @@ enum NotchMascotSupport {
     /// It waits this long after the music starts, until the song's strip has
     /// settled, before it comes out over it.
     static let grooveDelay: TimeInterval = 1.2
-    /// An AI agent getting to work where it rests has it hand the island over
-    /// with a ready face at most this often, since agents start many turns.
-    static let agentStartInterval: TimeInterval = 600
 
     /// Hiding when idle, it goes into the island this long after it last did
     /// anything, before it would doze off where it rests, even late at night.
@@ -1248,30 +1235,6 @@ enum NotchMascotSupport {
             style: NotchMascotStyle(rawValue: defaults.string(forKey: IslandKey.notchMascotStyle) ?? "") ?? .minimal,
             shape: NotchMascotShape(rawValue: defaults.string(forKey: IslandKey.notchMascotShape) ?? "") ?? .ball,
             palette: NotchMascotPalette(rawValue: defaults.string(forKey: IslandKey.notchMascotPalette) ?? "") ?? .pearl)
-    }
-
-    /// What the bar's face shows for what is typed. Results get a hop of
-    /// their own on arrival, and afterward the eyes simply stay open on them.
-    static func commandBarMood(query: String, hasResults: Bool, searching: Bool) -> NotchMascotMood {
-        guard !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return .idle }
-        if searching { return .thinking }
-        return hasResults ? .idle : .confused
-    }
-
-    /// Whether the face's change is worth a little celebration: results
-    /// turning up after a wait, or after nothing matched. The first letters
-    /// typed find something every time, so that is no news.
-    static func celebrates(from old: NotchMascotMood, to new: NotchMascotMood, query: String,
-                           hasResults: Bool) -> Bool {
-        (old == .thinking || old == .confused) && new == .idle && hasResults
-            && !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-    }
-
-    /// Where its eyes go while something is typed: along the text beside
-    /// it, a little further as the text grows. Nil when the field is empty.
-    static func readingGaze(for query: String) -> CGPoint? {
-        guard !query.isEmpty else { return nil }
-        return CGPoint(x: 0.07 + 0.04 * min(1, CGFloat(query.count) / 28), y: 0.01)
     }
 
     /// Where its eyes go for a pointer at `pointer`, with its center at

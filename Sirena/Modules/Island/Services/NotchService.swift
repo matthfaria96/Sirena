@@ -673,7 +673,6 @@ final class NotchService: ObservableObject {
             ]).width.rounded(.up)
     }
 
-
     var expandedSize: CGSize {
         if showingSections {
             return geometry.sectionPickerSize(count: filteredSections.count)
@@ -775,7 +774,6 @@ final class NotchService: ObservableObject {
         if let notice { return noticeExpanded ? 0 : geometry.noticeShift(notice.wings(in: geometry)) }
         return namedMusicWings.map { ($0.trailing - $0.leading) / 2 } ?? 0
     }
-
 
     /// A floating capsule's closed strips run from one round end to the
     /// other and are as wide as what they show. Open, peeking or choosing an
@@ -881,7 +879,6 @@ final class NotchService: ObservableObject {
     var showsSystemFeedback: Bool {
         acceptsSystemFeedback && !hiddenUntilHover
     }
-
 
     func syncWithPreferences() {
         preferenceSyncWork?.cancel(); preferenceSyncWork = nil
@@ -1527,22 +1524,6 @@ final class NotchService: ObservableObject {
         NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .default)
     }
 
-    func fileDragChanged(_ active: Bool, internalDrag: Bool = false) {
-        guard running, !suspended, internalDrag || NotchSupport.routesShelf() else { return }
-        heldDrag = active && internalDrag
-        if active, !internalDrag, NotchSupport.revealsShelfDrag(), !expanded {
-            mutatePresentation { dragPlaceholder = true; peeking = false }
-        } else if !active {
-            mutatePresentation { dragPlaceholder = false }
-            inside = windowHost?.containsHover(NSEvent.mouseLocation) == true
-            if !inside, !pinned { hover(false) }
-        }
-        // The companion in the drop hint watches the file come.
-        if active, dragPlaceholder, NotchMascotSupport.isEnabled() {
-            NotificationCenter.default.post(name: .notchMascotDragMoved, object: nil)
-        }
-    }
-
     private func missionControlDidRestore() {
         hover(windowHost?.containsHover(NSEvent.mouseLocation) == true)
         // A pointer that crossed displays during Mission Control is followed now.
@@ -1588,11 +1569,6 @@ final class NotchService: ObservableObject {
         if changed { choosingFileDropDestination = false }
         if targetsMediaDrop { targetsMediaDrop = false }
         if changed, acceptsUserInteraction { refreshPresentation() }
-    }
-
-    func keepFileInteractionOpen(_ active: Bool) {
-        fileInteractionActive = active
-        hover(false)
     }
 
     func accept(_ pasteboard: NSPasteboard) -> Bool {
@@ -1718,16 +1694,6 @@ final class NotchService: ObservableObject {
                                 symbol: "sun.max.fill", level: level))
     }
 
-    @discardableResult
-    func showKeyboardLight(_ level: Double) -> Bool {
-        guard level.isFinite, (0...1).contains(level) else { return false }
-        if ownsLevelAdjustment(.keyboardLight) { return true }
-        return show(NotchNotice(event: .keyboardLight,
-                                title: IslandStrings.brightness(IslandL10n.shared.language).keyboardLight,
-                                detail: "\(IslandBrightness.wholePercent(level))%",
-                                symbol: "keyboard", level: level))
-    }
-
     /// The microphone switch reports here the way the volume does: its mark
     /// on one side of the camera, what happened on the other. False leaves
     /// the confirmation to its own panel.
@@ -1740,13 +1706,6 @@ final class NotchService: ObservableObject {
         return show(NotchNotice(event: .microphone, title: "",
                                 detail: muted ? text.micMutedHUD : text.micUnmutedHUD,
                                 symbol: muted ? "mic.slash.fill" : "mic.fill", mascot: muted ? .hush : .perk))
-    }
-
-    /// A partial result is confirmed by the floating panel alone, so the
-    /// notice left by the press before it must not contradict the warning.
-    func retractMicrophoneNotice() {
-        guard notice?.event == .microphone else { return }
-        dismissNotice()
     }
 
     /// The close button of a held preview also takes the message out of the
@@ -3162,12 +3121,6 @@ final class NotchService: ObservableObject {
         if NotchSupport.routes(.battery) || idleContent == .battery || NotchMascotSupport.isEnabled() { startPower() }
     }
 
-    func showCurrentVolume() {
-        let mixer = IslandAudioOutput.shared
-        guard let volume = mixer.systemOutputVolume else { return }
-        showVolume(volume, muted: mixer.systemOutputMuted)
-    }
-
     /// The island's own output and keyboard light controls already show the
     /// level they set. Their changes, and the device's reading or the
     /// keyboard's write that follows a moment later, leave the open island's
@@ -3246,13 +3199,6 @@ final class NotchService: ObservableObject {
         return show(NotchNotice(event: .volume, title: IslandStrings.notch(IslandL10n.shared.language).volume,
                                 detail: "\(Int((value * 100).rounded()))%",
                                 symbol: symbol, level: value))
-    }
-
-    /// The Command Bar borrows a Latin layout while it is up and gives it
-    /// back on close. Neither switch is news the typist asked for, so each
-    /// one marks itself as the app's own.
-    func noteOwnInputSourceSwitch(to sourceID: String) {
-        ownInputSourceID = sourceID
     }
 
     private func inputSourceChanged() {
@@ -3639,30 +3585,6 @@ extension NotchService {
 
     // MARK: Command Bar
 
-    /// The companion leaves the island for the Command Bar's drop, and comes
-    /// back to rest once the drop has risen into it again. Back from a drop
-    /// it saw rise, it hops out from behind the camera to its place,
-    /// wearing `homecoming` until it lands, unless it hides in the island.
-    func setMascotInBar(_ away: Bool, homecoming: NotchMascotMood? = nil) {
-        guard away != mascotInBar else { return }
-        if away, mascotVisit != nil { endMascotVisit() }
-        let home = homecoming.flatMap { mood -> NotchMascotVisit? in
-            guard !away, !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion, NotchMascotSupport.isEnabled(),
-                  !mascotTucked, idleContent == .none, compactActivity == nil, canHostMascotVisit(returning: true)
-            else { return nil }
-            return NotchMascotVisit(id: UUID(), kind: .home, greeting: mood, start: CACurrentMediaTime())
-        }
-        mutatePresentation {
-            mascotInBar = away
-            if let home { mascotVisit = home }
-        }
-        guard let home else { return }
-        mascotVisitWork?.cancel()
-        let work = DispatchWorkItem { [weak self] in self?.endMascotVisit() }
-        mascotVisitWork = work
-        DispatchQueue.main.asyncAfter(deadline: .now() + home.duration + 0.1, execute: work)
-    }
-
     /// A notice that carries the companion arrives while it rests in view:
     /// it stays in sight and steps into the notice, from beside the camera
     /// to the notice's end, a little smaller, as the notice comes in. Its
@@ -3975,13 +3897,6 @@ extension NotchService {
         mascotStepBackWork = work
         DispatchQueue.main.asyncAfter(deadline: .now() + max(0, visit.start + handBack - CACurrentMediaTime()),
                                       execute: work)
-    }
-
-    /// Puts `window` just under the island's, so what grows out of its edge
-    /// comes from behind it, and what rises into it goes behind it.
-    func orderBelowIsland(_ window: NSWindow) {
-        guard let panel, panel.isVisible else { window.orderFrontRegardless(); return }
-        window.order(.below, relativeTo: panel.windowNumber)
     }
 
 }

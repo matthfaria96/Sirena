@@ -58,9 +58,6 @@ class HistoryItem {
     return Array(supportedPins.subtracting(assignedPins))
   }
 
-  @MainActor
-  static var randomAvailablePin: String { availablePins.randomElement() ?? "" }
-
   private static let transientTypes: [String] = [
     NSPasteboard.PasteboardType.modified.rawValue,
     NSPasteboard.PasteboardType.fromMaccy.rawValue,

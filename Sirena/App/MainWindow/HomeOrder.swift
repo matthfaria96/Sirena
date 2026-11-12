@@ -57,7 +57,6 @@ final class HomeOrder {
         UserDefaults.standard.set(orders, forKey: Self.key)
     }
 
-    func isCustom(_ group: String) -> Bool { orders[group] != nil }
 }
 
 /// Makes a Home card draggable onto its siblings, with a grip that shows on hover.

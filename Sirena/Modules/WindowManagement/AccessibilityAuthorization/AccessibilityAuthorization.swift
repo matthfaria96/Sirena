@@ -54,14 +54,7 @@ class AccessibilityAuthorization: ObservableObject {
             }
         }
     }
-    
-    func showAuthorizationWindow() {
-        if windowController?.window?.isMiniaturized == true {
-            windowController?.window?.deminiaturize(self)
-        }
-        NSApp.activate(ignoringOtherApps: true)
-    }
-    
+
     private func closeWindow() {
         windowController?.close()
         windowController = nil

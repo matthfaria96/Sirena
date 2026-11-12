@@ -19,28 +19,6 @@ class TodoManager {
         moveAllIfNeeded(bringToFront)
     }
 
-    static func initToggleShortcut() {
-        if UserDefaults.standard.dictionary(forKey: toggleDefaultsKey) == nil {
-            guard let dictTransformer = ValueTransformer(forName: NSValueTransformerName(rawValue: MASDictionaryTransformerName)) else { return }
-            
-            let toggleShortcut = MASShortcut(keyCode: kVK_ANSI_B,
-                                             modifierFlags: [NSEvent.ModifierFlags.control, NSEvent.ModifierFlags.option])
-            let toggleShortcutDict = dictTransformer.reverseTransformedValue(toggleShortcut)
-            UserDefaults.standard.set(toggleShortcutDict, forKey: toggleDefaultsKey)
-        }
-    }
-    
-    static func initReflowShortcut() {
-        if UserDefaults.standard.dictionary(forKey: reflowDefaultsKey) == nil {
-            guard let dictTransformer = ValueTransformer(forName: NSValueTransformerName(rawValue: MASDictionaryTransformerName)) else { return }
-            
-            let reflowShortcut = MASShortcut(keyCode: kVK_ANSI_N,
-                                             modifierFlags: [NSEvent.ModifierFlags.control, NSEvent.ModifierFlags.option])
-            let reflowShortcutDict = dictTransformer.reverseTransformedValue(reflowShortcut)
-            UserDefaults.standard.set(reflowShortcutDict, forKey: reflowDefaultsKey)
-        }
-    }
-    
     private static func registerToggleShortcut() {
         guard isTodoShortcutBindable(toggleDefaultsKey) else {
             unregisterToggleShortcut()
@@ -238,14 +216,7 @@ class TodoManager {
         
         return sidebarWidth
     }
-    
-    static func changeSidebarWidthUnit(to unit: TodoSidebarWidthUnit) {
-        if let visibleFrameWidth = TodoManager.todoScreen?.adjustedVisibleFrame(true).width {
-            let newValue = TodoManager.convert(width: Defaults.todoSidebarWidth.cgFloat, toUnit: unit, visibleFrameWidth: visibleFrameWidth)
-            Defaults.todoSidebarWidth.value = Float(newValue)
-        }
-    }
-    
+
     static func convert(width: CGFloat, toUnit unit: TodoSidebarWidthUnit, visibleFrameWidth: CGFloat) -> CGFloat {
         unit == .pixels
         ? ((width * 0.01) * visibleFrameWidth).rounded()
@@ -345,36 +316,6 @@ struct AppShortcutConflict {
         }
     }
 }
-
-class AppShortcutValidator: MASShortcutValidator {
-
-    private let defaultsKey: String
-    private let userDefaults: UserDefaults
-
-    init(defaultsKey: String, userDefaults: UserDefaults = .standard) {
-        self.defaultsKey = defaultsKey
-        self.userDefaults = userDefaults
-        super.init()
-    }
-
-    override func isShortcutValid(_ shortcut: MASShortcut!) -> Bool {
-        guard super.isShortcutValid(shortcut) else { return false }
-
-        // Preserve previous behavior by rejecting Rectangle-internal conflicts quietly,
-        // without routing them through MASShortcut's "already used" alert.
-        return AppShortcutConflict.conflict(for: shortcut,
-                                            ignoringDefaultsKey: defaultsKey,
-                                            userDefaults: userDefaults) == nil
-    }
-
-    override func isShortcutAlreadyTaken(bySystem shortcut: MASShortcut!,
-                                         explanation: AutoreleasingUnsafeMutablePointer<NSString?>!) -> Bool {
-        return super.isShortcutAlreadyTaken(bySystem: shortcut, explanation: explanation)
-    }
-}
-
-typealias TodoShortcutConflict = AppShortcutConflict
-typealias TodoShortcutValidator = AppShortcutValidator
 
 enum TodoSidebarSide: Int, CaseIterable {
     case right = 1

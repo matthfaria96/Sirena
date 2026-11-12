@@ -186,27 +186,6 @@ final class NotchMusicService: ObservableObject {
         return reply
     }
 
-    /// A new adapter starts in Automatic. It finishes its first discovery
-    /// before reading any command, so it checks the choice against fresh sources.
-    private func restoreSource() {
-        guard let chosenSource else { restoringSource = false; return }
-        restoringSource = send(.source(chosenSource))
-    }
-
-    /// A restarted adapter reads once in Automatic before the restored choice
-    /// reaches it. That reading is not shown, so the automatic player does not
-    /// flash. A choice the adapter reports gone is forgotten.
-    private func acceptsSourceReply(automatic: Bool?, sources: [NotchPlaybackSource]) -> Bool {
-        let restoring = restoringSource
-        restoringSource = false
-        guard automatic == true, let chosenSource else { return true }
-        guard sources.contains(where: { $0.selection == chosenSource }) else {
-            self.chosenSource = nil
-            return true
-        }
-        return !restoring
-    }
-
     /// A player moving on to its next song can clear its metadata for a
     /// moment, which reads as nothing playing or as another player's paused
     /// song standing in, or report the next song paused before it starts. The
@@ -432,12 +411,6 @@ final class NotchMusicService: ObservableObject {
         refreshQueue()
     }
 
-    func syncQueuePreference() {
-        guard !NotchQueueSupport.isEnabled() else { return }
-        setQueueVisible(false)
-        queueCovers = .init()
-    }
-
     func refreshQueue() {
         guard queueVisible, NotchQueueSupport.isEnabled(), playback != nil else { return }
         let request = UUID()
@@ -471,18 +444,6 @@ final class NotchMusicService: ObservableObject {
         let selected = NotchQueueSelection(requestID: request, pid: upcoming.pid,
             currentIdentifier: upcoming.currentIdentifier, itemIdentifier: item.id, offset: item.offset)
         if !send(.queuePlay(selected)) { queueActionPending = false; queueActionFailed = true }
-    }
-
-    private func receiveQueue(_ reply: [String: Any]) {
-        guard let request = queueRequest, NotchQueueSupport.isEnabled() else { return }
-        if reply["queueAction"] as? String == request.uuidString {
-            queueActionPending = false
-            queueActionFailed = reply["queueActionOK"] as? Bool != true
-        } else if reply["queueRequest"] as? String == request.uuidString {
-            queueLoading = false
-            queueReply = reply
-            updateQueue()
-        }
     }
 
     private func updateQueue() {

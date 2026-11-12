@@ -171,12 +171,6 @@ final class ScreenBrushController {
         laserTimer = timer
     }
 
-    func cycleBackground() {
-        let all = BrushBackground.allCases
-        let index = all.firstIndex(of: document.background) ?? 0
-        document.background = all[(index + 1) % all.count]
-    }
-
     func toggleClickThrough() {
         document.clickThrough.toggle()
         overlays.values.forEach { $0.ignoresMouseEvents = document.clickThrough }
@@ -351,7 +345,6 @@ final class ScreenBrushController {
         let time = formatter.string(from: now)
         return "\(L("Freehand Drawing")) \(L("\(day) at \(time)")).png"
     }
-
 
     func requestScreenRecording() {
         if !CGRequestScreenCaptureAccess(),

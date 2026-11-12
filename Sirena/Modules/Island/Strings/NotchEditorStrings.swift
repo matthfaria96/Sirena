@@ -69,10 +69,6 @@ struct NotchEditorStrings {
     let agentsSummary: String
     let watchSummary: String
 
-    func enableFeature(_ title: String) -> String { String(format: enableFeatureFormat, title) }
-    func enableSetting(_ title: String) -> String { String(format: enableSettingFormat, title) }
-    func showPage(_ title: String) -> String { String(format: showPageFormat, title) }
-
     /// One line on what a section of the island shows.
     func summary(_ module: NotchModule) -> String {
         switch module {

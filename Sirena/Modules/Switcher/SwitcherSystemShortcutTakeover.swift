@@ -29,38 +29,12 @@ enum SwitcherSystemShortcutTakeover {
         applyLocked(desired: SwitcherSystemShortcutTakeoverSupport.union(of: wanted))
     }
 
-    /// A feature whose hotkey just registered. Only shortcuts the user chose to
-    /// take over resolve to any ids; everything else is a no-op that costs one
-    /// dictionary write.
-    static func claim(_ storageKey: String, shortcut: SwitcherGlobalShortcut) {
-        lock.lock()
-        claims[storageKey] = shortcut
-        lock.unlock()
-        refresh(storageKey)
-    }
-
     static func release(_ storageKey: String) {
         lock.lock()
         claims.removeValue(forKey: storageKey)
         lock.unlock()
         setWanted([], for: storageKey)
     }
-
-    /// The recorder's choice, kept as a preference so it survives a relaunch.
-    static func setTakeOver(_ storageKey: String, _ on: Bool) {
-        lock.lock()
-        if on { takeOverKeys.insert(storageKey) } else { takeOverKeys.remove(storageKey) }
-        UserDefaults.standard.set(takeOverKeys.sorted(), forKey: SwitcherDefaultsKey.systemShortcutTakeOverKeys)
-        lock.unlock()
-        refresh(storageKey)
-    }
-
-    static func isTakenOver(_ storageKey: String) -> Bool {
-        lock.lock()
-        defer { lock.unlock() }
-        return takeOverKeys.contains(storageKey)
-    }
-
 
     /// The live table can change under us (System Settings, another app, wake).
     /// Re-resolve every claim; `apply` only writes what actually differs.

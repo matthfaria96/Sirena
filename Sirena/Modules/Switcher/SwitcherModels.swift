@@ -188,21 +188,6 @@ struct SwitcherItem: Identifiable, Equatable {
         SwitcherAppIconCache.icon(for: pid)
     }
 
-    func withMinimized(_ minimized: Bool) -> SwitcherItem {
-        SwitcherItem(id: id,
-                     title: title,
-                     appName: appName,
-                     pid: pid,
-                     windowOwnerPID: windowOwnerPID,
-                     windowID: windowID,
-                     isOnScreen: minimized ? false : true,
-                     isAppHidden: isAppHidden,
-                     isMinimized: minimized,
-                     isFullscreen: isFullscreen,
-                     isOnHiddenSpace: isOnHiddenSpace,
-                     frame: frame)
-    }
-
     func withHiddenSpaceState(_ hidden: Bool) -> SwitcherItem {
         SwitcherItem(id: id,
                      title: title,

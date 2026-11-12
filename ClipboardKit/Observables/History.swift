@@ -356,7 +356,6 @@ class History: ItemsContainer { // swiftlint:disable:this type_body_length
     }
   }
 
-
   @MainActor
   func togglePin(_ item: HistoryItemDecorator?) {
     guard let item else { return }
@@ -373,12 +372,6 @@ class History: ItemsContainer { // swiftlint:disable:this type_body_length
 
     searchQuery = ""
     updateUnpinnedShortcuts()
-  }
-
-  @MainActor
-  func movePin(from source: IndexSet, to destination: Int) {
-    guard searchQuery.isEmpty else { return }
-    pinManager.move(from: source, to: destination)
   }
 
   @MainActor

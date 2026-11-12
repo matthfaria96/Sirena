@@ -210,48 +210,6 @@ enum ActiveAppIndicatorDockDetection {
         return results
     }
 
-    /// Positions the indicator window relative to the dock item.
-    /// - Parameters:
-    ///   - indicatorWindow: The window to position.
-    ///   - dockItemFrame: The frame of the dock item.
-    ///   - dockPosition: The current dock position.
-    static func positionIndicator(
-        _ indicatorWindow: ActiveAppIndicatorWindow,
-        relativeTo dockItemFrame: CGRect,
-        dockPosition: DockPosition
-    ) {
-        let appKitDockItemFrame = appKitFrame(fromAccessibilityFrame: dockItemFrame)
-        guard let screen = CGPoint(
-            x: appKitDockItemFrame.midX,
-            y: appKitDockItemFrame.midY
-        ).screen() else { return }
-
-        let metrics = resolveMetrics(
-            dockSize: DockUtils.getDockSize(on: screen),
-            dockPosition: dockPosition
-        )
-
-        // Calculate the indicator frame using the positioning module
-        guard
-            var indicatorFrame =
-            ActiveAppIndicatorPositioning.calculateIndicatorFrame(
-                for: appKitDockItemFrame,
-                dockPosition: dockPosition,
-                indicatorThickness: metrics.thickness,
-                indicatorOffset: metrics.offset,
-                indicatorLength: metrics.length
-            )
-        else {
-            indicatorWindow.orderOut(nil)
-            return
-        }
-
-        // Apply shift setting for alignment (-2 to +2 pixels)
-        indicatorFrame.origin.x += Defaults[.activeAppIndicatorShift]
-
-        indicatorWindow.setFrame(indicatorFrame, display: true)
-    }
-
     /// Calculates the indicator frame without applying it to the window.
     static func calculateIndicatorFrame(
         relativeTo dockItemFrame: CGRect,

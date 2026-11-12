@@ -210,11 +210,6 @@ enum SwitcherWindowlessApps: String, CaseIterable, Equatable {
         return mode
     }
 
-    /// The value that carries the old on/off preference over unchanged: the
-    /// desktop app kept its entry, anything else stayed windows only.
-    static func migrated(showsWindowlessFinder: Bool) -> SwitcherWindowlessApps {
-        showsWindowlessFinder ? .finder : .off
-    }
 }
 
 /// Which display the switcher panel opens on. The pointer's screen is what
@@ -689,12 +684,6 @@ enum SwitcherSupport {
             executablePath: frontmostExecutablePath(),
             readsPath: excludedBundleIdentifiers.contains(where: SwitcherMouseAppExceptionSupport.isExecutablePathIdentity))
             .contains(where: excludedBundleIdentifiers.contains)
-    }
-
-    static func needsScreenRecording(switcherEnabled: Bool,
-                                     simpleMode: Bool,
-                                     dockPreviewEnabled: Bool) -> Bool {
-        dockPreviewEnabled || (switcherEnabled && capturesPreviews(simpleMode: simpleMode))
     }
 
     /// Resolves the foreground surface a session is measured against: the
@@ -1609,10 +1598,6 @@ enum SwitcherSupport {
             makeAppFrontmostAfterActivation: !targetsSpecificWindow,
             restoreSourceWhenTargetMinimizes: targetsSpecificWindow
         )
-    }
-
-    static func shouldActivateAllWindows(targetsSpecificWindow: Bool) -> Bool {
-        activationPlan(targetsSpecificWindow: targetsSpecificWindow).activateAllWindows
     }
 
     static func appActivationRoute(plan: SwitcherActivationPlan,

@@ -1148,64 +1148,6 @@ final class DockObserver {
         }
     }
 
-    private func showPreviewForFocusedApp(app: NSRunningApplication) {
-        if WindowUtil.isAppFiltered(app) {
-            return
-        }
-
-        Task { @MainActor [weak self] in
-            guard let self else { return }
-
-            let currentMouseLocation = DockObserver.getMousePosition()
-            let appUnderMouseElement = getDockItemAppStatusUnderMouse()
-
-            guard case let .success(currentApp) = appUnderMouseElement.status,
-                  currentApp.processIdentifier == app.processIdentifier,
-                  let dockItemElement = appUnderMouseElement.dockItemElement
-            else {
-                return
-            }
-
-            do {
-                let windows = try await WindowUtil.getActiveWindows(of: app)
-                let mouseScreen = NSScreen.screenFromQuartzPoint(currentMouseLocation)
-                let convertedMouseLocation = DockObserver.nsPointFromCGPoint(currentMouseLocation, forScreen: mouseScreen)
-
-                previewCoordinator.showWindow(
-                    appName: app.localizedName ?? "Unknown",
-                    windows: windows,
-                    mouseLocation: convertedMouseLocation,
-                    mouseScreen: mouseScreen,
-                    dockItemElement: dockItemElement,
-                    overrideDelay: true,
-                    onWindowTap: { [weak self] in
-                        self?.hideWindowAndResetLastApp()
-                    },
-                    bundleIdentifier: app.bundleIdentifier
-                )
-            } catch {
-                // If we can't get windows, still show the preview for special apps if enabled
-                if Self.isSpecialControlsApp(app.bundleIdentifier), Defaults[.showSpecialAppControls] {
-                    let mouseScreen = NSScreen.screenFromQuartzPoint(currentMouseLocation)
-                    let convertedMouseLocation = DockObserver.nsPointFromCGPoint(currentMouseLocation, forScreen: mouseScreen)
-
-                    previewCoordinator.showWindow(
-                        appName: app.localizedName ?? "Unknown",
-                        windows: [],
-                        mouseLocation: convertedMouseLocation,
-                        mouseScreen: mouseScreen,
-                        dockItemElement: dockItemElement,
-                        overrideDelay: true,
-                        onWindowTap: { [weak self] in
-                            self?.hideWindowAndResetLastApp()
-                        },
-                        bundleIdentifier: app.bundleIdentifier
-                    )
-                }
-            }
-        }
-    }
-
     private func handleCmdRightClickQuit(app: NSRunningApplication, event: CGEvent) {
         Task { @MainActor in
             if event.flags.contains(.maskAlternate) {

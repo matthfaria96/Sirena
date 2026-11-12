@@ -525,143 +525,10 @@ final class SirenaAppVolumeMixer: ObservableObject {
         drainOutputAdjustment()
     }
 
-    /// A volume key steps from the level the output reports now, not from the
-    /// last published reading: after sleep an output can come back at another
-    /// level without notifying, and stepping from the stale reading left the
-    /// island at 21% while the speakers played at 2%. Keys pressed while that
-    /// read runs queue behind it, and keys during this app's own write carry on
-    /// from the level already requested. So does the key after a step the
-    /// output rounded back to where it was, as one with 3 dB steps does with a
-    /// sixteenth. `level` receives the audible level (0 while muted) and
-    /// returns the one to set.
-    func requestOutputStep(level: @escaping (Double) -> Double,
-                           completion: @escaping (Bool) -> Void = { _ in }) {
-        enqueueOutputKey(OutputStep(level: level, completion: completion),
-                         isAvailable: systemOutputVolume != nil)
-    }
-
-    /// The mute key rides the same read and queue as the volume keys, so it
-    /// toggles the state the output reports now (a stale reading asked for the
-    /// state already in place and the key did nothing), and a volume key right
-    /// after it steps from the level that one read fetched.
-    func requestOutputMuteToggle(completion: @escaping (Bool) -> Void = { _ in }) {
-        enqueueOutputKey(OutputStep(level: nil, completion: completion),
-                         isAvailable: systemOutputMuted != nil)
-    }
-
-    private func enqueueOutputKey(_ step: OutputStep, isAvailable: Bool) {
-        guard let device = outputControlListenerDevice, isAvailable else {
-            step.completion(false)
-            return
-        }
-        queuedOutputSteps.append(step)
-        guard !outputStepReadInFlight else { return }
-        guard !hasCurrentOutputAdjustment else {
-            applyQueuedOutputSteps()
-            return
-        }
-        outputStepReadInFlight = true
-        let readGeneration = outputStepReadGeneration
-        let lifetime = outputControlLock.withLock { outputControlLifetime }
-        halQueue.async { [weak self] in
-            let isDefault = Self.defaultOutputDeviceID() == device
-            let volume = isDefault && Self.hasSettableOutputVolume(for: device)
-                ? Self.outputVolume(for: device).map(Double.init)
-                : nil
-            let muted = isDefault ? Self.outputMuted(for: device) : nil
-            DispatchQueue.main.async {
-                guard let self else { return }
-                let current = self.outputControlListenerDevice == device
-                    && self.outputControlLock.withLock { self.outputControlLifetime == lifetime }
-                // Removing the old listeners already settled that lifetime's
-                // keys. Its callback must not drain the new output's queue.
-                guard current else { return }
-                self.outputStepReadInFlight = false
-                guard isDefault else {
-                    // The keys were meant for an output that has since been
-                    // replaced, as headphones taking over. Replaying a volume
-                    // key natively would step the new output a full step per
-                    // press, so those settle as handled, the way a pending
-                    // adjustment does when its output changes. A native mute
-                    // is the same toggle, so mute keys go back to the system
-                    // and still mute what now plays. The mixer resubscribes
-                    // to that output.
-                    let steps = self.queuedOutputSteps
-                    self.queuedOutputSteps.removeAll()
-                    for step in steps { step.completion(step.level != nil) }
-                    if current { self.scheduleListenerRefresh() }
-                    return
-                }
-                // A direct control change since the read began already set
-                // the level these keys continue from, read or not. A control
-                // the default output lacks leaves its keys to the system; the
-                // others still apply.
-                let superseded = self.outputStepReadGeneration != readGeneration
-                let fresh = !superseded && !self.hasCurrentOutputAdjustment
-                if fresh {
-                    if self.systemOutputVolume != volume { self.systemOutputVolume = volume }
-                    if self.systemOutputMuted != muted { self.systemOutputMuted = muted }
-                }
-                self.applyQueuedOutputSteps(reading: fresh ? volume : nil)
-            }
-        }
-    }
-
     private func settleQueuedOutputSteps(handled: Bool) {
         let steps = queuedOutputSteps
         queuedOutputSteps.removeAll()
         for step in steps { step.completion(handled) }
-    }
-
-    /// `reading` is the output's own level, when these keys have just read it.
-    private func applyQueuedOutputSteps(reading: Double? = nil) {
-        let steps = queuedOutputSteps
-        queuedOutputSteps.removeAll()
-        var reading = reading
-        for step in steps {
-            if let level = step.level {
-                guard let volume = systemOutputVolume else {
-                    step.completion(false)
-                    continue
-                }
-                // Still at the level the last key stepped from, the output
-                // rounded that step back: go on from the level it asked for.
-                let start = reading.flatMap { roundedBackStepLevel($0, continuing: level) } ?? volume
-                let from = reading ?? lastOutputStep?.from ?? volume
-                let target = level(systemOutputMuted == true ? 0 : start)
-                requestOutputAdjustment(volume: target) { [weak self] applied in
-                    // A step the output refused carries nothing over.
-                    if !applied, self?.lastOutputStep?.to == target { self?.lastOutputStep = nil }
-                    step.completion(applied)
-                }
-                rememberOutputStep(from: from, to: target)
-                // Keys after the first in a burst continue from this one.
-                reading = nil
-            } else {
-                guard let muted = systemOutputMuted else {
-                    step.completion(false)
-                    continue
-                }
-                requestOutputAdjustment(muted: !muted, completion: step.completion)
-            }
-        }
-    }
-
-    /// The level the last key asked for, while the current output still
-    /// reads the level that key stepped from and `level` keeps going the same
-    /// way. A key back the other way steps from the reading, which the output
-    /// never left.
-    private func roundedBackStepLevel(_ reading: Double, continuing level: (Double) -> Double) -> Double? {
-        guard let step = lastOutputStep, step.device == outputControlListenerDevice,
-              step.lifetime == outputControlLock.withLock({ outputControlLifetime }),
-              abs(reading - step.from) < 0.0001,
-              (level(step.to) - step.to) * (step.to - step.from) > 0 else { return nil }
-        return step.to
-    }
-
-    private func rememberOutputStep(from: Double, to: Double) {
-        guard let device = outputControlListenerDevice else { return }
-        lastOutputStep = (device, outputControlLock.withLock { outputControlLifetime }, from, to)
     }
 
     private func isCurrentOutputAdjustment(_ adjustment: OutputAdjustment) -> Bool {
@@ -781,40 +648,6 @@ final class SirenaAppVolumeMixer: ObservableObject {
         setDefaultOutputDeviceUID(uid)
     }
 
-    /// Priority changes only the normal system default. Unlike the manual
-    /// universal picker, this must not erase explicit per-app routes or
-    /// block the main thread while a device is being reconfigured.
-    func setPriorityOutputDeviceUID(_ uid: String) {
-        guard let sanitized = SirenaMixerDefaults.sanitizedAppOutputDeviceUID(uid),
-              let device = outputDevices.first(where: {
-                  $0.uid == sanitized && $0.canBeDefaultOutput
-              }) else {
-            outputSwitchError = SirenaMixerStrings.outputUnavailable
-            refreshApps()
-            return
-        }
-
-        halQueue.async { [weak self] in
-            let status = Self.setDefaultDevice(
-                device.audioObjectID,
-                selector: kAudioHardwarePropertyDefaultOutputDevice)
-            DispatchQueue.main.async {
-                guard let self, self.listenerInstalled else { return }
-                if status == noErr {
-                    if self.outputSwitchError != nil { self.outputSwitchError = nil }
-                } else {
-                    let message = "OSStatus \(status)"
-                    if self.outputSwitchError != message { self.outputSwitchError = message }
-                }
-                // Let the HAL snapshot publish the actual default. Some
-                // devices apply a successful write after a short delay, so an
-                // immediate read-back would report a false picker error.
-                self.refresh.discardInFlight()
-                self.refreshApps()
-            }
-        }
-    }
-
     @discardableResult
     private func setDefaultOutputDeviceUID(_ uid: String) -> Bool {
         guard let sanitized = SirenaMixerDefaults.sanitizedAppOutputDeviceUID(uid),
@@ -885,21 +718,6 @@ final class SirenaAppVolumeMixer: ObservableObject {
         currentSystemSoundOutputDeviceUID = device.uid
         refreshApps()
         return true
-    }
-
-    @discardableResult
-    func switchToNextSoundOutput(in selectedUIDs: [String]) -> Bool {
-        let availableUIDs = Set(outputDevices.filter(\.canBeDefaultOutput).map(\.uid))
-        guard let nextUID = SirenaMixerRoutingSupport.nextSelectedOutputDeviceUID(
-            currentUID: currentOutputDeviceUID,
-            selectedUIDs: selectedUIDs,
-            availableUIDs: availableUIDs) else {
-            // With an available selection, no next output means the only one is already playing.
-            return selectedUIDs.contains { rawUID in
-                SirenaMixerRoutingSupport.sanitizedDeviceUID(rawUID).map { availableUIDs.contains($0) } ?? false
-            }
-        }
-        return setUniversalOutputDeviceUID(nextUID)
     }
 
     func toggleMute(_ app: SirenaMixerApp) {
@@ -2133,19 +1951,6 @@ final class SirenaAppVolumeMixer: ObservableObject {
         // a settable mute element takes the level alone.
         setOutputMuted(SirenaMixerRoutingSupport.mutesOutput(atVolume: level), for: device)
         return applied
-    }
-
-    /// Whether the sound is currently cut, or nil when this output has no
-    /// mute switch of its own.
-    static func systemOutputIsMuted() -> Bool? {
-        guard let device = defaultOutputDeviceID() else { return nil }
-        return outputMuted(for: device)
-    }
-
-    @discardableResult
-    static func setSystemOutputMuted(_ muted: Bool) -> Bool {
-        guard let device = defaultOutputDeviceID() else { return false }
-        return setOutputMuted(muted, for: device)
     }
 
     fileprivate static func defaultOutputDeviceID() -> AudioObjectID? {

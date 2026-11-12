@@ -118,15 +118,6 @@ final class NotchWindowHost: NSObject, CAAnimationDelegate {
         return concealedForMissionControl
     }
 
-    func setMouseEventsIgnored(_ ignored: Bool) {
-        // Capture controls can change their click-through policy while the
-        // island is concealed or on its way out. Keep that policy for restore.
-        if concealedForMissionControl { missionControlMouseEvents = ignored }
-        if mouseEventsBeforeHide != nil { mouseEventsBeforeHide = ignored }
-        let effective = ignored || concealedForMissionControl || hidesWhenSettled
-        if panel.ignoresMouseEvents != effective { panel.ignoresMouseEvents = effective }
-    }
-
     func setOutline(enabled: Bool, color: NSColor) {
         canvas.setOutline(enabled: enabled, color: color)
     }
@@ -641,18 +632,6 @@ final class NotchWindowHost: NSObject, CAAnimationDelegate {
     }
 
 #if VORSSAINT_DEVELOPMENT
-    func probePresentDuringLayout(size: CGSize, geometry: NotchGeometry) -> Bool {
-        guard let container = quickAccessContainer else { return false }
-        var backingReady = false
-        container.nextProbeLayout = { [weak self] in
-            guard let self else { return }
-            self.present(size: size, geometry: geometry, animated: true, quickAccess: .initial)
-            backingReady = self.contentCanvasSize.height + 0.5 >= size.height
-        }
-        container.needsLayout = true
-        container.layoutSubtreeIfNeeded()
-        return backingReady
-    }
 
     var contentProbeOpacity: Float { canvas.contentProbeOpacity }
     var contentProbeAnimating: Bool { canvas.contentProbeAnimating }
@@ -679,7 +658,6 @@ final class NotchWindowHost: NSObject, CAAnimationDelegate {
     var overlayProbeHolds: Bool? { overlaySpace.map { $0.probeHolds(panel) } }
     var backdropProbeScheduled: Bool { canvas.backdropDisplayLink != nil }
     var backdropProbeTicks: Int { canvas.backdropTicks }
-    func synchronizeBackdropProbe() { canvas.synchronizeBackdrop() }
 
     var quickAccessProbeTrackingAreas: Int { quickAccessContainer?.trackingAreas.count ?? 0 }
     var quickAccessProbeInteractive: Bool { quickAccessContainer?.motion.interactive == true }
@@ -691,22 +669,6 @@ final class NotchWindowHost: NSObject, CAAnimationDelegate {
         }
     }
 
-    /// The floating layer's opacity at a screen point, drawn offscreen.
-    func quickAccessProbeOpacity(at screenPoint: CGPoint) -> CGFloat? {
-        guard let view = quickAccessContainer?.quickView,
-              let bitmap = view.bitmapImageRepForCachingDisplay(in: view.bounds) else { return nil }
-        view.cacheDisplay(in: view.bounds, to: bitmap)
-        let point = view.convert(panel.convertPoint(fromScreen: screenPoint), from: nil)
-        let scale = CGFloat(bitmap.pixelsWide) / max(1, view.bounds.width)
-        // Bitmap rows run from the top.
-        let row = view.isFlipped ? point.y : view.bounds.height - point.y
-        return bitmap.colorAt(x: Int(point.x * scale), y: Int(row * scale))?.alphaComponent
-    }
-
-    func beginProbeDrop(_ pasteboard: NSPasteboard, localSource: Bool = false) -> NSDragOperation {
-        canvas.beginDrop(pasteboard, localSource: localSource)
-    }
-    func finishProbeDrop(_ pasteboard: NSPasteboard) -> Bool { canvas.finishDrop(pasteboard) }
 #endif
 
     /// The area reserved for the island inside the window.

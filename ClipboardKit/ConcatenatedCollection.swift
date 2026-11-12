@@ -37,9 +37,6 @@ nonisolated struct ConcatenatedCollection<Element>: RandomAccessCollection {
     end - start
   }
 
-  func toArray() -> [Element] {
-    leading + trailing
-  }
 }
 
 extension ConcatenatedCollection: Equatable where Element: Equatable {}

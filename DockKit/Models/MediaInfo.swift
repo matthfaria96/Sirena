@@ -85,26 +85,6 @@ struct LyricLine: Identifiable, Hashable {
 
 // MARK: - MusicBrainz Data Structures
 
-struct MusicBrainzRecordingSearch: Codable {
-    let recordings: [MusicBrainzRecording]
-}
-
-struct MusicBrainzRecording: Codable {
-    let id: String
-    let title: String
-    let score: Int
-    let releases: [MusicBrainzRelease]?
-
-    enum CodingKeys: String, CodingKey {
-        case id, title, score, releases = "release-list"
-    }
-}
-
-struct MusicBrainzRelease: Codable {
-    let id: String
-    let title: String
-}
-
 struct LyricsOVHResponse: Codable {
     let lyrics: String
 }
@@ -532,48 +512,6 @@ final class MediaInfo: ObservableObject {
         return lyrics.sorted { $0.startTime < $1.startTime }
     }
 
-    private func stringSimilarity(_ str1: String, _ str2: String) -> Double {
-        let s1 = str1.lowercased()
-        let s2 = str2.lowercased()
-
-        if s1 == s2 { return 1.0 }
-        if s1.isEmpty || s2.isEmpty { return 0.0 }
-
-        let maxLen = max(s1.count, s2.count)
-        let distance = levenshteinDistance(s1, s2)
-
-        return 1.0 - (Double(distance) / Double(maxLen))
-    }
-
-    private func levenshteinDistance(_ str1: String, _ str2: String) -> Int {
-        let s1 = Array(str1)
-        let s2 = Array(str2)
-        let m = s1.count
-        let n = s2.count
-
-        var dp = Array(repeating: Array(repeating: 0, count: n + 1), count: m + 1)
-
-        for i in 0 ... m {
-            dp[i][0] = i
-        }
-
-        for j in 0 ... n {
-            dp[0][j] = j
-        }
-
-        for i in 1 ... m {
-            for j in 1 ... n {
-                if s1[i - 1] == s2[j - 1] {
-                    dp[i][j] = dp[i - 1][j - 1]
-                } else {
-                    dp[i][j] = 1 + min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1])
-                }
-            }
-        }
-
-        return dp[m][n]
-    }
-
     func setLyricsVisible(_ visible: Bool) {
         lyricsVisible = visible
         updateLyricsTimer()
@@ -951,37 +889,6 @@ struct LRCLyrics: Codable {
     private enum CodingKeys: String, CodingKey {
         case syncedLyrics, plainLyrics
     }
-}
-
-struct NetEaseSearch: Codable {
-    let result: NetEaseSearchResult
-}
-
-struct NetEaseSearchResult: Codable {
-    let songs: [NetEaseSong]
-}
-
-struct NetEaseSong: Codable {
-    let id: Int
-    let name: String
-    let artists: [NetEaseArtist]
-    let album: NetEaseAlbum
-}
-
-struct NetEaseArtist: Codable {
-    let name: String
-}
-
-struct NetEaseAlbum: Codable {
-    let name: String
-}
-
-struct NetEaseLyrics: Codable {
-    let lrc: NetEaseLyric?
-}
-
-struct NetEaseLyric: Codable {
-    let lyric: String?
 }
 
 // MARK: - iTunes Search API

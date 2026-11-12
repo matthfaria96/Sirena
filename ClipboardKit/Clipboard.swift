@@ -47,10 +47,6 @@ class Clipboard {
     onNewCopyHooks.append(hook)
   }
 
-  func clearHooks() {
-    onNewCopyHooks = []
-  }
-
   func start() {
     timer = Timer.scheduledTimer(
       timeInterval: Defaults[.clipboardCheckInterval],
@@ -70,15 +66,6 @@ class Clipboard {
     return !unpersistableTypes.contains(type) &&
              !type.rawValue.hasPrefix(microsoftSourcePrefix) &&
              !type.rawValue.hasPrefix(dynamicTypePrefix)
-  }
-
-  @MainActor
-  func copyInMaccy(_ string: String) {
-    pasteboard.clearContents()
-    pasteboard.setString(string, forType: .string)
-    pasteboard.setString(NSPasteboard.PasteboardType.fromMaccy.rawValue, forType: .source)
-    sync()
-    checkForChangesInPasteboard()
   }
 
   @MainActor

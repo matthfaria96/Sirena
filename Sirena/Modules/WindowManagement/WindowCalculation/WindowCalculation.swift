@@ -25,17 +25,7 @@ class WindowCalculation: Calculation {
     func calculateRect(_ params: RectCalculationParameters) -> RectResult {
         RectResult(.null)
     }
-    
-    func rectCenteredWithinRect(_ rect1: CGRect, _ rect2: CGRect) -> Bool {
-        let centeredMidX = abs(rect2.midX - rect1.midX) <= 1.0
-        let centeredMidY = abs(rect2.midY - rect1.midY) <= 1.0
-        return rect1.contains(rect2) && centeredMidX && centeredMidY
-    }
-    
-    func rectFitsWithinRect(rect1: CGRect, rect2: CGRect) -> Bool {
-        (rect1.width <= rect2.width) && (rect1.height <= rect2.height)
-    }
-    
+
     func isRepeatedCommand(_ params: WindowCalculationParameters) -> Bool {
         if let lastAction = params.lastAction, lastAction.action == params.action {
             let normalizedLastRect = lastAction.rect.screenFlipped

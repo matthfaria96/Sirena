@@ -71,12 +71,6 @@ private struct BoundedChild {
     let status: () -> Int32
 }
 
-/// The raw wait status, written before the exit is signalled and read only
-/// after that signal has been received.
-private final class BoundedExitStatus: @unchecked Sendable {
-    var raw: Int32 = 0
-}
-
 enum IslandBoundedProcessRunner {
     struct Result {
         let status: Int32
@@ -117,49 +111,6 @@ enum IslandBoundedProcessRunner {
                                 status: { process.terminationStatus })
         }
     }
-
-    /// Runs the child as the leader of a session of its own, with no
-    /// controlling terminal and stdin from /dev/null, which is what it has when
-    /// the app is launched from Finder. `Process` leaves a child the terminal
-    /// the app was started from but puts it in a process group of its own, so
-    /// an interactive shell that tries to take that terminal over is stopped
-    /// and only ends at the timeout. This path takes no cancellation.
-    static func runInNewSession(_ path: String,
-                                _ arguments: [String],
-                                timeout: TimeInterval,
-                                maxOutputBytes: Int,
-                                environment: [String: String]? = nil) -> Result {
-        let pipe = Pipe()
-        return collect(from: pipe, timeout: timeout, maxOutputBytes: maxOutputBytes) { finished in
-            // Only the child keeps the write end, so its exit reaches the reader as EOF.
-            defer { try? pipe.fileHandleForWriting.close() }
-            let pid = try spawnInNewSession(path, arguments, environment: environment,
-                                            output: pipe.fileHandleForWriting.fileDescriptor)
-            // Watched by a process source for the reason `run` gives, on a
-            // serial queue so a starved global pool cannot hold back the reap.
-            let exitStatus = BoundedExitStatus()
-            let source = DispatchSource.makeProcessSource(identifier: pid, eventMask: .exit,
-                                                          queue: exitQueue)
-            source.setEventHandler {
-                var raw: Int32 = 0
-                while waitpid(pid, &raw, 0) == -1 && errno == EINTR {}
-                exitStatus.raw = raw
-                source.cancel()
-                finished.signal()
-            }
-            source.resume()
-            return BoundedChild(pid: pid,
-                                terminate: { kill(pid, SIGTERM) },
-                                status: {
-                                    // What `Process.terminationStatus` reports: the
-                                    // exit code, or the signal that ended the child.
-                                    let signal = exitStatus.raw & 0x7f
-                                    return signal == 0 ? (exitStatus.raw >> 8) & 0xff : signal
-                                })
-        }
-    }
-
-    private static let exitQueue = DispatchQueue(label: "IslandBoundedProcessRunner.exit")
 
     private static func collect(from pipe: Pipe,
                                 timeout: TimeInterval,
@@ -212,42 +163,4 @@ enum IslandBoundedProcessRunner {
                       timedOut: timedOut)
     }
 
-    /// No descriptor of the app reaches the child besides the three set here,
-    /// and signal handling starts from the defaults, as it does under `Process`.
-    private static func spawnInNewSession(_ path: String,
-                                          _ arguments: [String],
-                                          environment: [String: String]?,
-                                          output: Int32) throws -> pid_t {
-        var attributes: posix_spawnattr_t?
-        posix_spawnattr_init(&attributes)
-        defer { posix_spawnattr_destroy(&attributes) }
-        posix_spawnattr_setflags(&attributes, Int16(POSIX_SPAWN_SETSID | POSIX_SPAWN_CLOEXEC_DEFAULT
-                                                    | POSIX_SPAWN_SETSIGMASK | POSIX_SPAWN_SETSIGDEF))
-        var noSignals = sigset_t()
-        sigemptyset(&noSignals)
-        posix_spawnattr_setsigmask(&attributes, &noSignals)
-        var defaultSignals = sigset_t()
-        sigfillset(&defaultSignals)
-        sigdelset(&defaultSignals, SIGKILL)
-        sigdelset(&defaultSignals, SIGSTOP)
-        posix_spawnattr_setsigdefault(&attributes, &defaultSignals)
-
-        var actions: posix_spawn_file_actions_t?
-        posix_spawn_file_actions_init(&actions)
-        defer { posix_spawn_file_actions_destroy(&actions) }
-        posix_spawn_file_actions_addopen(&actions, STDIN_FILENO, "/dev/null", O_RDONLY, 0)
-        posix_spawn_file_actions_adddup2(&actions, output, STDOUT_FILENO)
-        posix_spawn_file_actions_adddup2(&actions, output, STDERR_FILENO)
-
-        let argv = ([path] + arguments).map { strdup($0) } + [nil]
-        defer { argv.forEach { free($0) } }
-        let envp = (environment ?? ProcessInfo.processInfo.environment)
-            .map { strdup("\($0.key)=\($0.value)") } + [nil]
-        defer { envp.forEach { free($0) } }
-
-        var pid: pid_t = 0
-        let error = posix_spawn(&pid, path, &actions, &attributes, argv, envp)
-        guard error == 0 else { throw POSIXError(POSIXErrorCode(rawValue: error) ?? .EINVAL) }
-        return pid
-    }
 }

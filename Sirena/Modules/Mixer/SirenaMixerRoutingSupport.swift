@@ -461,25 +461,6 @@ enum SirenaMixerRoutingSupport {
         Set(uids.filter { airPlayConnected || !isAirPlaySentinel($0) })
     }
 
-    static func nextSelectedOutputDeviceUID(currentUID: String?,
-                                            selectedUIDs: [String],
-                                            availableUIDs: Set<String>) -> String? {
-        var seen = Set<String>()
-        let candidates = selectedUIDs.compactMap { rawUID -> String? in
-            guard let uid = sanitizedDeviceUID(rawUID),
-                  availableUIDs.contains(uid),
-                  seen.insert(uid).inserted else { return nil }
-            return uid
-        }
-        guard !candidates.isEmpty else { return nil }
-        guard let currentUID,
-              let index = candidates.firstIndex(of: currentUID) else {
-            return candidates[0]
-        }
-        guard candidates.count > 1 else { return nil }
-        return candidates[(index + 1) % candidates.count]
-    }
-
     static func outputLooksLikeHeadphones(name: String,
                                           uid: String,
                                           dataSourceName: String?) -> Bool {
@@ -794,25 +775,6 @@ enum SirenaMixerRoutingSupport {
         return displayOrderedBefore(name: name, id: uid, otherName: otherName, otherID: otherUID)
     }
 
-    /// Returns the first UID from the ordered priority list that is
-    /// currently available. Nil if none are available or the list is empty.
-    /// Duplicates are skipped (first occurrence wins) and invalid UIDs are
-    /// filtered out — the policy is pure and testable without mocking audio
-    /// hardware.
-    static func firstAvailablePriorityDeviceUID(
-        orderedUIDs: [String],
-        availableUIDs: Set<String>
-    ) -> String? {
-        var seen = Set<String>()
-        for rawUID in orderedUIDs {
-            guard let uid = sanitizedDeviceUID(rawUID),
-                  seen.insert(uid).inserted,
-                  availableUIDs.contains(uid) else { continue }
-            return uid
-        }
-        return nil
-    }
-
     /// Where a device goes in a priority list that has not ranked it yet.
     /// Virtual and aggregate devices play or record nothing on their own, so
     /// they never take the place of hardware.
@@ -827,62 +789,6 @@ enum SirenaMixerRoutingSupport {
             default: self = .hardware
             }
         }
-    }
-
-    /// The order a first-time list starts in: the device in use, then built-in
-    /// devices, where macOS itself falls back, then other hardware, and virtual
-    /// or aggregate devices last. Within a tier the available order is kept.
-    static func initialPriorityList(availableUIDs: [String],
-                                    currentUID: String?,
-                                    tier: (String) -> PriorityTier) -> [String] {
-        var seen = Set<String>()
-        let unique = availableUIDs.compactMap { sanitizedDeviceUID($0) }.filter { seen.insert($0).inserted }
-        let lead = unique.filter { $0 == currentUID }
-        let rest = unique.enumerated()
-            .filter { $0.element != currentUID }
-            .sorted { lhs, rhs in
-                let (a, b) = (tier(lhs.element).rawValue, tier(rhs.element).rawValue)
-                return a == b ? lhs.offset < rhs.offset : a < b
-            }
-            .map(\.element)
-        return lead + rest
-    }
-
-    /// Where a device the list has never seen joins it once macOS has settled
-    /// on it. The device in use goes first, since macOS or the user just picked
-    /// it; any other device goes above the virtual and aggregate entries, or
-    /// last when it is one itself. Stored entries keep their order.
-    static func placingNewPriorityDevice(_ rawUID: String,
-                                         in list: [String],
-                                         isCurrent: Bool,
-                                         tier: (String) -> PriorityTier) -> [String] {
-        guard let uid = sanitizedDeviceUID(rawUID), !list.contains(uid) else { return list }
-        if isCurrent { return [uid] + list }
-        guard tier(uid) != .virtual,
-              let firstVirtual = list.firstIndex(where: { tier($0) == .virtual }) else {
-            return list + [uid]
-        }
-        var placed = list
-        placed.insert(uid, at: firstVirtual)
-        return placed
-    }
-
-    /// Whether a CoreAudio write should be requested: only when the target
-    /// exists and differs from the current default. Avoids redundant writes
-    /// when the desired device is already active.
-    static func shouldSwitchToDevice(targetUID: String?, currentUID: String?) -> Bool {
-        guard let targetUID else { return false }
-        guard targetUID != currentUID else { return false }
-        return true
-    }
-
-    /// The first observed set establishes a baseline. Afterwards only an
-    /// eligible UID entering or leaving is a priority event; changing the
-    /// system default merely changes device metadata and must not count.
-    static func deviceAvailabilityChanged(previousUIDs: Set<String>?,
-                                          currentUIDs: Set<String>) -> Bool {
-        guard let previousUIDs else { return false }
-        return previousUIDs != currentUIDs
     }
 
     static func resolveInputDevice(preferredUID: String?,

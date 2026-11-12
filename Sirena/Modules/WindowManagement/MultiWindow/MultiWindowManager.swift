@@ -5,7 +5,6 @@ import MASShortcut
 
 class MultiWindowManager {
     typealias BandDirection = GridTiling.Direction
-    typealias BandConstraint = GridTiling.Constraint
     typealias BackingPixelBounds = GridTiling.Bounds
 
     private static var gridStates = [NSScreen: GridTiling.State<AccessibilityElement>]()

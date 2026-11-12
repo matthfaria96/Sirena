@@ -1,12 +1,6 @@
 import SwiftUI
 
 // Preference key to pass mouse events up the view hierarchy
-struct MouseEventKey: PreferenceKey {
-    static var defaultValue: NSEvent?
-    static func reduce(value: inout NSEvent?, nextValue: () -> NSEvent?) {
-        value = nextValue() ?? value
-    }
-}
 
 struct MouseEventModifier: ViewModifier {
     var onMiddleClick: () -> Void

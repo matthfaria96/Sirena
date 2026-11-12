@@ -122,12 +122,6 @@ final class ActiveSideSplitRatios {
         }
     }
 
-    func resetAll() {
-        ratiosByScreen.removeAll()
-        configuredHorizontalPercent = Defaults.horizontalSplitRatio.value
-        configuredVerticalPercent = Defaults.verticalSplitRatio.value
-    }
-
     func reset(for screenFrame: CGRect) {
         ratiosByScreen.removeValue(forKey: ScreenKey(screenFrame))
     }

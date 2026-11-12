@@ -69,10 +69,6 @@ final class IslandPermissions: ObservableObject {
     func openCameraSettings() { open(pane: "Privacy_Camera") }
     func openAutomationSettings() { open(pane: "Privacy_Automation") }
     func openAudioCaptureSettings() { open(pane: "Privacy_AudioCapture") }
-    func openFullDiskAccessSettings() { open(pane: "Privacy_AllFiles") }
-    func openNotificationSettings() {
-        NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.Notifications-Settings.extension")!)
-    }
 
     private func open(pane: String) {
         NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?\(pane)")!)

@@ -12,7 +12,6 @@ private enum SwitcherIconStyle {
     static let stroke = Color.primary.opacity(0.12)
     static let text = Color.primary
     static let secondaryText = Color.secondary
-    static let tertiaryText = Color.secondary.opacity(0.72)
     static let thumbnailBackground = Color.primary.opacity(0.055)
 }
 

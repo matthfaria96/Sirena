@@ -124,20 +124,6 @@ enum WindowAction: String, Hashable, CaseIterable, Defaults.Serializable {
         }
     }
 
-    /// Actions that can be assigned to trackpad gestures
-    static var gestureActions: [WindowAction] {
-        [.none, .close, .minimize, .maximize, .toggleFullScreen, .hide, .quit,
-         .fillLeftHalf, .fillRightHalf, .fillTopHalf, .fillBottomHalf,
-         .fillTopLeftQuarter, .fillTopRightQuarter, .fillBottomLeftQuarter, .fillBottomRightQuarter, .center]
-    }
-
-    /// Actions that can be assigned to middle-clicking a window preview
-    static var middleClickActions: [WindowAction] {
-        [.none, .openAppWindow, .close, .minimize, .maximize, .toggleFullScreen, .hide, .quit,
-         .fillLeftHalf, .fillRightHalf, .fillTopHalf, .fillBottomHalf,
-         .fillTopLeftQuarter, .fillTopRightQuarter, .fillBottomLeftQuarter, .fillBottomRightQuarter, .center]
-    }
-
     /// Result of performing a window action
     enum ActionResult {
         case dismissed
@@ -363,10 +349,6 @@ extension WindowUtil {
     static func saveWindowOrderFromCache() {
         let allWindows = desktopSpaceWindowCacheManager.getAllWindows()
         WindowOrderPersistence.saveOrder(from: allWindows)
-    }
-
-    static func clearWindowCache(for app: NSRunningApplication) {
-        desktopSpaceWindowCacheManager.writeCache(pid: app.processIdentifier, windowSet: [])
     }
 
     static func updateWindowCache(for app: NSRunningApplication, update: @escaping (inout Set<WindowInfo>) -> Void) {
@@ -1543,12 +1525,6 @@ extension WindowUtil {
         desktopSpaceWindowCacheManager.removeFromCache(pid: pid, windowId: windowId)
     }
 
-    static func removeWindowFromCache(with element: AXUIElement, in pid: pid_t) {
-        if let windowId = try? element.cgWindowId() {
-            removeWindowFromDesktopSpaceCache(with: windowId, in: pid)
-        }
-    }
-
     static func purifyAppCache(with pid: pid_t, removeAll: Bool) async -> Set<WindowInfo>? {
         if removeAll {
             desktopSpaceWindowCacheManager.writeCache(pid: pid, windowSet: [])
@@ -1611,18 +1587,6 @@ extension WindowUtil {
 
     static func purgeAppCache(with pid: pid_t) {
         desktopSpaceWindowCacheManager.writeCache(pid: pid, windowSet: [])
-    }
-
-    static func purgeAllCaches() {
-        desktopSpaceWindowCacheManager.purgeAll()
-    }
-
-    static func cachedWindowCount() -> Int {
-        desktopSpaceWindowCacheManager.getAllWindows().count
-    }
-
-    static func cachedAppCount() -> Int {
-        desktopSpaceWindowCacheManager.cachedPIDs().count
     }
 
     private static let pendingQuitChecksLock = NSLock()

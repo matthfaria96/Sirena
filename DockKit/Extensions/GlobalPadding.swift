@@ -108,33 +108,5 @@ private struct GlobalPaddingView<Content: View>: View {
 // MARK: - Convenience Extensions for Common Patterns
 
 extension View {
-    /// Applies global padding to horizontal edges only
-    func globalPaddingHorizontal(_ length: CGFloat = 16) -> some View {
-        globalPadding(.horizontal, length)
-    }
 
-    /// Applies global padding to vertical edges only
-    func globalPaddingVertical(_ length: CGFloat = 16) -> some View {
-        globalPadding(.vertical, length)
-    }
-
-    /// Applies global padding to top edge only
-    func globalPaddingTop(_ length: CGFloat = 16) -> some View {
-        globalPadding(.top, length)
-    }
-
-    /// Applies global padding to bottom edge only
-    func globalPaddingBottom(_ length: CGFloat = 16) -> some View {
-        globalPadding(.bottom, length)
-    }
-
-    /// Applies global padding to leading edge only
-    func globalPaddingLeading(_ length: CGFloat = 16) -> some View {
-        globalPadding(.leading, length)
-    }
-
-    /// Applies global padding to trailing edge only
-    func globalPaddingTrailing(_ length: CGFloat = 16) -> some View {
-        globalPadding(.trailing, length)
-    }
 }

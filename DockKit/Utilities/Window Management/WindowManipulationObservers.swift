@@ -266,10 +266,6 @@ class WindowManipulationObservers {
         }
     }
 
-    private func removeObserverForApp(_ app: NSRunningApplication) {
-        removeObserver(for: app.processIdentifier)
-    }
-
     func removeObserver(for pid: pid_t) {
         guard let observer = observers.removeValue(forKey: pid) else { return }
 

@@ -322,12 +322,6 @@ enum IslandPeripheralBatterySupport {
         }
     }
 
-    static func menuBarMetric(for devices: [IslandPeripheralBatteryDevice]) -> (label: String, value: String)? {
-        let devices = sorted(devices)
-        guard let first = devices.first else { return nil }
-        let extra = devices.count > 1 ? "+\(min(9, devices.count - 1))" : ""
-        return (first.kind.menuLabel, "\(first.percent)%\(extra)")
-    }
 }
 
 /// A cache keeps the time of its observation, including per-device sources:

@@ -33,7 +33,6 @@ enum IslandNowPlayingSupport {
     /// `maximumAdapterReplyBytes`, sized so the base64 line (4/3 of the bytes,
     /// so 16 MB) plus the other keys fits.
     static let maximumArtworkBytes = 12 * 1_024 * 1_024
-    static let maximumAdapterReplyBytes = maximumArtworkBytes / 3 * 4 + 1_024 * 1_024
 
     static func playbackIsActive(remoteIsPlaying: Bool?, info: [String: Any]) -> Bool {
         if let remoteIsPlaying { return remoteIsPlaying }
@@ -278,11 +277,4 @@ enum IslandAppleScriptRunner {
         return (true, nil, "", result.stringValue ?? "")
     }
 
-    /// Escapes a value for embedding inside an AppleScript double-quoted string.
-    static func literal(_ value: String) -> String {
-        let escaped = value
-            .replacingOccurrences(of: "\\", with: "\\\\")
-            .replacingOccurrences(of: "\"", with: "\\\"")
-        return "\"\(escaped)\""
-    }
 }

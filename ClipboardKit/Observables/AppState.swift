@@ -19,15 +19,6 @@ class AppState: Sendable {
     self.history = history
   }
 
-  func openAbout() {
-    ClipboardController.shared.onOpenAbout?()
-  }
-
-  @MainActor
-  func openPreferences() {
-    ClipboardController.shared.onOpenSettings?()
-  }
-
   func quit() {
     NSApp.terminate(self)
   }

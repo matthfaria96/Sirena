@@ -221,7 +221,6 @@ class CaffeineViewModel: ObservableObject {
 enum PreferenceKeys {
     static let activateAtLaunch = "CAActivateAtLaunch"
     static let defaultDuration = "CADefaultDuration"
-    static let suppressLaunchMessage = "CASuppressLaunchMessage"
     static let deactivateOnManualSleep = "CADeactivateOnManualSleep"
     static let keepAppsActive = "CAKeepAppsActive"
     static let resumeIndefinitely = "CAResumeIndefinitely"

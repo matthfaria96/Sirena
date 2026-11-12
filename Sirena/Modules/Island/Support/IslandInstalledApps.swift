@@ -81,26 +81,6 @@ enum IslandInstalledApps {
         return systemPathPrefixes.contains { path.hasPrefix($0) }
     }
 
-    /// Whether `url` sits somewhere under one of the folders installed apps
-    /// live in - /Applications or ~/Applications - at any depth, not just
-    /// directly inside them. Matches `installedApplications`'s own walk of
-    /// these same two roots, which recurses into subfolders (an installer
-    /// that drops its app inside a vendor subfolder, such as
-    /// /Applications/Vendor/App.app, is exactly what that walk already
-    /// treats as installed) - this used to require the app sit directly in
-    /// one of the roots, which meant a bundle `installedApplications` would
-    /// list could still be refused here.
-    static func isInApplicationsFolder(_ url: URL) -> Bool {
-        let containingDirectory = url.deletingLastPathComponent()
-            .resolvingSymlinksInPath().standardizedFileURL.path
-        let roots = [
-            URL(fileURLWithPath: "/Applications").standardizedFileURL.path,
-            URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent("Applications")
-                .standardizedFileURL.path,
-        ]
-        return roots.contains { containingDirectory == $0 || containingDirectory.hasPrefix($0 + "/") }
-    }
-
     /// The apps an app ships for people to open, in its own
     /// Contents/Applications folder, where Xcode keeps Instruments, FileMerge
     /// and its other tools, and in Contents/Developer/Applications, where it
@@ -295,36 +275,6 @@ enum IslandInstalledApps {
                            acceptsExecutables: acceptsExecutables)
     }
 
-    static func deduplicatedAndFiltered(_ apps: [InstalledApp],
-                                        excluding excludedIdentities: Set<String>) -> [InstalledApp] {
-        var seen = Set<String>()
-        return apps.filter { app in
-            guard let identity = app.identity,
-                  !excludedIdentities.contains(identity),
-                  seen.insert(identity).inserted else { return false }
-            return true
-        }.sorted {
-            let byName = $0.name.localizedCaseInsensitiveCompare($1.name)
-            // Equal display names — three runtimes all named "java" — fall
-            // back to the identity so the rows hold one order between renders.
-            return byName == .orderedSame
-                ? ($0.identity ?? "") < ($1.identity ?? "")
-                : byName == .orderedAscending
-        }
-    }
-
-    static func installedBundleApplications(excluding excludedBundleIDs: Set<String>,
-                                            includeRunningApplications: Bool = false,
-                                            acceptsExecutables: Bool = false) -> [InstalledApp] {
-        var apps = installedApplications(includeSystemApplications: true)
-        if includeRunningApplications {
-            apps += NSWorkspace.shared.runningApplications.compactMap { runningApp in
-                runningApplication(runningApp, acceptsExecutables: acceptsExecutables)
-            }
-        }
-
-        return deduplicatedAndFiltered(apps, excluding: excludedBundleIDs)
-    }
 }
 
 /// How a list names a program: its bundle identifier, or the resolved path of

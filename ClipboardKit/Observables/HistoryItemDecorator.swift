@@ -12,7 +12,6 @@ class HistoryItemDecorator: Identifiable, Hashable, HasVisibility {
     return lhs.id == rhs.id
   }
 
-  static var previewImageSize: NSSize { NSScreen.forPopup?.visibleFrame.size ?? NSSize(width: 2048, height: 1536) }
   static var thumbnailImageSize: NSSize { NSSize(width: 340, height: Defaults[.imageMaxHeight]) }
 
   let id = UUID()
@@ -134,32 +133,6 @@ class HistoryItemDecorator: Identifiable, Hashable, HasVisibility {
   }
 
   @MainActor
-  func ensurePreviewImage() {
-    guard item.image != nil else {
-      return
-    }
-    guard previewImage == nil else {
-      return
-    }
-    guard previewImageGenerationTask == nil else {
-      return
-    }
-    previewImageGenerationTask = Task { [weak self] in
-      self?.generatePreviewImage()
-    }
-  }
-
-  @MainActor
-  func asyncGetPreviewImage() async -> NSImage? {
-    if let image = previewImage {
-      return image
-    }
-    ensurePreviewImage()
-    _ = await previewImageGenerationTask?.result
-    return previewImage
-  }
-
-  @MainActor
   func cleanupImages() {
     thumbnailImageGenerationTask?.cancel()
     previewImageGenerationTask?.cancel()
@@ -176,20 +149,6 @@ class HistoryItemDecorator: Identifiable, Hashable, HasVisibility {
       return
     }
     thumbnailImage = image.resized(to: HistoryItemDecorator.thumbnailImageSize)
-  }
-
-  @MainActor
-  private func generatePreviewImage() {
-    guard let image = item.image else {
-      return
-    }
-    previewImage = image.resized(to: HistoryItemDecorator.previewImageSize)
-  }
-
-  @MainActor
-  func sizeImages() {
-    generatePreviewImage()
-    generateThumbnailImage()
   }
 
   func highlight(_ query: String, _ ranges: [Range<String.Index>]) {

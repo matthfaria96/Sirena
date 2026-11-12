@@ -13,35 +13,22 @@ enum MediaControlsLayout {
     static let skeletonOpacity: Double = 0.25
     static let embeddedArtworkSize: CGFloat = 40
     static let embeddedMediaButtonsSpacing: CGFloat = 15
-    static let embeddedProgressBarHeight: CGFloat = 16
 
-    static let expandedArtworkSize: CGFloat = 200
-    static let expandedArtworkCornerRadius: CGFloat = 8
-    static let expandedMediaButtonsSpacing: CGFloat = 25
     static let expandedPlayButtonDimension: CGFloat = 36
     static let expandedOtherButtonDimension: CGFloat = 28
 
     static let fullExpandedArtworkSize: CGFloat = 150
     static let fullExpandedArtworkCornerRadius: CGFloat = 12
-    static let fullExpandedTitleFontSize: CGFloat = 18
-    static let fullExpandedArtistFontSize: CGFloat = 15
     static let fullExpandedContainerSpacing: CGFloat = 12
-    static let fullExpandedMediaButtonsSpacing: CGFloat = 22
-    static let fullExpandedPlayButtonDimension: CGFloat = 34
-    static let fullExpandedOtherButtonDimension: CGFloat = 26
 
     // MARK: - Enhanced Lyrics Layout
 
-    static let expandedViewHeight: CGFloat = 380
-    static let lyricsLineHeight: CGFloat = 24
-    static let lyricsMaxVisibleLines: Int = 12
     static let fullLyricsViewWidth: CGFloat = 100
     static let lyricsVerticalSpacing: CGFloat = 8
     static let lyricsHorizontalPadding: CGFloat = 8
     static let lyricsCurrentLineScale: CGFloat = 1.15
     static let lyricsInactiveOpacity: Double = 0.4
     static let lyricsCurrentOpacity: Double = 1.0
-    static let lyricsBackgroundOpacity: Double = 0.12
 }
 
 struct MediaControlsView: View {
@@ -68,9 +55,6 @@ struct MediaControlsView: View {
     @State private var dominantArtworkColor: Color? = nil
     @State private var hasAppeared: Bool = false
 
-    @State private var isArtworkExpanded: Bool = false
-    @Namespace private var artworkExpansionNamespace
-
     @State private var isArtworkExpandedFull: Bool = false
     @Namespace private var artworkExpansionFullNamespace
 
@@ -79,7 +63,6 @@ struct MediaControlsView: View {
     @State private var showingLyrics: Bool = false
     @State private var showingLyricsInFull: Bool = false
     @State private var lyricsMode: Bool = false
-    @Namespace private var lyricsExpansionNamespace
 
     @State private var artworkRotation: Double = 0.0
     @State private var backgroundAppearance: BackgroundAppearance = .resolve()

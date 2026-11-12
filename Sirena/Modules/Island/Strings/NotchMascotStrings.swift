@@ -92,10 +92,6 @@ struct NotchMascotStrings {
         }
     }
 
-    func commandBarStyle(_ style: NotchCommandBarStyle) -> String {
-        style == .island ? openIsland : droplet
-    }
-
     func side(_ side: NotchMascotSide) -> String {
         side == .right ? right : left
     }

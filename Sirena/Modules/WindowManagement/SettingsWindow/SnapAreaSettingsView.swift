@@ -4,28 +4,6 @@ import DockKit
 import SwiftUI
 import Combine
 
-class SnapAreaSettingsViewController: NSViewController {
-    private var hostingController: NSHostingController<SnapAreaSettingsView>!
-
-    override func viewDidLoad() {
-        super.viewDidLoad()
-
-        let swiftUIView = SnapAreaSettingsView()
-        hostingController = NSHostingController(rootView: swiftUIView)
-        
-        addChild(hostingController)
-        hostingController.view.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(hostingController.view)
-        
-        NSLayoutConstraint.activate([
-            hostingController.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            hostingController.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            hostingController.view.topAnchor.constraint(equalTo: view.topAnchor),
-            hostingController.view.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-        ])
-    }
-}
-
 // MARK: - ViewModel
 
 @Observable

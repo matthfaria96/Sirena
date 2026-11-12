@@ -183,17 +183,6 @@ extension WindowPreviewHoverContainer {
         return dimensionsMap
     }
 
-    static func calculateSingleWindowDimensions(
-        windowInfo: WindowInfo,
-        overallMaxDimensions: CGPoint,
-        bestGuessMonitor: NSScreen
-    ) -> WindowDimensions {
-        let width = Defaults[.previewWidth]
-        let height = Defaults[.previewHeight]
-        let maxDims = CGSize(width: overallMaxDimensions.x, height: overallMaxDimensions.y)
-        return WindowDimensions(size: CGSize(width: width, height: height), maxDimensions: maxDims)
-    }
-
     func getDimensions(for index: Int, dimensionsMap: [Int: WindowDimensions]) -> WindowDimensions {
         let fallback = WindowDimensions(
             size: CGSize(width: 100, height: 100),
@@ -330,22 +319,6 @@ extension WindowPreviewHoverContainer {
         }
 
         return chunks
-    }
-
-    /// Creates chunks of window indices organized by rows/columns based on flow direction
-    private static func createWindowChunks(
-        totalWindows: Int,
-        isHorizontal: Bool,
-        maxColumns: Int,
-        maxRows: Int
-    ) -> [[Int]] {
-        let windowIndices = Array(0 ..< totalWindows)
-        return chunkArray(
-            items: windowIndices,
-            isHorizontal: isHorizontal,
-            maxColumns: maxColumns,
-            maxRows: maxRows
-        )
     }
 
     /// Navigates window switcher grid

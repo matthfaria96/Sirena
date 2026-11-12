@@ -20,12 +20,6 @@ struct NotchPlaybackSource: Equatable {
 
     var selection: Selection { Selection(pid: pid, bundleIdentifier: bundleIdentifier) }
 
-    static func isMusicApplication(bundleIdentifier: String?, parentBundleIdentifier: String?, category: String?) -> Bool {
-        let knownMusicApps: Set<String> = ["com.apple.Music", "com.apple.iTunes", "com.spotify.client"]
-        return category == "public.app-category.music"
-            || [bundleIdentifier, parentBundleIdentifier].compactMap { $0 }.contains(where: knownMusicApps.contains)
-    }
-
     var reply: [String: Any] {
         var value: [String: Any] = ["pid": pid, "bundleIdentifier": bundleIdentifier, "isMusicApp": isMusicApp,
                                    "isPlaying": isPlaying, "hasTrack": hasTrack]

@@ -80,17 +80,4 @@ final class WindowAnimationCaptureGate {
         for waiter in pending { waiter.resume() }
     }
 
-    @MainActor func waitUntilIdle() async {
-        while isPaused && !Task.isCancelled {
-            let id = UUID()
-            await withTaskCancellationHandler(operation: {
-                await withCheckedContinuation { continuation in
-                    if Task.isCancelled || !isPaused { continuation.resume() }
-                    else { waiters[id] = continuation }
-                }
-            }, onCancel: { [weak self] in
-                Task { @MainActor in self?.waiters.removeValue(forKey: id)?.resume() }
-            })
-        }
-    }
 }

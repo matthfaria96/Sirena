@@ -186,9 +186,6 @@ enum ModuleID: String, CaseIterable, Identifiable {
 
     static var tools: [ModuleID] { allCases.filter(\.isTool) }
 
-    /// Modules with a page (and a sidebar row / Home card) of their own: tools first.
-    static var pages: [ModuleID] { tools + featurePages }
-
     /// Background features with a page of their own.
     static var featurePages: [ModuleID] { allCases.filter { $0.hostPage == $0 && !$0.isTool } }
 

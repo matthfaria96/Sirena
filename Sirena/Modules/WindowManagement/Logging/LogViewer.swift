@@ -7,16 +7,7 @@ class Logger {
     static var logging = false
     
     static private var logWindowController: LogWindowController?
-    
-    static func showLogging(sender: Any?) {
-        if logWindowController == nil {
-            logWindowController = LogWindowController.freshController()
-        }
-        NSApp.activate(ignoringOtherApps: true)
-        logWindowController?.showWindow(sender)
-        logging = true
-    }
-    
+
     static func log(_ string: String) {
         if logging {
             logWindowController?.append(string)
@@ -43,19 +34,7 @@ class LogWindowController: NSWindowController, NSWindowDelegate {
 
 extension LogWindowController {
     // MARK: Storyboard instantiation
-    static func freshController() -> LogWindowController {
-        let storyboard = NSStoryboard(name: "LogViewer", bundle: nil)
-        let identifier = "LogWindowController"
-        guard let windowController = storyboard.instantiateController(withIdentifier: identifier) as? LogWindowController else {
-            fatalError("Unable to find WindowController")
-        }
-        
-        windowController.window?.delegate = windowController
-        
-        return windowController
-    }
 }
-
 
 class LogViewController: NSViewController {
     

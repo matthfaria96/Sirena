@@ -1400,10 +1400,6 @@ enum DockBackgroundStyle: String, CaseIterable, Defaults.Serializable {
         }
     }
 
-    @available(macOS 26.0, *)
-    static var allAvailable: [DockBackgroundStyle] { allCases }
-
-    static var preTahoe: [DockBackgroundStyle] { [.frostedMaterial, .clear] }
 }
 
 enum DockLiquidGlassFlavor: String, CaseIterable, Defaults.Serializable {

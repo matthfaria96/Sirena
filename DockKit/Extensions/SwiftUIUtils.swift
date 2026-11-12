@@ -9,10 +9,6 @@ struct ViewSizeKey: PreferenceKey {
     }
 }
 
-func doAfter(_ seconds: Double = 0, action: @escaping () -> Void) {
-    DispatchQueue.main.asyncAfter(deadline: .now() + seconds, execute: action)
-}
-
 func timer(_ seconds: Double = 0, action: @escaping (Timer) -> Void) -> Timer {
     Timer.scheduledTimer(withTimeInterval: seconds, repeats: false, block: action)
 }
@@ -39,13 +35,3 @@ func animateWithUserPreference(
     }
 }
 
-func applyAppearanceMode(_ mode: AppAppearanceMode) {
-    switch mode {
-    case .system:
-        NSApp.appearance = nil
-    case .light:
-        NSApp.appearance = NSAppearance(named: .aqua)
-    case .dark:
-        NSApp.appearance = NSAppearance(named: .darkAqua)
-    }
-}

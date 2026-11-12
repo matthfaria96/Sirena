@@ -135,36 +135,3 @@ enum NotchPlaybackCommand: Equatable {
     }
 }
 
-/// Queue actions already carry their own immutable selection. Basic controls
-/// also need a destination; a bare legacy command is never accepted by the pipe.
-struct NotchPlaybackRequest: Equatable {
-    let command: NotchPlaybackCommand
-    let context: NotchPlaybackContext?
-
-    init(command: NotchPlaybackCommand, context: NotchPlaybackContext? = nil) {
-        self.command = command
-        self.context = command.requiresPlaybackContext ? context : nil
-    }
-
-    init?(message: String) {
-        guard message.utf8.count <= NotchPlaybackCommand.maximumMessageBytes else { return nil }
-        if message.hasPrefix("play ") {
-            let parts = message.split(separator: " ", maxSplits: 3, omittingEmptySubsequences: false)
-            guard parts.count == 4, let pid = Int32(parts[1]), pid > 0,
-                  let revision = UUID(uuidString: String(parts[2])),
-                  let command = NotchPlaybackCommand(message: String(parts[3])), command.requiresPlaybackContext else { return nil }
-            self.init(command: command, context: NotchPlaybackContext(pid: pid, revision: revision))
-        } else {
-            guard let command = NotchPlaybackCommand(message: message), !command.requiresPlaybackContext else { return nil }
-            self.init(command: command)
-        }
-    }
-
-    var message: String? {
-        guard let message = command.message else { return nil }
-        guard command.requiresPlaybackContext else { return message }
-        guard let context, context.pid > 0 else { return nil }
-        return "play \(context.pid) \(context.revision.uuidString) \(message)"
-    }
-}
-

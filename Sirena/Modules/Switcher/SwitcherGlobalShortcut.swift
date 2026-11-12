@@ -110,133 +110,10 @@ struct SwitcherGlobalShortcut: Equatable, Hashable {
         guard requiringModifier ? isValid : hasPrintableKey else { return nil }
     }
 
-    /// Delete on its own means "take the shortcut off" while a shortcut field
-    /// is listening, which is how every shortcut field on this system behaves.
-    /// Held together with Control, Option or Command it is an ordinary key and
-    /// records like any other.
-    static func clearsShortcut(keyCode: Int64, modifiers: SwitcherGlobalShortcutModifiers) -> Bool {
-        guard keyCode == Int64(kVK_Delete) || keyCode == Int64(kVK_ForwardDelete)
-        else { return false }
-        return !modifiers.hasPrimaryModifier
-    }
-
-    static let keepAwakeDefault = SwitcherGlobalShortcut(keyCode: Int64(kVK_ANSI_K),
-                                                 modifiers: [.control, .option, .command])
-    static let shelfDefault = SwitcherGlobalShortcut(keyCode: Int64(kVK_ANSI_D),
-                                             modifiers: [.control, .option, .command])
     static let switcherDefault = SwitcherGlobalShortcut(keyCode: Int64(kVK_Tab),
                                                 modifiers: [.command])
     static let switcherWindowDefault = SwitcherGlobalShortcut(keyCode: Int64(kVK_ANSI_Grave),
                                                       modifiers: [.command])
-    static let clipboardDefault = SwitcherGlobalShortcut(keyCode: Int64(kVK_ANSI_V),
-                                                 modifiers: [.control, .option, .command])
-    static let soundOutputSwitcherDefault = SwitcherGlobalShortcut(keyCode: Int64(kVK_ANSI_S),
-                                                           modifiers: [.control, .option, .command])
-    static let displayBrightnessDecreaseDefault = SwitcherGlobalShortcut(
-        keyCode: Int64(kVK_ANSI_Minus), modifiers: [.shift, .command])
-    static let displayBrightnessIncreaseDefault = SwitcherGlobalShortcut(
-        keyCode: Int64(kVK_ANSI_Equal), modifiers: [.shift, .command])
-    static let keyboardBrightnessDecreaseDefault = SwitcherGlobalShortcut(
-        keyCode: Int64(kVK_ANSI_Minus), modifiers: [.option, .command])
-    static let keyboardBrightnessIncreaseDefault = SwitcherGlobalShortcut(
-        keyCode: Int64(kVK_ANSI_Equal), modifiers: [.option, .command])
-    static let windowLayoutLeftDefault = SwitcherGlobalShortcut(keyCode: Int64(kVK_LeftArrow),
-                                                        modifiers: [.control, .option])
-    static let windowLayoutRightDefault = SwitcherGlobalShortcut(keyCode: Int64(kVK_RightArrow),
-                                                         modifiers: [.control, .option])
-    static let windowLayoutTopDefault = SwitcherGlobalShortcut(keyCode: Int64(kVK_UpArrow),
-                                                       modifiers: [.control, .option])
-    static let windowLayoutBottomDefault = SwitcherGlobalShortcut(keyCode: Int64(kVK_DownArrow),
-                                                          modifiers: [.control, .option])
-    static let windowLayoutTopLeftDefault = SwitcherGlobalShortcut(keyCode: Int64(kVK_ANSI_U),
-                                                           modifiers: [.control, .option])
-    static let windowLayoutTopRightDefault = SwitcherGlobalShortcut(keyCode: Int64(kVK_ANSI_I),
-                                                            modifiers: [.control, .option])
-    static let windowLayoutBottomLeftDefault = SwitcherGlobalShortcut(keyCode: Int64(kVK_ANSI_J),
-                                                              modifiers: [.control, .option])
-    static let windowLayoutBottomRightDefault = SwitcherGlobalShortcut(keyCode: Int64(kVK_ANSI_K),
-                                                               modifiers: [.control, .option])
-    static let windowLayoutMaximizeDefault = SwitcherGlobalShortcut(keyCode: Int64(kVK_Return),
-                                                            modifiers: [.control, .option])
-    static let windowLayoutCenterDefault = SwitcherGlobalShortcut(keyCode: Int64(kVK_ANSI_C),
-                                                          modifiers: [.control, .option])
-    static let windowLayoutRestoreDefault = SwitcherGlobalShortcut(keyCode: Int64(kVK_ANSI_R),
-                                                           modifiers: [.control, .option])
-    static let windowLayoutLeftThirdDefault = SwitcherGlobalShortcut(keyCode: Int64(kVK_ANSI_D),
-                                                             modifiers: [.control, .option])
-    static let windowLayoutCenterThirdDefault = SwitcherGlobalShortcut(keyCode: Int64(kVK_ANSI_F),
-                                                               modifiers: [.control, .option])
-    static let windowLayoutRightThirdDefault = SwitcherGlobalShortcut(keyCode: Int64(kVK_ANSI_G),
-                                                              modifiers: [.control, .option])
-    static let windowLayoutLeftTwoThirdsDefault = SwitcherGlobalShortcut(keyCode: Int64(kVK_ANSI_E),
-                                                                 modifiers: [.control, .option])
-    static let windowLayoutRightTwoThirdsDefault = SwitcherGlobalShortcut(keyCode: Int64(kVK_ANSI_T),
-                                                                  modifiers: [.control, .option])
-    static let windowLayoutNextDisplayDefault = SwitcherGlobalShortcut(keyCode: Int64(kVK_RightArrow),
-                                                               modifiers: [.control, .option, .command])
-    static let windowDirectionalDefault = SwitcherGlobalShortcut(keyCode: Int64(kVK_Space),
-                                                         modifiers: [.control, .option])
-    // The key beside the modifiers, so one left hand presses it, on the
-    // free control-option-command layer.
-    static let pointerNextDisplayDefault = SwitcherGlobalShortcut(keyCode: Int64(kVK_ANSI_Z),
-                                                          modifiers: [.control, .option, .command])
-    // Quick tools. Paste plain follows the universal "Paste and Match Style"
-    // combination; the others use the free ⌃⌥⌘ letters.
-    static let pastePlainDefault = SwitcherGlobalShortcut(keyCode: Int64(kVK_ANSI_V),
-                                                  modifiers: [.shift, .option, .command])
-    static let finderRenameDefault = SwitcherGlobalShortcut(keyCode: Int64(kVK_F2), modifiers: [])
-    static let colorPickerDefault = SwitcherGlobalShortcut(keyCode: Int64(kVK_ANSI_C),
-                                                   modifiers: [.control, .option, .command])
-    static let screenOCRDefault = SwitcherGlobalShortcut(keyCode: Int64(kVK_ANSI_T),
-                                                 modifiers: [.control, .option, .command])
-    static let micMuteDefault = SwitcherGlobalShortcut(keyCode: Int64(kVK_ANSI_M),
-                                               modifiers: [.control, .option, .command])
-    // W for webcam, on the same free control-option-command layer.
-    static let cameraPreviewDefault = SwitcherGlobalShortcut(keyCode: Int64(kVK_ANSI_W),
-                                                     modifiers: [.control, .option, .command])
-    // V for Vorssaint: the quick launcher's own combination.
-    static let quickLauncherDefault = SwitcherGlobalShortcut(keyCode: Int64(kVK_ANSI_V),
-                                                     modifiers: [.control, .command])
-    // Default screenshot shortcut on the available control-option-command layer.
-    static let screenshotDefault = SwitcherGlobalShortcut(keyCode: Int64(kVK_ANSI_4),
-                                                  modifiers: [.control, .option, .command])
-    // Full screen sits beside the selector's 4 and the recorder's 5.
-    static let screenshotFullScreenDefault = SwitcherGlobalShortcut(keyCode: Int64(kVK_ANSI_3),
-                                                            modifiers: [.control, .option, .command])
-    static let screenshotUploadDefault = SwitcherGlobalShortcut(keyCode: Int64(kVK_ANSI_U),
-                                                        modifiers: [.control, .option, .command])
-    // E opens the latest capture in the editor, beside the capture shortcut.
-    static let screenshotLastCaptureDefault = SwitcherGlobalShortcut(keyCode: Int64(kVK_ANSI_E),
-                                                             modifiers: [.control, .option, .command])
-    // H opens capture history, on the same free control-option-command layer.
-    static let recentCapturesDefault = SwitcherGlobalShortcut(keyCode: Int64(kVK_ANSI_H),
-                                                      modifiers: [.control, .option, .command])
-    // P opens a copied image in the editor, beside the other screenshot tools.
-    static let screenshotClipboardDefault = SwitcherGlobalShortcut(keyCode: Int64(kVK_ANSI_P),
-                                                           modifiers: [.control, .option, .command])
-    // Space for the wheel, on the same free control-option-command layer.
-    static let radialMenuDefault = SwitcherGlobalShortcut(keyCode: Int64(kVK_Space),
-                                                  modifiers: [.control, .option, .command])
-    // N for notes, on the same free control-option-command layer.
-    static let scratchpadDefault = SwitcherGlobalShortcut(keyCode: Int64(kVK_ANSI_N),
-                                                  modifiers: [.control, .option, .command])
-    // I for island, on the same free control-option-command layer.
-    static let notchDefault = SwitcherGlobalShortcut(keyCode: Int64(kVK_ANSI_I),
-                                             modifiers: [.control, .option, .command])
-    // L for library (S already belongs to the sound output switcher), on the
-    // same free control-option-command layer.
-    static let snippetLibraryDefault = SwitcherGlobalShortcut(keyCode: Int64(kVK_ANSI_L),
-                                                      modifiers: [.control, .option, .command])
-    // Option-Space, the combination mature launchers settled on: one thumb
-    // and one finger, mirroring the system search's Command-Space without
-    // fighting it for the key. Registered as a hotkey it never types the
-    // narrow space some layouts put on that combination.
-    static let commandBarDefault = SwitcherGlobalShortcut(keyCode: Int64(kVK_Space),
-                                                  modifiers: [.option])
-    // Next to the screenshot's 4, on the same free control-option-command
-    // layer, matching how the system numbers its own capture keys.
-    static let screenRecorderDefault = SwitcherGlobalShortcut(keyCode: Int64(kVK_ANSI_5),
-                                                      modifiers: [.control, .option, .command])
 
     static func saved(for key: String, fallback: SwitcherGlobalShortcut) -> SwitcherGlobalShortcut {
         if let raw = UserDefaults.standard.string(forKey: key),
@@ -274,15 +151,6 @@ struct SwitcherGlobalShortcut: Equatable, Hashable {
 
     var keyCaps: [String] {
         modifiers.keyCaps + [keyLabel ?? "Key \(keyCode)"]
-    }
-
-    /// The shorter way to press a shortcut matching the configured Super key.
-    func superKeyAlternative(sourceLabel: String,
-                             superKeyModifiers: SwitcherGlobalShortcutModifiers) -> String? {
-        guard superKeyModifiers.hasPrimaryModifier,
-              modifiers == superKeyModifiers,
-              let key = keyCaps.last else { return nil }
-        return "\(sourceLabel) + \(key)"
     }
 
     var carbonKeyCode: UInt32 {

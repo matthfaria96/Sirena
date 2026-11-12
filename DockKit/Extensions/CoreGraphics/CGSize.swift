@@ -7,14 +7,4 @@ extension CGSize {
 }
 
 extension CGSize {
-    func scaleToFit(within maxSize: CGSize) -> CGSize {
-        let widthRatio = maxSize.width / width
-        let heightRatio = maxSize.height / height
-        let scale = min(widthRatio, heightRatio)
-
-        return CGSize(
-            width: width * scale,
-            height: height * scale
-        )
-    }
 }

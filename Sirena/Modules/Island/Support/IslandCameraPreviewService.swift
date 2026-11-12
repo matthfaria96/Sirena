@@ -71,16 +71,6 @@ final class IslandCameraPreviewService: ObservableObject {
         hide()
     }
 
-    @discardableResult
-    func showInNotchIfEnabled() -> Bool {
-        guard IslandSessionActivity.shared.isActive, NotchCameraSupport.isEnabled() else { return false }
-        let notch = NotchService.shared
-        notch.open(.camera)
-        guard NotchCameraSupport.canPresent(expanded: notch.expanded, selected: notch.selected) else { return false }
-        showEmbedded()
-        return isEmbeddedPresented
-    }
-
     func hide() {
         captureGeneration = UUID()
         isEmbeddedPresented = false

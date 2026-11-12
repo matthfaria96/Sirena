@@ -130,14 +130,6 @@ enum SwitcherWindowEnumerator {
         )
     }
 
-    /// The Command Bar shares the window walk, not the Switcher's visibility
-    /// preferences. An app hidden from ⌘Tab must remain searchable there.
-    static func listWindowsForCommandBar(snapshot: Snapshot) -> [SwitcherItem] {
-        listWindows(appRules: [:], groupByApp: false,
-                    preservingGroupedWindows: false, marksHiddenSpaces: false,
-                    snapshot: snapshot).items
-    }
-
     private static func listWindows(appRules: [String: SwitcherAppRule],
                                     groupByApp: Bool,
                                     preservingGroupedWindows: Bool,
@@ -176,21 +168,6 @@ enum SwitcherWindowEnumerator {
                            displayScope: displayScope,
                            resolveSource: resolveSource,
                            isCancelled: isCancelled)
-    }
-
-    /// Dock Preview has its own scope; Dock click actions keep the default
-    /// all-desktop list and never inherit either preview or switcher settings.
-    static func listWindowsForDockPreview(for pid: pid_t, maximumCount: Int = 12) -> [SwitcherItem] {
-        listWindows(for: pid, maximumCount: maximumCount,
-                    currentSpaceOnly: UserDefaults.standard.bool(forKey: SwitcherDefaultsKey.dockPreviewCurrentSpaceOnly),
-                    marksHiddenSpaces: true)
-    }
-
-    /// A desktop can change after enumeration, including between pinned refreshes.
-    static func dockPreviewMayActivate(_ item: SwitcherItem) -> Bool {
-        guard UserDefaults.standard.bool(forKey: SwitcherDefaultsKey.dockPreviewCurrentSpaceOnly),
-              let windowID = item.windowID else { return true }
-        return !SwitcherSpaceWindowBridge.isParkedOnHiddenSpace(windowID)
     }
 
     static func listWindows(for pid: pid_t, maximumCount: Int = 12,

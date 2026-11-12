@@ -11,7 +11,6 @@ struct SharedHoverAppTitle: View {
     @Default(.showAppIconOnly) var showAppIconOnly
     @Default(.appNameStyle) var appNameStyle
     @Default(.showAnimations) var showAnimations
-    @Default(.gradientColorPalette) private var defaultGradientColorPalette
 
     var body: some View {
         if showAppTitleData {

@@ -77,12 +77,6 @@ struct AboutBlock: View {
         .sheet(isPresented: $showsLicenses) { LicensesSheet() }
     }
 
-    /// The apps Sirena's features come from, once each.
-    static var projectNames: String {
-        var seen = Set<String>()
-        let names = ModuleID.allCases.map(\.origin.name).filter { seen.insert($0).inserted }
-        return names.formatted(.list(type: .and))
-    }
 }
 
 /// Every project and library with its license and a link, in a plain list.

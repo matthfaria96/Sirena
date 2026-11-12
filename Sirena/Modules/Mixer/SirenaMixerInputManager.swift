@@ -105,13 +105,6 @@ final class SirenaMixerInputManager: ObservableObject {
         inputPriorityIsActive = false
     }
 
-    func setInputPriorityActive(_ active: Bool) {
-        guard inputPriorityIsActive != active else { return }
-        inputPriorityIsActive = active
-        refresh.discardInFlight()
-        if listenerInstalled { refreshAndApply() }
-    }
-
     func setPreferredInputDeviceUID(_ uid: String?) {
         volumeWriteLock.withLock { volumeWriteLifetime = UUID() }
         let sanitized = SirenaMixerDefaults.sanitizedPreferredInputDeviceUID(uid)

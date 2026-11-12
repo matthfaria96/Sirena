@@ -34,7 +34,6 @@ import SwiftUI
  */
 
 public typealias SystemColor = NSColor
-public typealias SystemView = NSView
 
 /// A system view that presents an animated gradient with ``CoreAnimation``
 public class FluidGradientView: NSView {

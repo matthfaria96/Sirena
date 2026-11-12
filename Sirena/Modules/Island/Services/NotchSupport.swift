@@ -211,25 +211,11 @@ enum NotchLayout {
     static let shortcutHeight: CGFloat = 74
     static let shortcutWidth: CGFloat = 76
     static let shortcutSpacing: CGFloat = 8
-    static let systemCardHeight: CGFloat = 72
-    static let systemCardWidth: CGFloat = 128
-    /// Leave room for the card's hover scale, including a single full-width card.
-    static func systemHoverInset(width: CGFloat) -> CGFloat { ceil(max(0, width) * 0.015) + 1 }
-    static let toolHeight: CGFloat = 72
-    static let toolWidth: CGFloat = 76
-    static let toolSpacing: CGFloat = 6
-    /// Three rows fit the gallery's page; two still fill a compact strip.
     static let sectionTileHeight: CGFloat = 86
     static let sectionTileWidth: CGFloat = 92
     static let sectionSpacing: CGFloat = 8
     /// The gallery's row indicator beside the tiles, with its gap.
     static let sectionIndicatorWidth: CGFloat = 12
-    /// The search field the clipboard page shows once it is wanted.
-    static let clipboardSearchHeight: CGFloat = 36
-    static let clipboardCardHeight: CGFloat = 104
-    /// One or two lines of the entry, until the pointer rests on it.
-    static let clipboardCompactCardHeight: CGFloat = 52
-    static let clipboardCardSpacing: CGFloat = 8
     static let emptyHeight: CGFloat = 140
     /// The player as a phone's island lays it out: a small cover, the song
     /// beside it, the timeline and one row of buttons across the island,
@@ -275,10 +261,6 @@ enum NotchLayout {
         let width = max(0, size.width), height = max(0, size.height)
         return CGSize(width: min(width, height * 16 / 9), height: min(height, width * 3 / 4))
     }
-    /// The mixer's faders at their shortest, the whole page below the top
-    /// row: each track still long enough to drag between its icon and level.
-    static let mixerMinimumHeight: CGFloat = 104
-    /// Breathing room every compact strip keeps from its silhouette.
     static let compactEdgeGap: CGFloat = 5
     /// The compact player's equalizer, spaced by its own bar width.
     static let compactMusicBarCount = 7
@@ -362,38 +344,11 @@ enum NotchLayout {
         return path
     }
 
-    /// Content clearance under a camera of the usual height.
-    static let nominalContentTop: CGFloat = 42
-
     static func preferredWidth(_ layout: NotchSize, custom: CGFloat) -> CGFloat {
         switch layout {
         case .compact: return 480
         case .spacious: return 560
         case .custom: return custom
-        }
-    }
-
-    /// The island as a preset presents it on a display whose camera leaves
-    /// the usual clearance; custom keeps the chosen height.
-    static func nominalHeight(_ layout: NotchSize, custom: CGFloat) -> CGFloat {
-        switch layout {
-        case .compact: return nominalContentTop + chromeHeight + compactContentHeight
-        case .spacious: return nominalContentTop + chromeHeight + spaciousContentHeight
-        case .custom: return custom
-        }
-    }
-
-    /// Balance complete rows across the available width, keeping reading order
-    /// left to right and allowing each row to fill its width without empty cells.
-    static func systemRowRanges(count: Int, width: CGFloat) -> [Range<Int>] {
-        guard count > 0 else { return [] }
-        let columns = railCapacity(width: width, itemWidth: systemCardWidth, spacing: rowSpacing)
-        let rows = (count + columns - 1) / columns
-        let base = count / rows
-        let remainder = count % rows
-        return (0..<rows).map { row in
-            let start = row * base + min(row, remainder)
-            return start..<(start + base + (row < remainder ? 1 : 0))
         }
     }
 
@@ -554,13 +509,6 @@ enum NotchLayout {
         }
         return (0, min(extras, page), false)
     }}
-
-enum NotchClipboardKey: Equatable {
-    case move(backwards: Bool)
-    case paste
-    /// The key goes on to the search field, which shows to take it.
-    case reveal
-}
 
 struct NotchControlsLayout: Equatable {
     /// The levels a camera's row cannot split evenly, in a row of their own.
@@ -921,13 +869,6 @@ enum NotchCapsuleLayout {
 
     static func barsHeight(_ geometry: NotchGeometry) -> CGFloat { min(16, max(6, geometry.stripBodyHeight - 8)) }
 
-    /// Two working agents share a smaller mark, each in a frame wider than it.
-    static func agentMarkSize(working: Int) -> CGFloat { working > 1 ? 10 : 12 }
-    static func agentMarksWidth(working: Int) -> CGFloat {
-        let count = max(1, working)
-        return CGFloat(count) * (agentMarkSize(working: count) * 1.45 + 1) + CGFloat(count - 1)
-    }
-
     /// A level's reading keeps the room of its widest value, so its meter
     /// stays put while the value changes.
     static func levelReadingWidth(_ detail: String) -> CGFloat {
@@ -1022,13 +963,6 @@ enum NotchCapsuleLayout {
         return surface(content: cup + spacing + right, maximum: Maximum.activity, geometry: geometry)
     }
 
-    /// Working agents' marks and the reading the person chose.
-    static func agentSurface(reading: String, working: Int, geometry: NotchGeometry) -> CGSize {
-        let content = agentMarksWidth(working: working) + spacing
-            + width(NotchReadingShape.of(reading), font: readingFont)
-        return surface(content: content, maximum: Maximum.activity, geometry: geometry)
-    }
-
     /// A download's arrow and name, then its meter and percentage, or a
     /// spinner until its size is known.
     static func downloadSurface(name: String, hasProgress: Bool, geometry: NotchGeometry, language: IslandLanguage) -> CGSize {
@@ -1046,10 +980,6 @@ enum NotchCapsuleLayout {
         return surface(content: content, maximum: Maximum.calendar, geometry: geometry)
     }
 
-    /// Screen capture controls folded while an area is chosen: the tool and a chevron.
-    static func captureSurface(geometry: NotchGeometry) -> CGSize {
-        surface(content: symbolWidth * 2 + spacing, maximum: Maximum.activity, geometry: geometry)
-    }
 }
 
 struct NotchActivityPickerLayout {
@@ -1165,11 +1095,6 @@ enum NotchQuickAction: Hashable, Identifiable {
             } else if let module = NotchModule(rawValue: id) { self = .module(module) }
             else { return nil }
         }
-    }
-
-    static var optionalActions: [Self] {
-        [.explore, .settings, .pin] + NotchModule.allCases.map(Self.module)
-            + NotchControlItem.allCases.filter { !$0.isLevel }.map(Self.control)
     }
 
     func isAvailable(in defaults: UserDefaults = .standard) -> Bool {
@@ -1430,7 +1355,6 @@ enum NotchSupport {
         NSScreen.screens.contains { !($0.safeAreaInsets.top > 0) }
     }
 
-    static let toolColumns = 5
     static let defaultHoverDelay = 0.25
     static let hoverDelayRange = 0.10...1.0
 
@@ -1480,81 +1404,6 @@ enum NotchSupport {
         guard !modules.isEmpty else { return nil }
         guard let selected, let index = modules.firstIndex(of: selected) else { return modules.first }
         return modules[(index + (backwards ? modules.count - 1 : 1)) % modules.count]
-    }
-
-    /// The arrow keys step through a searched list without wrapping; the
-    /// first press, or one after the highlighted row left the list, lands on
-    /// the top result.
-    static func steppedItem<ID: Equatable>(from current: ID?, in ids: [ID], backwards: Bool) -> ID? {
-        guard !ids.isEmpty else { return nil }
-        guard let current, let index = ids.firstIndex(of: current) else { return ids.first }
-        return ids[min(max(index + (backwards ? -1 : 1), 0), ids.count - 1)]
-    }
-
-    /// Return can paste before an arrow is pressed. A stale highlight falls
-    /// back to the first visible entry, never to a filtered-out row.
-    static func clipboardPasteTarget<ID: Equatable>(highlighted: ID?, in ids: [ID]) -> ID? {
-        if let highlighted, ids.contains(highlighted) { return highlighted }
-        return ids.first
-    }
-
-    /// The row a search leaves highlighted: the current one while it is still
-    /// listed, otherwise the top result of a typed search, so Return pastes it
-    /// like the history window does. An empty search waits for the first arrow.
-    static func searchHighlight<ID: Equatable>(keeping current: ID?, in ids: [ID], query: String) -> ID? {
-        if let current, ids.contains(current) { return current }
-        return query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : ids.first
-    }
-
-    /// What opening the clipboard highlights: the entry copied last. Pinned
-    /// entries sit above the recent ones, so it is the first one that is not
-    /// pinned; with only pinned entries, the top of the list.
-    static func restingClipboardHighlight<ID>(_ entries: [(ID, Bool)]) -> ID? {
-        (entries.first { !$0.1 } ?? entries.first)?.0
-    }
-
-    /// What a key does on the clipboard page, whose search field keeps the
-    /// focus while hidden. Up, Down and Return drive the list. A typed letter
-    /// shows the field and goes on to it, so its editor and any input method
-    /// get every key, and so does every key while an input method composes.
-    /// Keys held with Command, Control or Option belong to their own shortcuts,
-    /// and Shift with the arrows or Return to the field, which selects with them.
-    static func clipboardKey(keyCode: UInt16, characters: String, modifiers: NSEvent.ModifierFlags,
-                             composing: Bool) -> NotchClipboardKey? {
-        guard modifiers.isDisjoint(with: [.command, .control, .option]) else { return nil }
-        guard !composing else { return .reveal }
-        switch keyCode {
-        case 125, 126: return modifiers.contains(.shift) ? nil : .move(backwards: keyCode == 126)
-        case 36, 76: return modifiers.contains(.shift) ? nil : .paste
-        default: break
-        }
-        // Function and arrow keys report private-use characters.
-        let typed = !characters.isEmpty && !characters.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            && characters.unicodeScalars.allSatisfy { !CharacterSet.controlCharacters.contains($0) && !(0xF700...0xF8FF).contains($0.value) }
-        return typed ? .reveal : nil
-    }
-
-    /// How far an open clipboard entry, drawn over the list from its row's top,
-    /// moves so all of it shows: up just enough where it would pass the bottom,
-    /// down to the top where its row is partly scrolled away. It always covers
-    /// the part of its row in view, so the pointer resting there stays on it,
-    /// and once the row has left the list it never moves past the row's edge,
-    /// so it scrolls away with its row instead of staying over the others.
-    static func clipboardOpenOffset(rowTop: CGFloat, rowHeight: CGFloat, height: CGFloat,
-                                    visibleHeight: CGFloat) -> CGFloat {
-        min(rowHeight, max(-height, max(-rowTop, min(0, visibleHeight - rowTop - height))))
-    }
-
-    /// How many whole rows a clipboard list still at its top, as the page
-    /// opens, moves to bring row `index` into view: none while at least
-    /// `shown` points of that row show within `visibleHeight`, and otherwise
-    /// the fewest that show that much. Moving by whole rows keeps the row at
-    /// the list's top whole, where moving only as far as the row needs would
-    /// leave the one above it cut to its last few points.
-    static func clipboardOpeningScroll(index: Int, rowHeight: CGFloat, spacing: CGFloat, shown: CGFloat,
-                                       visibleHeight: CGFloat) -> Int {
-        let lowest = ((visibleHeight - min(shown, rowHeight)) / (rowHeight + spacing)).rounded(.down)
-        return min(max(0, index), max(0, index - Int(lowest)))
     }
 
     /// Automatic order until the user chooses one of the live activities.
@@ -1703,14 +1552,6 @@ enum NotchSupport {
                            ?? defaultEarlyBatteryThreshold)
     }
 
-    /// The menu bar's battery reading follows the same warning unless the
-    /// person keeps it to the island.
-    static func menuBarBatteryWarning(percent: Int?, externalConnected: Bool,
-                                      in defaults: UserDefaults = .standard) -> IslandBatteryWarning {
-        guard defaults.object(forKey: IslandKey.notchLowBatteryMenuBar) as? Bool ?? true else { return .none }
-        return batteryWarning(percent: percent, externalConnected: externalConnected, in: defaults)
-    }
-
     /// The closed island stays out of sight until the pointer reaches it, and
     /// shows no notices while it waits.
     static func hidesUntilHover(in defaults: UserDefaults = .standard) -> Bool {
@@ -1807,11 +1648,6 @@ enum NotchSupport {
         guard let current else { return true }
         if held { return incoming == current || incoming.priority > current.priority }
         return incoming.priority >= current.priority
-    }
-
-    static func volumeLevel(current: Double, direction: Int, fine: Bool) -> Double {
-        guard current.isFinite else { return 0 }
-        return min(1, max(0, current + Double(direction.signum()) / (fine ? 64 : 16)))
     }
 
     /// The steps a volume key takes, as `volumeLevel` above gives them: a

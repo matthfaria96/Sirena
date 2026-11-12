@@ -117,20 +117,6 @@ struct CooperativeCornerResize {
                              tolerance: layoutTolerance)
     }
 
-    static func focusedFramePreservingOccupiedCell(requestedFocusedFrame: CGRect,
-                                                   screenFrame: CGRect,
-                                                   candidates: [Candidate],
-                                                   axis: CornerCycleExpansionAxis,
-                                                   movedEdge: MovedEdge,
-                                                   tolerance: CGFloat) -> CGRect {
-        focusedFrameResolvingRealizedCornerBoundary(requestedFocusedFrame: requestedFocusedFrame,
-                                                    screenFrame: screenFrame,
-                                                    candidates: candidates,
-                                                    axis: axis,
-                                                    movedEdge: movedEdge,
-                                                    tolerance: tolerance)
-    }
-
     static func focusedFrameResolvingRealizedCornerBoundary(requestedFocusedFrame: CGRect,
                                                             screenFrame: CGRect,
                                                             candidates: [Candidate],
@@ -1414,30 +1400,6 @@ struct CooperativeCornerResize {
         let meaningfulSpan = candidateMax - candidateMin > tolerance
 
         return candidateIsWithinFocused && sharesFocusedBoundary && meaningfulSpan
-    }
-
-    private static func isContainedInSameSideRegion(_ candidate: CGRect,
-                                                    _ focused: CGRect,
-                                                    movedEdge: MovedEdge,
-                                                    axis: CornerCycleExpansionAxis,
-                                                    tolerance: CGFloat) -> Bool {
-        let candidateMin = axisMin(candidate, axis)
-        let candidateMax = axisMax(candidate, axis)
-        let focusedMin = axisMin(focused, axis)
-        let focusedMax = axisMax(focused, axis)
-        let candidateIsWithinFocused = candidateMin >= focusedMin - tolerance
-            && candidateMax <= focusedMax + tolerance
-
-        guard candidateIsWithinFocused else {
-            return false
-        }
-
-        switch movedEdge {
-        case .right, .top:
-            return abs(candidateMin - focusedMin) <= tolerance
-        case .left, .bottom:
-            return abs(candidateMax - focusedMax) <= tolerance
-        }
     }
 
     private static func approximatelyMatchesFrame(_ candidate: CGRect,

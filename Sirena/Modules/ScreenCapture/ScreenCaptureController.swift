@@ -240,11 +240,6 @@ final class ScreenCaptureController {
         recorder.interrupt()
     }
 
-    func revealLastFile() {
-        guard let lastFile else { return }
-        NSWorkspace.shared.activateFileViewerSelecting([lastFile])
-    }
-
     @discardableResult
     private func launch(_ args: [String], done: @escaping @MainActor () -> Void) -> Process? {
         let process = Process()

@@ -12,20 +12,3 @@ struct CustomizableFluidGradientView: View {
         )
     }
 }
-
-struct FluidGradientBorder: ViewModifier {
-    let cornerRadius: CGFloat
-    let lineWidth: CGFloat
-
-    func body(content: Content) -> some View {
-        content
-            .overlay(
-                CustomizableFluidGradientView()
-                    .mask(
-                        RoundedRectangle(cornerRadius: cornerRadius)
-                            .strokeBorder(lineWidth: lineWidth)
-                    )
-                    .allowsHitTesting(false)
-            )
-    }
-}

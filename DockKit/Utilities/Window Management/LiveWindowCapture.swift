@@ -289,15 +289,6 @@ final class WindowLiveCapture: ObservableObject {
         LiveCaptureManager.shared.remove(windowID: windowID)
     }
 
-    func forceStopNonBlocking() {
-        guard let stream else { return }
-        let streamToStop = stream
-        self.stream = nil
-        streamOutput = nil
-        Task.detached {
-            try? await streamToStop.stopCapture()
-        }
-    }
 }
 
 private class StreamOutput: NSObject, SCStreamOutput {

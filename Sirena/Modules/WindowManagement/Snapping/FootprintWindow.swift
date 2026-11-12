@@ -357,13 +357,6 @@ class FootprintWindow: NSWindow {
         setGeometry(rect, duration: presentation.animates ? duration : 0)
     }
 
-    func movePreview(to rect: CGRect, duration: TimeInterval) {
-        stopGeometry()
-        prepareHost(for: rect)
-        destination = rect
-        setGeometry(rect, duration: presentation.animates ? duration : 0)
-    }
-
     override func orderFront(_ sender: Any?) {
         updateAppearance()
         showing = true

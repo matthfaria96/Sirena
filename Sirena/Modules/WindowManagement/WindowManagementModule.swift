@@ -146,25 +146,6 @@ final class WindowManagementModule: NSObject {
         }
     }
 
-    private func checkForConflictingApps() {
-        let conflictingAppsIds: [String: String] = [
-            "com.knollsoft.Rectangle": "Rectangle",
-            "com.knollsoft.Hookshot": "Rectangle Pro",
-            "com.divisiblebyzero.Spectacle": "Spectacle",
-            "com.crowdcafe.windowmagnet": "Magnet",
-            "com.hegenberg.BetterSnapTool": "BetterSnapTool",
-            "com.manytricks.Moom": "Moom"
-        ]
-
-        for app in NSWorkspace.shared.runningApplications {
-            guard let bundleId = app.bundleIdentifier else { continue }
-            if let conflictingAppName = conflictingAppsIds[bundleId] {
-                AlertUtil.oneButtonAlert(question: "Potential window manager conflict: \(conflictingAppName)", text: "Since \(conflictingAppName) might have some overlapping behavior with Sirena, it's recommended that you either disable or quit \(conflictingAppName).")
-                break
-            }
-        }
-    }
-
     /// certain applications have issues with the click listening done by the drag to snap feature
     private func checkForProblematicApps() {
         guard !Defaults.windowSnapping.userDisabled, !Defaults.notifiedOfProblemApps.enabled else { return }

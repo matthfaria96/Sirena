@@ -1,22 +1,5 @@
 import AppKit
 
-enum GestureDirection: Equatable {
-    case left
-    case right
-    case up
-    case down
-
-    init?(_ step: GestureStep) {
-        switch step {
-        case .left: self = .left
-        case .right: self = .right
-        case .up: self = .up
-        case .down: self = .down
-        case .pinchIn, .pinchOut: return nil
-        }
-    }
-}
-
 enum WindowGestureZoneKind: Equatable {
     case window(isFullscreen: Bool)
     case tab(isFullscreen: Bool)

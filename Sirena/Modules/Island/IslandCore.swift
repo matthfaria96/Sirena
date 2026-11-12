@@ -120,7 +120,6 @@ enum IslandLanguage: String, CaseIterable, Identifiable {
     var id: String { rawValue }
     var countAgreement: IslandCountAgreement { .oneAndMany }
     func formattingLocale(system: Locale = .autoupdatingCurrent) -> Locale { system }
-    static var systemDefault: IslandLanguage { .enUS }
 }
 
 enum IslandCountAgreement { case oneAndMany, byLastDigits, byWholeNumber }

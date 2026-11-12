@@ -21,20 +21,6 @@ enum IslandInputSourceSelection {
 
     // MARK: - Decisions (pure)
 
-    /// The source to borrow when plain Latin typing is wanted, or nil when
-    /// there is nothing to switch to: either the current source is already an
-    /// ASCII layout, or none is enabled (a Mac set to Cyrillic and Greek
-    /// alone has no Latin layout to borrow). First enabled wins, because that
-    /// is the order the Input menu shows.
-    static func asciiLayoutID(currentID: String?, snapshots: [Snapshot]) -> String? {
-        if let currentID,
-           let current = snapshots.first(where: { $0.id == currentID }),
-           current.isASCIICapable, current.isLayout {
-            return nil
-        }
-        return snapshots.first { $0.isASCIICapable && $0.isLayout }?.id
-    }
-
     /// The short code the island's layout notice shows: the source's first
     /// language without its script or region, so "zh-Hans" reads as ZH. Empty
     /// when a source claims no language, which leaves the notice its mark alone.
@@ -44,11 +30,6 @@ enum IslandInputSourceSelection {
     }
 
     // MARK: - TIS access
-
-    static func currentSourceID() -> String? {
-        guard let current = TISCopyCurrentKeyboardInputSource()?.takeRetainedValue() else { return nil }
-        return inputSourceString(current, property: kTISPropertyInputSourceID)
-    }
 
     /// Selects an enabled source by its id, answering whether the system
     /// took the request. The two mistakes are not symmetric: recording

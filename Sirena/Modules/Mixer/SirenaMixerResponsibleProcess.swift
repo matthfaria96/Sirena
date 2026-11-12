@@ -100,10 +100,6 @@ enum SirenaMixerResponsibleProcess {
         return image
     }
 
-    static func clearIconCache() {
-        iconCache.removeAllObjects()
-    }
-
     private static func isCurrentApp(pid: pid_t) -> Bool {
         guard let app = NSRunningApplication(processIdentifier: pid) else { return false }
         if let bundleIdentifier = app.bundleIdentifier,

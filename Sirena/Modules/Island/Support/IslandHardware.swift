@@ -403,8 +403,6 @@ final class IslandBrightness: ObservableObject {
     private var registered = Set<CGDirectDisplayID>()
     private var ownChangeUntil: TimeInterval = 0
     private var keyboardDragging = false
-    private var keyboardTimer: Timer?
-
     private init() {
         NotificationCenter.default.addObserver(forName: NSApplication.didChangeScreenParametersNotification,
                                                object: nil, queue: .main) { [weak self] _ in self?.refresh() }
