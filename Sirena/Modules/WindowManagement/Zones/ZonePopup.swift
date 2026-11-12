@@ -106,12 +106,21 @@ struct ZonePopupGeometry {
 
 @MainActor
 final class ZonePopup {
-    private var panel: NSPanel?
+    private var panel: ZonePopupPanel?
     private let model = ZonePopupModel()
     private var closeWork: DispatchWorkItem?
+    private var resignToken: NSObjectProtocol?
 
-    /// `groupIcons`: the app in each zone of the last group.
-    func open(_ geometry: ZonePopupGeometry, roots: [ZoneNode], groupIcons: [Int: pid_t] = [:]) {
+    /// Keyboard mode (opened by the shortcut), handled by the controller: a key; the pointer
+    /// moving over the panel or clicking it (Accessibility coordinates); the panel losing the
+    /// keyboard (a click elsewhere).
+    var onKey: ((UInt16, NSEvent.ModifierFlags) -> Void)?
+    var onPointer: ((CGPoint, _ clicked: Bool) -> Void)?
+    var onResign: (() -> Void)?
+
+    /// `groupIcons`: the app in each zone of the last group. `keyboard`: opened by the
+    /// shortcut, so the panel takes the keyboard and the pointer; dragging leaves both alone.
+    func open(_ geometry: ZonePopupGeometry, roots: [ZoneNode], groupIcons: [Int: pid_t] = [:], keyboard: Bool = false) {
         closeWork?.cancel()
         let panel = self.panel ?? makePanel()
         self.panel = panel
@@ -125,8 +134,18 @@ final class ZonePopup {
         model.groupIcons = groupIcons
         model.hover = nil
         model.isOpen = false
+        model.keyboard = keyboard
+        panel.keyboardMode = keyboard
+        panel.ignoresMouseEvents = !keyboard
         panel.setFrame(geometry.panelFrame.screenFlipped, display: true)
-        panel.orderFrontRegardless()
+        if keyboard {
+            panel.makeKeyAndOrderFront(nil)
+            resignToken = NotificationCenter.default.addObserver(forName: NSWindow.didResignKeyNotification, object: panel, queue: .main) { [weak self] _ in
+                MainActor.assumeIsolated { self?.onResign?() }
+            }
+        } else {
+            panel.orderFrontRegardless()
+        }
         DispatchQueue.main.async { [model] in
             withAnimation(NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
                           ? .easeOut(duration: 0.1) : .spring(response: 0.3, dampingFraction: 0.78)) {
@@ -147,15 +166,19 @@ final class ZonePopup {
     }
 
     func close() {
+        if let resignToken { NotificationCenter.default.removeObserver(resignToken) }
+        resignToken = nil
         guard let panel, panel.isVisible else { return }
+        panel.keyboardMode = false
+        panel.ignoresMouseEvents = true
         withAnimation(.easeIn(duration: 0.14)) { model.isOpen = false }
         let work = DispatchWorkItem { [weak panel] in panel?.orderOut(nil) }
         closeWork = work
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.16, execute: work)
     }
 
-    private func makePanel() -> NSPanel {
-        let panel = NSPanel(contentRect: .zero, styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: true)
+    private func makePanel() -> ZonePopupPanel {
+        let panel = ZonePopupPanel(contentRect: .zero, styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: true)
         panel.isOpaque = false
         panel.backgroundColor = .clear
         panel.hasShadow = false
@@ -164,8 +187,47 @@ final class ZonePopup {
         panel.hidesOnDeactivate = false
         panel.level = NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.popUpMenuWindow)))
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary, .ignoresCycle, .transient]
-        panel.contentView = NSHostingView(rootView: ZonePopupView(model: model))
+        panel.onKey = { [weak self] code, flags in self?.onKey?(code, flags) }
+        let hosting = ZonePopupHostingView(rootView: ZonePopupView(model: model))
+        hosting.onPointer = { [weak self] point, clicked in self?.onPointer?(point, clicked) }
+        panel.contentView = hosting
         return panel
+    }
+}
+
+/// Takes the keyboard (without bringing Sirena forward) only when opened by the shortcut.
+private final class ZonePopupPanel: NSPanel {
+    var keyboardMode = false
+    var onKey: ((UInt16, NSEvent.ModifierFlags) -> Void)?
+    override var canBecomeKey: Bool { keyboardMode }
+    override func keyDown(with event: NSEvent) {
+        guard keyboardMode else { return super.keyDown(with: event) }
+        onKey?(event.keyCode, event.modifierFlags)
+    }
+    override func cancelOperation(_ sender: Any?) {
+        if keyboardMode { onKey?(53, []) }
+    }
+}
+
+/// Tells where the pointer is over the panel (and clicks), in Accessibility coordinates.
+private final class ZonePopupHostingView: NSHostingView<ZonePopupView> {
+    var onPointer: ((CGPoint, Bool) -> Void)?
+
+    required init(rootView: ZonePopupView) {
+        super.init(rootView: rootView)
+        addTrackingArea(NSTrackingArea(rect: .zero, options: [.mouseMoved, .activeAlways, .inVisibleRect],
+                                       owner: self, userInfo: nil))
+    }
+
+    @MainActor required dynamic init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
+    override func mouseMoved(with event: NSEvent) { report(event, clicked: false) }
+    override func mouseDown(with event: NSEvent) { report(event, clicked: true) }
+
+    private func report(_ event: NSEvent, clicked: Bool) {
+        guard let window else { return }
+        onPointer?(window.convertPoint(toScreen: event.locationInWindow).screenFlipped, clicked)
     }
 }
 
@@ -182,6 +244,8 @@ final class ZonePopupModel {
     /// [layout, zone] under the pointer ([-1, -1] for the last group).
     var hover: [Int]?
     var isOpen = false
+    /// Opened by the shortcut: the hint speaks of keys.
+    var keyboard = false
 }
 
 private struct ZonePopupView: View {
@@ -260,7 +324,7 @@ private struct ZonePopupView: View {
             }
 
             let hintStart = model.groupThumb.map { $0.maxX + 16 } ?? model.card.minX
-            Text(L("Drop on a zone · Esc cancels"))
+            Text(model.keyboard ? L("Arrows choose · Return snaps the window · Esc cancels") : L("Drop on a zone · Esc cancels"))
                 .font(.system(size: 11, weight: .medium))
                 .foregroundStyle(.secondary)
                 .frame(width: max(1, model.card.maxX - hintStart))

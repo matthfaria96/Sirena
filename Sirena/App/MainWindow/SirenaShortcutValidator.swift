@@ -56,6 +56,7 @@ final class SirenaShortcutValidator: MASShortcutValidator {
             PinWindowSettings.selectShortcutKey: ModuleID.pinWindow.title,
             MirrorController.shortcutKey: ModuleID.mirror.title,
             MenuBarModule.shortcutKey: ModuleID.menuBar.title,
+            ZoneController.shortcutKey: L("Layouts for the window in front"),
         ]
         if let name = names[key] { return name }
         if key.hasPrefix("textCaptureShortcut") { return ModuleID.textCapture.title }

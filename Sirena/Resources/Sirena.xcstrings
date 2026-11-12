@@ -14142,16 +14142,6 @@
         }
       }
     },
-    "Needs “Snap windows by dragging”, above, turned on.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Precisa de “Encaixar janelas ao arrastar”, acima, ligado."
-          }
-        }
-      }
-    },
     "In the middle of the top edge the panel takes the place of the top snap area; the top corners keep theirs. Windows put in a layout move together: drag the grip between two of them to resize both, click it to let them go.": {
       "localizations": {
         "pt-BR": {
@@ -14188,6 +14178,46 @@
           "stringUnit": {
             "state": "translated",
             "value": "Arraste para redimensionar as duas janelas, clique para soltá-las, clique duas vezes para dividir o espaço igualmente."
+          }
+        }
+      }
+    },
+    "Layouts for the window in front": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Layouts para a janela da frente"
+          }
+        }
+      }
+    },
+    "Opens the panel without dragging: arrows choose a zone, ↑ ↓ another layout, Return snaps the window. ⌃⌥ is ctrl + start on a Logitech keyboard.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abre o painel sem arrastar: as setas escolhem uma zona, ↑ ↓ outro layout, Enter encaixa a janela. ⌃⌥ é ctrl + start num teclado Logitech."
+          }
+        }
+      }
+    },
+    "Dragging needs “Snap windows by dragging”, above, turned on.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Para arrastar, “Encaixar janelas ao arrastar”, acima, precisa estar ligado."
+          }
+        }
+      }
+    },
+    "Arrows choose · Return snaps the window · Esc cancels": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setas escolhem · Enter encaixa a janela · Esc cancela"
           }
         }
       }

@@ -110,6 +110,8 @@ final class WindowManagementModule: NSObject {
         initializeTodo()
         checkForProblematicApps()
         MacTilingDefaults.checkForBuiltInTiling(skipIfAlreadyNotified: true)
+        // Snap layouts: the ⌃⌥0 shortcut (the drag needs nothing started).
+        if !Showcase.isActive { MainActor.assumeIsolated { ZoneController.shared.start() } }
         onTrusted?()
     }
 

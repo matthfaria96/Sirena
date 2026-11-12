@@ -45,6 +45,7 @@ reader's default must always match (a mismatch shows an option on that behaves o
 | Encaixar antes de chegar à borda da tela | `snapBeforeReachingEdges` (20 pt when on, 0 off; imported values kept) | `SnappingManager` | |
 | Impedir o Mission Control ao arrastar janelas | `missionControlDragging` (disabled = prevent) | `SnappingManager.startEventMonitor` | On → `ActiveEventMonitor` (a tap; handler still delivered on main) instead of `PassiveEventMonitor`. Toggle only shown once the key was touched |
 | Áreas de encaixe (paisagem/retrato) | `SnapAreaModel` (landscape/portrait configs) | `SnappingManager.snapAreaContainingCursor` | Portrait grid only with a portrait display |
+| Layouts para a janela da frente (atalho) | MASShortcut `snapLayoutsShortcut` (⌃⌥0, `ZoneController.defaultShortcut`) | `ZoneController.bindShortcut` (bound only while the switch below is on; steps aside while any shortcut is recorded) | Opens the panel for the focused window (Win+Z). Listed by `SirenaShortcutValidator`. Recorder in the Layouts section |
 | Layouts no topo da tela | `snapLayouts.enabled` (true) | `ZoneController.isEnabled` | §5. Drawn right after "Arrastar até as bordas" (passed into `SnapAreaSettingsView(showsDetails:afterMain:)`), before its details, because it needs drag-to-snap on |
 | Alternador de janelas (⌘ Tab) | `sirena.module.switcher.enabled` + `SwitcherDefaultsKey.*` (defaults registered once in `SwitcherSupportShims.swift`) | `SwitcherAppSwitcher`, `SwitcherWindowEnumerator`, `SwitcherView` | Settings view: `Sirena/Modules/Switcher/WindowSwitcherSettingsView.swift`. All 22 keys have readers with the registered defaults |
 
@@ -145,6 +146,12 @@ Flow:
 4. Resize by an edge (mouse up without moving) → `resizeEnded`: the lines it touched move
    (`ZoneGeometry.resizing`), the other members follow.
 5. `WindowManager.execute` (any Rectangle action) → `noteWindowAction`: the window leaves its group.
+6. ⌃⌥0 → `openForFrontWindow`: the same panel in keyboard mode, on the display of the focused
+   window (`Session.target` holds it). The panel takes the keyboard (nonactivating, so the app
+   stays in front) and the pointer: ← → walk every zone, ↑ ↓ change layout, Return or a click
+   snaps (`commitKeyboard`, then Snap Assist), Esc, ⌃⌥0 again or a click elsewhere cancel. A
+   drag closes it. `ZoneController.start()` (from `WindowManagementModule.accessibilityTrusted`)
+   binds the shortcut; `enabledChanged()` rebinds when the switch changes.
 
 State is in memory only (lost on quit): `placements` (window → display, layout, zone, frame, pid),
 `ownSizes`, `roots` (proportions per display + layout), `lastGroups` (per display). Placing never
@@ -184,7 +191,8 @@ anything unless that app owns a group window (0.25 s AX timeout).
 
 - Janelas: ⌃⌥← (Rectangle action); drag to the left edge (snap + footprint); drag a snapped window
   out (size restored); green button with "Preencher a tela" (fills, click again restores).
-- Snap layouts: drag up to the top middle → panel; hover a zone (preview), drop; Snap Assist shows
+- Snap layouts: ⌃⌥0 with a window in front → panel; arrows, ↑ ↓, Return snaps; again with Esc.
+  Drag up to the top middle → panel; hover a zone (preview), drop; Snap Assist shows
   previews by app, pick one; outlines and grip appear; drag the grip, double click it, click it
   ("Juntar de novo" for 5 s); drag up again → "Último grupo" card; Esc while the panel is open.
 - ⌘ Tab: open, cycle, release; with "Substituir ⌘Tab e ⌘` do macOS" on and off.

@@ -14,12 +14,17 @@
 ///   stays a few seconds, and the panel keeps a "Last group" card per display that puts
 ///   them all back. A double click on a grip evens its two sides.
 ///
+/// - ⌃⌥0 (ctrl + start + 0 on Logitech keyboards; Windows' Win+Z) opens the panel for the
+///   window in front: arrows choose a zone, ↑ ↓ another layout, Return snaps it, Esc cancels.
+///
 /// The drag rides on Rectangle's tracking (SnappingManager): while the panel is open
 /// Rectangle's snap areas stand aside; the top corners stay Rectangle's. No event tap of
 /// its own; a light timer runs only while a group exists. Main thread only.
 
 import AppKit
+import Carbon.HIToolbox
 import DockKit
+import MASShortcut
 import os
 
 private let log = os.Logger(subsystem: "com.matheusfaria.Sirena", category: "Zones")
@@ -35,6 +40,12 @@ final class ZoneController {
         UserDefaults.standard.object(forKey: enabledKey) as? Bool ?? true
     }
 
+    /// Opens the panel for the window in front (MASShortcut key; no dots, the binder reaches
+    /// it through a key path).
+    static let shortcutKey = "snapLayoutsShortcut"
+    /// ⌃⌥0: Rectangle's window actions are on ⌃⌥ + letters and arrows, 0 is free.
+    static let defaultShortcut = MASShortcut(keyCode: kVK_ANSI_0, modifierFlags: [.control, .option])
+
     private let popup = ZonePopup()
     private let preview = ZonePreview()
     private let hint = ZoneHint()
@@ -46,6 +57,8 @@ final class ZoneController {
         let display: String
         let screen: NSScreen
         let geometry: ZonePopupGeometry
+        /// Opened by the shortcut: the window it is for (nil while dragging).
+        var target: (element: AccessibilityElement, id: CGWindowID)?
     }
 
     /// A window put in a zone.
@@ -91,12 +104,159 @@ final class ZoneController {
     private var gripTarget: (divider: ZoneDivider, position: CGFloat)?
     private var timer: Timer?
 
+    private var isStarted = false
+    private var shortcutBound = false
+    private var recordingToken: NSObjectProtocol?
+    private var suspendedForRecording = false
+
     private init() {
+        popup.onKey = { [weak self] code, flags in self?.keyboardKey(code, flags: flags) }
+        popup.onPointer = { [weak self] point, clicked in self?.keyboardPointer(point, clicked: clicked) }
+        popup.onResign = { [weak self] in
+            guard self?.session?.target != nil else { return }
+            self?.closePopup()
+        }
         assist.onPick = { [weak self] id, zone in self?.assistPicked(id, zone: zone) }
         decor.onGripBegin = { [weak self] in self?.gripBegan() }
         decor.onGripDrag = { [weak self] divider, position in self?.gripMoved(divider, to: position) }
         decor.onGripEnd = { [weak self] divider in self?.gripEnded(divider) }
         decor.onGripClick = { [weak self] divider, count, center in self?.gripClicked(divider, count: count, at: center) }
+    }
+
+    // MARK: - The shortcut
+
+    /// Janelas got Accessibility: the shortcut, while the feature is on.
+    func start() {
+        guard !isStarted else { return }
+        isStarted = true
+        recordingToken = NotificationCenter.default.addObserver(forName: .shortcutRecording, object: nil, queue: .main) { [weak self] note in
+            let recording = note.object as? Bool ?? false
+            MainActor.assumeIsolated {
+                // While a shortcut is recorded anywhere in Sirena, ours steps aside (a bound ⌃⌥0
+                // would open the panel instead of being recorded).
+                guard let self, recording != self.suspendedForRecording else { return }
+                self.suspendedForRecording = recording
+                self.bindShortcut()
+            }
+        }
+        bindShortcut()
+    }
+
+    /// The switch in Janelas changed.
+    func enabledChanged() {
+        bindShortcut()
+        if !Self.isEnabled {
+            closePopup()
+            hint.hide()
+            assist.close()
+            refreshDecor()
+        }
+    }
+
+    private func bindShortcut() {
+        let binder = MASShortcutBinder.shared()
+        if shortcutBound {
+            binder?.breakBinding(withDefaultsKey: Self.shortcutKey)
+            shortcutBound = false
+        }
+        guard isStarted, Self.isEnabled, !suspendedForRecording else { return }
+        binder?.bindingOptions = [NSBindingOption.valueTransformerName: MASDictionaryTransformerName]
+        binder?.registerDefaultShortcuts([Self.shortcutKey: Self.defaultShortcut])
+        binder?.bindShortcut(withDefaultsKey: Self.shortcutKey) { [weak self] in self?.openForFrontWindow() }
+        shortcutBound = true
+    }
+
+    /// The shortcut: the panel for the window in front, on its display, driven by the keyboard.
+    func openForFrontWindow() {
+        guard Self.isEnabled, AccessibilityGuard.isTrusted, NSEvent.pressedMouseButtons & 1 == 0 else { return }
+        if session?.target != nil {
+            closePopup()
+            return
+        }
+        guard let element = AccessibilityElement.getFocusedWindowElement(), let id = element.windowId,
+              element.pid != ProcessInfo.processInfo.processIdentifier, element.isStandardWindow,
+              element.isFullScreen != true, element.isMinimized != true else {
+            NSSound.beep()
+            return
+        }
+        let frame = element.frame
+        let center = frame.isNull ? NSEvent.mouseLocation.screenFlipped : frame.centerPoint
+        let screen = NSScreen.screens.first { $0.frame.screenFlipped.contains(center) } ?? NSScreen.main ?? NSScreen.screens[0]
+        assist.close()
+        openPopup(on: screen, target: (element, id))
+        // Starts on the first zone, so the keys have something to move from.
+        if let first = keyboardRows().first?.first { setHover(first) }
+    }
+
+    // MARK: - The keyboard and the pointer (shortcut mode)
+
+    /// The panel's choices, one row per drawing (the last group first, when shown).
+    private func keyboardRows() -> [[ZonePopupGeometry.Hit]] {
+        guard let geometry = session?.geometry else { return [] }
+        var rows: [[ZonePopupGeometry.Hit]] = geometry.groupThumb == nil ? [] : [[.lastGroup]]
+        for (template, zones) in geometry.zones.enumerated() {
+            rows.append(zones.indices.map { .zone(template: template, zone: $0) })
+        }
+        return rows
+    }
+
+    private func keyboardKey(_ code: UInt16, flags: NSEvent.ModifierFlags) {
+        guard session?.target != nil else { return }
+        let rows = keyboardRows()
+        guard !rows.isEmpty else { return }
+        let flat = rows.flatMap { $0 }
+        let row = rows.firstIndex { $0.contains { $0 == hover } } ?? 0
+        let column = hover.flatMap { current in rows[row].firstIndex { $0 == current } } ?? 0
+        switch Int(code) {
+        case kVK_Escape:
+            closePopup()
+        case kVK_LeftArrow, kVK_RightArrow:
+            let step = Int(code) == kVK_LeftArrow ? -1 : 1
+            let index = hover.flatMap { current in flat.firstIndex { $0 == current } } ?? -step
+            setHover(flat[(index + step + flat.count) % flat.count])
+        case kVK_UpArrow, kVK_DownArrow:
+            let next = (row + (Int(code) == kVK_UpArrow ? -1 : 1) + rows.count) % rows.count
+            setHover(rows[next][min(column, rows[next].count - 1)])
+        case kVK_Return, kVK_ANSI_KeypadEnter:
+            commitKeyboard()
+        default:
+            break
+        }
+    }
+
+    private func keyboardPointer(_ point: CGPoint, clicked: Bool) {
+        guard let session, session.target != nil else { return }
+        let hit = session.geometry.hit(point)
+        if let hit { setHover(hit) }
+        if clicked, hit != nil { commitKeyboard() }
+    }
+
+    /// The window the shortcut was for goes to the chosen zone (or the last group comes back).
+    private func commitKeyboard() {
+        guard let session, let target = session.target, let hover else { return }
+        closePopup()
+        switch hover {
+        case .lastGroup:
+            relink(on: session.screen)
+        case let .zone(template, zone):
+            guard let frame = frames(template: template, on: session.screen)[safe: zone] else { return }
+            place(target.element, id: target.id, frame: frame,
+                  placement: Placement(display: session.display, template: template, zone: zone, frame: frame))
+            log.notice("window into zone \(zone + 1) of layout \(template + 1) (keyboard)")
+            startAssist(after: target.id, template: template, screen: session.screen)
+        }
+    }
+
+    /// The zone (or card) lit in the panel, with its preview on the display.
+    private func setHover(_ hit: ZonePopupGeometry.Hit?) {
+        guard let session, hit != hover else { return }
+        hover = hit
+        popup.setHover(hit)
+        if case let .zone(template, zone) = hit, let frame = frames(template: template, on: session.screen)[safe: zone] {
+            preview.show(frame)
+        } else {
+            preview.hide()
+        }
     }
 
     // MARK: - From SnappingManager (it isn't main-actor code, but runs on the main thread)
@@ -145,6 +305,8 @@ final class ZoneController {
             return false
         }
         decor.hide()
+        // The panel opened by the shortcut gives way to a drag.
+        if session?.target != nil { closePopup() }
         let cursor = NSEvent.mouseLocation.screenFlipped
         dragLowest = max(dragLowest ?? cursor.y, cursor.y)
         if session == nil, let screen = NSScreen.screens.first(where: { $0.frame.screenFlipped.contains(cursor) }) {
@@ -158,14 +320,8 @@ final class ZoneController {
             }
             let hit = session.geometry.hit(cursor)
             if hit != hover {
-                hover = hit
-                popup.setHover(hit)
                 if hit != nil { NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now) }
-                if case let .zone(template, zone) = hit, let frame = frames(template: template, on: session.screen)[safe: zone] {
-                    preview.show(frame)
-                } else {
-                    preview.hide()
-                }
+                setHover(hit)
             }
             return true
         }
@@ -183,7 +339,7 @@ final class ZoneController {
         dragLowest = nil
         hint.hide()
         defer { closePopup() }
-        guard let session else {
+        guard let session, session.target == nil else {
             // Let go elsewhere: it leaves its group and gets its own size back.
             if let id, let element, placements[id] != nil { release(id, element: element) }
             return false
@@ -203,7 +359,7 @@ final class ZoneController {
         return true
     }
 
-    private func openPopup(on screen: NSScreen) {
+    private func openPopup(on screen: NSScreen, target: (element: AccessibilityElement, id: CGWindowID)? = nil) {
         assist.close()
         let display = Self.key(for: screen)
         let roots = ZoneTemplate.allCases.map { root($0.rawValue, display: display) }
@@ -213,12 +369,12 @@ final class ZoneController {
             return group.zones.keys.filter(alive.contains).count >= 2 ? group : nil
         }
         let geometry = ZonePopupGeometry(screen: screen, roots: roots, lastGroup: saved?.root)
-        session = Session(display: display, screen: screen, geometry: geometry)
+        session = Session(display: display, screen: screen, geometry: geometry, target: target)
         hover = nil
         hint.hide()
         var icons: [Int: pid_t] = [:]
         for (id, zone) in saved?.zones ?? [:] { icons[zone] = saved?.pids[id] }
-        popup.open(geometry, roots: roots, groupIcons: icons)
+        popup.open(geometry, roots: roots, groupIcons: icons, keyboard: target != nil)
     }
 
     private func closePopup() {

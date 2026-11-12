@@ -85,8 +85,8 @@ read it before touching the page and update it in the same commit. The rules tha
   button: match clicks against the window's button frame (`GreenButtonManager.greenButtonFrame`,
   `TweaksEngine.minimizeButtonFrame`), after a cheap window-server corner check.
 - Snap layouts (`Sirena/Modules/WindowManagement/Zones/`) ride on `SnappingManager`'s drag
-  handling; they add no event monitor or tap of their own. Their geometry is tested by
-  `scripts/test-zone-layout.sh` (no app, no AX).
+  handling; they add no event monitor or tap of their own. ⌃⌥0 (MASShortcut) opens them for the
+  window in front. Their geometry is tested by `scripts/test-zone-layout.sh` (no app, no AX).
 
 ## Showcase mode (site screenshots)
 

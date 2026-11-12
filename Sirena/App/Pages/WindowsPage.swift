@@ -59,6 +59,7 @@ private struct WindowsTab: View {
     @State private var hasAccessibility = Showcase.accessibilityShown()
     @AppStorage("windowsAdvancedMode") private var advanced = false
     @AppStorage(ZoneController.enabledKey) private var snapLayouts = true
+    @State private var recordingObserver = ShortcutRecordingObserver()
     /// The snap panel rides on drag-to-snap: off, the panel never shows.
     @State private var snappingOn = !Defaults.windowSnapping.userDisabled
 
@@ -123,8 +124,20 @@ private struct WindowsTab: View {
                                 Text(L("Drag a window to the top middle of the screen and a panel drops with layouts: let go over a zone to put the window there. Esc cancels."))
                             }
                         }
+                        if snapLayouts {
+                            LabeledContent {
+                                MASShortcutViewRepresentable(defaultsKey: ZoneController.shortcutKey,
+                                                             validator: SirenaShortcutValidator(ownKey: ZoneController.shortcutKey),
+                                                             recordingObserver: recordingObserver)
+                                    .frame(width: 160, height: 22)
+                                    .fixedSize()
+                            } label: {
+                                Text(L("Layouts for the window in front"))
+                                Text(L("Opens the panel without dragging: arrows choose a zone, ↑ ↓ another layout, Return snaps the window. ⌃⌥ is ctrl + start on a Logitech keyboard."))
+                            }
+                        }
                         if snapLayouts && !snappingOn {
-                            Label(L("Needs “Snap windows by dragging”, above, turned on."), systemImage: "exclamationmark.triangle.fill")
+                            Label(L("Dragging needs “Snap windows by dragging”, above, turned on."), systemImage: "exclamationmark.triangle.fill")
                                 .foregroundStyle(.orange)
                         }
                     } header: {
@@ -158,6 +171,7 @@ private struct WindowsTab: View {
         .onReceive(NotificationCenter.default.publisher(for: NSWindow.didBecomeKeyNotification)) { _ in
             hasAccessibility = Showcase.accessibilityShown()
         }
+        .onChange(of: snapLayouts) { _, _ in ZoneController.shared.enabledChanged() }
         .onReceive(NotificationCenter.default.publisher(for: Notification.Name.windowSnapping)) { note in
             snappingOn = note.object as? Bool ?? !Defaults.windowSnapping.userDisabled
         }
