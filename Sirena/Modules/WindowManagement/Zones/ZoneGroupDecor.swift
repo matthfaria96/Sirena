@@ -142,11 +142,12 @@ final class ZoneGroupDecor {
 
     private func makeOutline() -> NSPanel {
         let panel = basePanel(ignoresMouse: true)
+        // Present for as long as one of the windows is in use: quiet enough to live with.
         panel.contentView = NSHostingView(rootView:
             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .strokeBorder(LinearGradient(colors: [Color.accentColor, Color.accentColor.opacity(0.6)],
-                                             startPoint: .top, endPoint: .bottom), lineWidth: 2.5)
-                .shadow(color: Color.accentColor.opacity(0.45), radius: 6))
+                .strokeBorder(LinearGradient(colors: [Color.accentColor.opacity(0.9), Color.accentColor.opacity(0.45)],
+                                             startPoint: .top, endPoint: .bottom), lineWidth: 2)
+                .shadow(color: Color.accentColor.opacity(0.25), radius: 4))
         return panel
     }
 
@@ -200,6 +201,10 @@ private final class GripView: NSView {
         ])
         addTrackingArea(NSTrackingArea(rect: .zero, options: [.mouseEnteredAndExited, .activeAlways, .inVisibleRect],
                                        owner: self, userInfo: nil))
+        setAccessibilityElement(true)
+        setAccessibilityRole(.splitter)
+        setAccessibilityLabel(L("Line between the windows"))
+        setAccessibilityHelp(L("Drag to resize both windows, click to let them go, double click to share the room equally."))
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }

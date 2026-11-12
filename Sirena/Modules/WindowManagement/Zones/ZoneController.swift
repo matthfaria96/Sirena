@@ -37,6 +37,7 @@ final class ZoneController {
 
     private let popup = ZonePopup()
     private let preview = ZonePreview()
+    private let hint = ZoneHint()
     private let assist = ZoneAssist()
     private let decor = ZoneGroupDecor()
 
@@ -112,7 +113,10 @@ final class ZoneController {
 
     nonisolated static func cancelDrag() {
         guard Thread.isMainThread else { return }
-        MainActor.assumeIsolated { shared.closePopup() }
+        MainActor.assumeIsolated {
+            shared.closePopup()
+            shared.hint.hide()
+        }
     }
 
     nonisolated static func resizeEnded(element: AccessibilityElement?, id: CGWindowID?) {
@@ -137,11 +141,15 @@ final class ZoneController {
     private func handleDragMoved() -> Bool {
         guard Self.isEnabled, AccessibilityGuard.isTrusted else {
             closePopup()
+            hint.hide()
             return false
         }
         decor.hide()
         let cursor = NSEvent.mouseLocation.screenFlipped
         dragLowest = max(dragLowest ?? cursor.y, cursor.y)
+        if session == nil, let screen = NSScreen.screens.first(where: { $0.frame.screenFlipped.contains(cursor) }) {
+            hint.show(on: screen)
+        }
         if let session {
             let near = session.geometry.card.insetBy(dx: -70, dy: -70).contains(cursor)
             guard near || isInTopBand(cursor, of: session.screen) else {
@@ -173,6 +181,7 @@ final class ZoneController {
     /// panel without one (nothing happens then, like a cancel).
     private func handleDragEnded(element: AccessibilityElement?, id: CGWindowID?, cancelled: Bool) -> Bool {
         dragLowest = nil
+        hint.hide()
         defer { closePopup() }
         guard let session else {
             // Let go elsewhere: it leaves its group and gets its own size back.
@@ -206,6 +215,7 @@ final class ZoneController {
         let geometry = ZonePopupGeometry(screen: screen, roots: roots, lastGroup: saved?.root)
         session = Session(display: display, screen: screen, geometry: geometry)
         hover = nil
+        hint.hide()
         var icons: [Int: pid_t] = [:]
         for (id, zone) in saved?.zones ?? [:] { icons[zone] = saved?.pids[id] }
         popup.open(geometry, roots: roots, groupIcons: icons)

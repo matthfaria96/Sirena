@@ -4,7 +4,8 @@
 /// that layout light up on the display, each listing the open windows grouped by app, with a
 /// live picture of each (the ⌘ Tab switcher's capture; just the app icon without Screen
 /// Recording). A click on one puts it in that zone; the rest stay until they are filled, Esc
-/// is pressed or the click lands anywhere else.
+/// is pressed or the click lands anywhere else. The keyboard works too: arrows move through
+/// the windows, Tab goes to the next zone, Return puts the window there.
 
 import AppKit
 import SwiftUI
@@ -43,11 +44,14 @@ final class ZoneAssist {
         model.spots = zones.map { Spot(zone: $0.zone, frame: $0.frame.offsetBy(dx: -origin.x, dy: -origin.y)) }
         model.candidates = candidates
         model.previews = [:]
+        model.focusSpot = 0
+        model.focused = nil
         model.isOpen = false
         capturePreviews(of: candidates)
         panel.setFrame(screen.frame, display: true)
         panel.makeKeyAndOrderFront(nil)
-        withAnimation(.spring(response: 0.32, dampingFraction: 0.85)) { model.isOpen = true }
+        withAnimation(NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+                      ? .easeOut(duration: 0.12) : .spring(response: 0.32, dampingFraction: 0.85)) { model.isOpen = true }
         resignToken = NotificationCenter.default.addObserver(forName: NSWindow.didResignKeyNotification, object: panel, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated { self?.close() }
         }
@@ -94,9 +98,40 @@ final class ZoneAssist {
         withAnimation(.snappy(duration: 0.22)) {
             model.spots.removeAll { $0.zone == zone }
             model.candidates.removeAll { $0.id == candidate }
+            model.focusSpot = min(model.focusSpot, max(0, model.spots.count - 1))
+            if model.focused == candidate { model.focused = model.ordered.first?.id }
         }
         onPick?(candidate, zone)
         if model.spots.isEmpty || model.candidates.isEmpty { close() }
+    }
+
+    // MARK: Keyboard
+
+    /// ← → ↑ ↓: the previous or next window (in the order they are shown).
+    private func move(_ step: Int) {
+        let ordered = model.ordered
+        guard !ordered.isEmpty else { return }
+        let current = model.focused.flatMap { id in ordered.firstIndex { $0.id == id } }
+        let next = current.map { ($0 + step + ordered.count) % ordered.count } ?? (step > 0 ? 0 : ordered.count - 1)
+        withAnimation(.snappy(duration: 0.12)) { model.focused = ordered[next].id }
+    }
+
+    /// Tab (⇧ Tab): the next (previous) zone to fill.
+    private func nextSpot(_ step: Int) {
+        guard model.spots.count > 1 else { return }
+        withAnimation(.snappy(duration: 0.15)) {
+            model.focusSpot = (model.focusSpot + step + model.spots.count) % model.spots.count
+            if model.focused == nil { model.focused = model.ordered.first?.id }
+        }
+    }
+
+    /// Return: the window under the keyboard goes into the zone under the keyboard.
+    private func choose() {
+        guard let focused = model.focused, model.spots.indices.contains(model.focusSpot) else {
+            move(1)
+            return
+        }
+        pick(focused, zone: model.spots[model.focusSpot].zone)
     }
 
     private func makePanel() -> AssistPanel {
@@ -109,6 +144,9 @@ final class ZoneAssist {
         panel.level = .floating
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary, .ignoresCycle, .transient]
         panel.onCancel = { [weak self] in self?.close() }
+        panel.onMove = { [weak self] step in self?.move(step) }
+        panel.onNextSpot = { [weak self] step in self?.nextSpot(step) }
+        panel.onChoose = { [weak self] in self?.choose() }
         let view = ZoneAssistView(model: model,
                                   pick: { [weak self] candidate, zone in self?.pick(candidate, zone: zone) },
                                   dismiss: { [weak self] in self?.close() })
@@ -117,13 +155,24 @@ final class ZoneAssist {
     }
 }
 
-/// Takes the keyboard without bringing Sirena forward, so Esc reaches it.
+/// Takes the keyboard without bringing Sirena forward, so Esc, the arrows, Tab and Return
+/// reach it.
 private final class AssistPanel: NSPanel {
     var onCancel: (() -> Void)?
+    var onMove: ((Int) -> Void)?
+    var onNextSpot: ((Int) -> Void)?
+    var onChoose: (() -> Void)?
     override var canBecomeKey: Bool { true }
     override func cancelOperation(_ sender: Any?) { onCancel?() }
     override func keyDown(with event: NSEvent) {
-        if event.keyCode == 53 { onCancel?() } else { super.keyDown(with: event) }
+        switch event.keyCode {
+        case 53: onCancel?()                                     // Esc
+        case 123, 126: onMove?(-1)                               // ← ↑
+        case 124, 125: onMove?(1)                                // → ↓
+        case 48: onNextSpot?(event.modifierFlags.contains(.shift) ? -1 : 1) // Tab
+        case 36, 76: onChoose?()                                 // Return, Enter
+        default: super.keyDown(with: event)
+        }
     }
 }
 
@@ -139,6 +188,12 @@ final class ZoneAssistModel {
     var candidates: [ZoneAssist.Candidate] = []
     var previews: [CGWindowID: CGImage] = [:]
     var isOpen = false
+    /// The zone and the window under the keyboard (nil until a key is used).
+    var focusSpot = 0
+    var focused: CGWindowID?
+
+    /// The candidates in the order they are shown.
+    var ordered: [ZoneAssist.Candidate] { byApp.flatMap(\.windows) }
 
     /// The candidates by app, in the order their first window appears (front to back).
     var byApp: [(pid: pid_t, name: String, windows: [ZoneAssist.Candidate])] {
@@ -156,6 +211,7 @@ private struct ZoneAssistView: View {
     let model: ZoneAssistModel
     let pick: (CGWindowID, Int) -> Void
     let dismiss: () -> Void
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         ZStack(alignment: .topLeading) {
@@ -163,16 +219,36 @@ private struct ZoneAssistView: View {
             Color.black.opacity(model.isOpen ? 0.12 : 0)
                 .contentShape(Rectangle())
                 .onTapGesture(perform: dismiss)
-            ForEach(model.spots) { spot in
-                SpotView(spot: spot, model: model) { pick($0, spot.zone) }
-                    .frame(width: spot.frame.width, height: spot.frame.height)
-                    .offset(x: spot.frame.minX, y: spot.frame.minY)
-                    .scaleEffect(model.isOpen ? 1 : 0.96)
-                    .opacity(model.isOpen ? 1 : 0)
-                    .transition(.opacity.combined(with: .scale(scale: 0.95)))
+            ForEach(Array(model.spots.enumerated()), id: \.element.id) { index, spot in
+                SpotView(spot: spot, model: model, isFocused: model.focused != nil && index == model.focusSpot) {
+                    pick($0, spot.zone)
+                }
+                .frame(width: spot.frame.width, height: spot.frame.height)
+                .offset(x: spot.frame.minX, y: spot.frame.minY)
+                .scaleEffect(model.isOpen || reduceMotion ? 1 : 0.96)
+                .opacity(model.isOpen ? 1 : 0)
+                .transition(reduceMotion ? .opacity : .opacity.combined(with: .scale(scale: 0.95)))
             }
+            AssistHint()
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                .padding(.bottom, 28)
+                .opacity(model.isOpen ? 1 : 0)
+                .allowsHitTesting(false)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+    }
+}
+
+/// How to use it, low in the middle of the display.
+private struct AssistHint: View {
+    var body: some View {
+        Text(L("Choose a window for each space · arrows and Return · Esc closes"))
+            .font(.system(size: 12, weight: .medium))
+            .foregroundStyle(.secondary)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+            .compatGlass(.regular, in: Capsule())
+            .overlay(Capsule().strokeBorder(.white.opacity(0.2), lineWidth: 0.8))
     }
 }
 
@@ -180,6 +256,8 @@ private struct ZoneAssistView: View {
 private struct SpotView: View {
     let spot: ZoneAssist.Spot
     let model: ZoneAssistModel
+    /// The zone the keyboard fills.
+    let isFocused: Bool
     let pick: (CGWindowID) -> Void
 
     var body: some View {
@@ -209,7 +287,8 @@ private struct SpotView: View {
                         .padding(.horizontal, 2)
                         LazyVGrid(columns: [GridItem(.adaptive(minimum: minimum, maximum: 280), spacing: 12)], spacing: 12) {
                             ForEach(app.windows) { candidate in
-                                CandidateCard(candidate: candidate, preview: model.previews[candidate.id]) { pick(candidate.id) }
+                                CandidateCard(candidate: candidate, preview: model.previews[candidate.id],
+                                              isFocused: isFocused && model.focused == candidate.id) { pick(candidate.id) }
                             }
                         }
                     }
@@ -220,7 +299,7 @@ private struct SpotView: View {
         .scrollIndicators(.automatic)
         .compatGlass(.regular, in: shape)
         .background(shape.fill(Color(nsColor: .windowBackgroundColor).opacity(supportsLiquidGlass ? 0.25 : 0.5)))
-        .overlay(shape.strokeBorder(Color.accentColor.opacity(0.75), lineWidth: 2))
+        .overlay(shape.strokeBorder(Color.accentColor.opacity(isFocused ? 1 : 0.75), lineWidth: isFocused ? 3 : 2))
         .clipShape(shape)
         .shadow(color: .black.opacity(0.25), radius: 18, y: 8)
         .padding(4)
@@ -231,10 +310,14 @@ private struct SpotView: View {
 private struct CandidateCard: View {
     let candidate: ZoneAssist.Candidate
     let preview: CGImage?
+    /// Under the keyboard (arrows), lit like under the pointer.
+    var isFocused = false
     let action: () -> Void
     @State private var isHovering = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
+        let isLit = isHovering || isFocused
         Button(action: action) {
             VStack(spacing: 7) {
                 ZStack {
@@ -266,13 +349,14 @@ private struct CandidateCard: View {
             }
             .padding(8)
             .background(RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(isHovering ? Color.accentColor.opacity(0.22) : Color.primary.opacity(0.07)))
+                .fill(isLit ? Color.accentColor.opacity(0.22) : Color.primary.opacity(0.07)))
             .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .strokeBorder(isHovering ? Color.accentColor : Color.primary.opacity(0.12), lineWidth: isHovering ? 2 : 1))
-            .scaleEffect(isHovering ? 1.03 : 1)
+                .strokeBorder(isLit ? Color.accentColor : Color.primary.opacity(0.12), lineWidth: isLit ? 2 : 1))
+            .scaleEffect(isLit && !reduceMotion ? 1.03 : 1)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(candidate.title.isEmpty ? candidate.appName : "\(candidate.title), \(candidate.appName)")
         .onHover { hovering in withAnimation(.snappy(duration: 0.15)) { isHovering = hovering } }
         .help(candidate.title.isEmpty ? candidate.appName : "\(candidate.title) — \(candidate.appName)")
     }

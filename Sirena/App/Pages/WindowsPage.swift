@@ -112,29 +112,29 @@ private struct WindowsTab: View {
                 } header: {
                     SettingsSubheader(L("Green button"), parent: L("Arrange Windows"), symbol: "plus.circle.fill")
                 }
-                SnapAreaSettingsView(showsDetails: $advanced)
-
-                // The snap popup: drag a window to the top middle of the screen, pick a zone.
-                Section {
-                    FeatureDrawingRow {
-                        ZonesDrawing()
-                    } content: {
-                        Toggle(isOn: $snapLayouts) {
-                            Text(L("Layouts at the top of the screen"))
-                            Text(L("Drag a window to the top middle of the screen and a panel drops with layouts: let go over a zone to put the window there. Esc cancels."))
+                SnapAreaSettingsView(showsDetails: $advanced) {
+                    // The snap popup: drag a window to the top middle of the screen, pick a zone.
+                    Section {
+                        FeatureDrawingRow {
+                            ZonesDrawing()
+                        } content: {
+                            Toggle(isOn: $snapLayouts) {
+                                Text(L("Layouts at the top of the screen"))
+                                Text(L("Drag a window to the top middle of the screen and a panel drops with layouts: let go over a zone to put the window there. Esc cancels."))
+                            }
                         }
-                    }
-                    if snapLayouts && !snappingOn {
-                        Label(L("Needs “Snap windows by dragging”, above, turned on."), systemImage: "exclamationmark.triangle.fill")
-                            .foregroundStyle(.orange)
-                    }
-                } header: {
-                    SettingsSubheader(L("Snap Layouts"), parent: L("Arrange Windows"), symbol: "rectangle.split.3x1")
-                } footer: {
-                    if snapLayouts {
-                        Text(L("In the middle of the top edge the panel takes the place of the top snap area; the top corners keep theirs. Windows put in a layout move together: drag the grip between two of them to resize both, click it to let them go."))
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                        if snapLayouts && !snappingOn {
+                            Label(L("Needs “Snap windows by dragging”, above, turned on."), systemImage: "exclamationmark.triangle.fill")
+                                .foregroundStyle(.orange)
+                        }
+                    } header: {
+                        SettingsSubheader(L("Snap Layouts"), parent: L("Arrange Windows"), symbol: "rectangle.split.3x1")
+                    } footer: {
+                        if snapLayouts {
+                            Text(L("In the middle of the top edge the panel takes the place of the top snap area; the top corners keep theirs. Windows put in a layout move together: drag the grip between two of them to resize both, click it to let them go."))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
                     }
                 }
             }

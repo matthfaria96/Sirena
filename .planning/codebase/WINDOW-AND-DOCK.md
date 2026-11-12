@@ -45,7 +45,7 @@ reader's default must always match (a mismatch shows an option on that behaves o
 | Encaixar antes de chegar à borda da tela | `snapBeforeReachingEdges` (20 pt when on, 0 off; imported values kept) | `SnappingManager` | |
 | Impedir o Mission Control ao arrastar janelas | `missionControlDragging` (disabled = prevent) | `SnappingManager.startEventMonitor` | On → `ActiveEventMonitor` (a tap; handler still delivered on main) instead of `PassiveEventMonitor`. Toggle only shown once the key was touched |
 | Áreas de encaixe (paisagem/retrato) | `SnapAreaModel` (landscape/portrait configs) | `SnappingManager.snapAreaContainingCursor` | Portrait grid only with a portrait display |
-| Layouts no topo da tela | `snapLayouts.enabled` (true) | `ZoneController.isEnabled` | §5 |
+| Layouts no topo da tela | `snapLayouts.enabled` (true) | `ZoneController.isEnabled` | §5. Drawn right after "Arrastar até as bordas" (passed into `SnapAreaSettingsView(showsDetails:afterMain:)`), before its details, because it needs drag-to-snap on |
 | Alternador de janelas (⌘ Tab) | `sirena.module.switcher.enabled` + `SwitcherDefaultsKey.*` (defaults registered once in `SwitcherSupportShims.swift`) | `SwitcherAppSwitcher`, `SwitcherWindowEnumerator`, `SwitcherView` | Settings view: `Sirena/Modules/Switcher/WindowSwitcherSettingsView.swift`. All 22 keys have readers with the registered defaults |
 
 ### Dock
@@ -123,18 +123,21 @@ Files: `Sirena/Modules/WindowManagement/Zones/`
 | File | Role |
 |---|---|
 | `ZoneLayout.swift` | Pure geometry: `ZoneNode` (tree of column/row splits with shares), `ZoneGeometry` (regions, frames with gaps, dividers, moving a line, resizing, evening), `ZoneTemplate` (the 6 layouts of the panel) |
-| `ZonePopup.swift` | `ZonePopupGeometry` (one geometry for drawing and hit-testing), the glass panel, `ZonePreview` (where the window will go) |
-| `ZoneAssist.swift` | Snap Assist: the other zones with the open windows (previews from `SwitcherWindowPreviewProvider.captureViaWindowServer`, grouped by app) |
+| `ZonePopup.swift` | `ZonePopupGeometry` (one geometry for drawing and hit-testing), the glass panel, `ZoneHint` (the pill at the top middle while dragging), `ZonePreview` (where the window will go) |
+| `ZoneAssist.swift` | Snap Assist: the other zones with the open windows (previews from `SwitcherWindowPreviewProvider.captureViaWindowServer`, grouped by app). Keyboard: arrows move, Tab / ⇧ Tab change zone, Return picks, Esc closes |
 | `ZoneGroupDecor.swift` | Group outlines, grips (drag = resize both, click = let go, double click = even), "Juntar de novo" bubble |
 | `ZoneController.swift` | The engine: drag hooks, placing, groups, timer, last group per display |
 
 Geometry tests: `scripts/test-zone-layout.sh` (`scripts/tests/zone-layout/main.swift`).
 
 Flow:
-1. `SnappingManager` `.leftMouseDragged` (window moving) → `ZoneController.dragMoved()`. The panel
-   opens when the pointer is in the top band of a display (menu bar bottom + 36 pt, middle 60%)
-   **and** rose ≥ 24 pt during this drag (a window already at the top doesn't pop it at once).
-   While open it returns true, so Rectangle's snap areas stand aside.
+1. `SnappingManager` `.leftMouseDragged` (window moving) → `ZoneController.dragMoved()`. While a
+   window is dragged, `ZoneHint` shows a small pill at the top middle of the display under the
+   pointer (where the panel drops from). The panel opens when the pointer is in the top band of
+   a display (menu bar bottom + 36 pt, middle 60%) **and** rose ≥ 24 pt during this drag (a
+   window already at the top doesn't pop it at once). While open it returns true, so Rectangle's
+   snap areas stand aside. Only the row of drawings picks a zone (`ZonePopupGeometry.hit`): the
+   top of the card is where the window arrives, and letting go there must do nothing.
 2. `.leftMouseUp` → `ZoneController.dragEnded(element:id:cancelled:)`: over a zone → `place` +
    Snap Assist; over the "Último grupo" card → `relink`; elsewhere over the panel → nothing.
    Esc (`SnappingManager` keyDown) → `cancelDrag()`.

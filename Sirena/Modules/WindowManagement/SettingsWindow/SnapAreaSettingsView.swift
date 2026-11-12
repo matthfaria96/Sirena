@@ -166,13 +166,17 @@ final class SnapAreaViewModel {
 
 // MARK: - Main Snap Area View
 
-struct SnapAreaSettingsView: View {
+struct SnapAreaSettingsView<AfterMain: View>: View {
     @State private var viewModel = SnapAreaViewModel()
     /// "Ajustar as áreas de encaixe": the drag feedback and each area of the screen.
     @Binding var showsDetails: Bool
+    /// Sections drawn right after "Arrastar até as bordas", before its details: Janelas puts
+    /// the snap layouts there, next to the drag-to-snap switch they depend on.
+    private let afterMain: AfterMain
 
-    init(showsDetails: Binding<Bool> = .constant(true)) {
+    init(showsDetails: Binding<Bool> = .constant(true), @ViewBuilder afterMain: () -> AfterMain) {
         _showsDetails = showsDetails
+        self.afterMain = afterMain()
     }
 
     private var arrangeParent: String { L("Arrange Windows") }
@@ -205,6 +209,8 @@ struct SnapAreaSettingsView: View {
             } header: {
                 SettingsSubheader(L("Dragging to the edges"), parent: arrangeParent, symbol: "arrow.up.left.and.down.right.and.arrow.up.right.and.down.left")
             }
+
+            afterMain
 
             if showsDetails {
             Section {
@@ -283,6 +289,12 @@ struct SnapAreaSettingsView: View {
         .onChange(of: viewModel.isPortraitConnected) { oldValue, isConnected in
             Notification.Name.snapAreaSettingsNeedsResize.post(object:isConnected)
         }
+    }
+}
+
+extension SnapAreaSettingsView where AfterMain == EmptyView {
+    init(showsDetails: Binding<Bool> = .constant(true)) {
+        self.init(showsDetails: showsDetails) { EmptyView() }
     }
 }
 

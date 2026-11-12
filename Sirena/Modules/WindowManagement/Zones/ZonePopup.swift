@@ -76,10 +76,13 @@ struct ZonePopupGeometry {
 
     var panelFrame: CGRect { card.insetBy(dx: -Self.margin, dy: -Self.margin) }
 
-    /// What `point` picks: anywhere over the card counts, for the closest drawing (and the
-    /// closest zone in it).
+    /// What `point` picks: anywhere in the row of drawings counts, for the closest drawing (and
+    /// the closest zone in it). Not the top of the card: that is where the dragged window
+    /// arrives, and letting go there must not snap it by surprise.
     func hit(_ point: CGPoint) -> Hit? {
-        guard card.insetBy(dx: -8, dy: -8).contains(point), !thumbs.isEmpty else { return nil }
+        guard let first = thumbs.first else { return nil }
+        let row = CGRect(x: card.minX - 8, y: first.minY - 10, width: card.width + 16, height: first.height + 20)
+        guard row.contains(point) else { return nil }
         let template = thumbs.indices.min { a, b in
             Self.distance(point, thumbs[a]) < Self.distance(point, thumbs[b])
         } ?? 0
@@ -183,6 +186,7 @@ final class ZonePopupModel {
 
 private struct ZonePopupView: View {
     let model: ZonePopupModel
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         ZStack(alignment: .topLeading) {
@@ -263,9 +267,81 @@ private struct ZonePopupView: View {
                 .offset(x: hintStart, y: model.card.maxY - ZonePopupGeometry.hintHeight + 2)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .scaleEffect(model.isOpen ? 1 : 0.9, anchor: .top)
-        .offset(y: model.isOpen ? 0 : -12)
+        .scaleEffect(model.isOpen || reduceMotion ? 1 : 0.9, anchor: .top)
+        .offset(y: model.isOpen || reduceMotion ? 0 : -12)
         .opacity(model.isOpen ? 1 : 0)
+    }
+}
+
+// MARK: - The hint at the top while dragging
+
+/// A small glass pill at the top middle of the display while a window is dragged, where the
+/// panel drops from (Windows 11 shows the same), so the layouts can be found.
+@MainActor
+final class ZoneHint {
+    private static let size = CGSize(width: 132, height: 30)
+    private var panel: NSPanel?
+    private var screenFrame: CGRect?
+
+    func show(on screen: NSScreen) {
+        let panel = self.panel ?? makePanel()
+        self.panel = panel
+        if panel.isVisible, panel.alphaValue > 0, screenFrame == screen.frame { return }
+        screenFrame = screen.frame
+        let top = screen.visibleFrame.screenFlipped
+        let frame = CGRect(x: (top.midX - Self.size.width / 2).rounded(), y: top.minY + 6,
+                           width: Self.size.width, height: Self.size.height)
+        panel.setFrame(frame.screenFlipped, display: true)
+        if !panel.isVisible { panel.alphaValue = 0 }
+        panel.orderFrontRegardless()
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = 0.18
+            panel.animator().alphaValue = 1
+        }
+    }
+
+    func hide() {
+        screenFrame = nil
+        guard let panel, panel.isVisible else { return }
+        NSAnimationContext.runAnimationGroup({ context in
+            context.duration = 0.12
+            panel.animator().alphaValue = 0
+        }, completionHandler: {
+            MainActor.assumeIsolated {
+                if panel.alphaValue == 0 { panel.orderOut(nil) }
+            }
+        })
+    }
+
+    private func makePanel() -> NSPanel {
+        let panel = NSPanel(contentRect: .zero, styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: true)
+        panel.isOpaque = false
+        panel.backgroundColor = .clear
+        panel.hasShadow = false
+        panel.ignoresMouseEvents = true
+        panel.isReleasedWhenClosed = false
+        panel.hidesOnDeactivate = false
+        panel.level = NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.popUpMenuWindow)))
+        panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary, .ignoresCycle, .transient]
+        panel.contentView = NSHostingView(rootView: ZoneHintView())
+        return panel
+    }
+}
+
+struct ZoneHintView: View {
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "rectangle.split.3x1")
+                .font(.system(size: 11, weight: .semibold))
+            Image(systemName: "chevron.up")
+                .font(.system(size: 9, weight: .bold))
+        }
+        .foregroundStyle(.secondary)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .compatGlass(.regular, in: Capsule())
+        .overlay(Capsule().strokeBorder(.white.opacity(0.25), lineWidth: 0.8))
+        .padding(2)
+        .accessibilityLabel(L("Layouts at the top of the screen"))
     }
 }
 
