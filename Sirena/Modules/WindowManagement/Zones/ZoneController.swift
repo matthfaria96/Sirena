@@ -153,6 +153,14 @@ final class ZoneController {
         }
     }
 
+    /// The default (⌃⌥0) shows in its recorder even before Sirena binds anything (no
+    /// Accessibility yet, or the switch off).
+    static func registerDefaultShortcut() {
+        let binder = MASShortcutBinder.shared()
+        binder?.bindingOptions = [NSBindingOption.valueTransformerName: MASDictionaryTransformerName]
+        binder?.registerDefaultShortcuts([shortcutKey: defaultShortcut])
+    }
+
     private func bindShortcut() {
         let binder = MASShortcutBinder.shared()
         if shortcutBound {
@@ -160,8 +168,7 @@ final class ZoneController {
             shortcutBound = false
         }
         guard isStarted, Self.isEnabled, !suspendedForRecording else { return }
-        binder?.bindingOptions = [NSBindingOption.valueTransformerName: MASDictionaryTransformerName]
-        binder?.registerDefaultShortcuts([Self.shortcutKey: Self.defaultShortcut])
+        Self.registerDefaultShortcut()
         binder?.bindShortcut(withDefaultsKey: Self.shortcutKey) { [weak self] in self?.openForFrontWindow() }
         shortcutBound = true
     }

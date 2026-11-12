@@ -172,6 +172,7 @@ private struct WindowsTab: View {
             hasAccessibility = Showcase.accessibilityShown()
         }
         .onChange(of: snapLayouts) { _, _ in ZoneController.shared.enabledChanged() }
+        .onAppear { ZoneController.registerDefaultShortcut() }
         .onReceive(NotificationCenter.default.publisher(for: Notification.Name.windowSnapping)) { note in
             snappingOn = note.object as? Bool ?? !Defaults.windowSnapping.userDisabled
         }
