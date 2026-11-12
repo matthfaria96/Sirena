@@ -14142,16 +14142,6 @@
         }
       }
     },
-    "In the middle of the top edge the panel takes the place of the top snap area; the top corners keep theirs. Windows put in a layout move together: drag the grip between two of them to resize both, click it to let them go.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No meio da borda de cima, o painel ocupa o lugar da área de encaixe de cima; os cantos de cima continuam como estão. As janelas colocadas num layout andam juntas: arraste a alça entre duas delas para redimensionar as duas, clique nela para soltá-las."
-          }
-        }
-      }
-    },
     "Choose a window for each space · arrows and Return · Esc closes": {
       "localizations": {
         "pt-BR": {
@@ -14168,16 +14158,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Divisória entre as janelas"
-          }
-        }
-      }
-    },
-    "Drag to resize both windows, click to let them go, double click to share the room equally.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Arraste para redimensionar as duas janelas, clique para soltá-las, clique duas vezes para dividir o espaço igualmente."
           }
         }
       }
@@ -14218,6 +14198,116 @@
           "stringUnit": {
             "state": "translated",
             "value": "Setas escolhem · Enter encaixa a janela · Esc cancela"
+          }
+        }
+      }
+    },
+    "Swap App…": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trocar app…"
+          }
+        }
+      }
+    },
+    "Swap Sides": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inverter lados"
+          }
+        }
+      }
+    },
+    "Change Layout…": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alterar divisórias…"
+          }
+        }
+      }
+    },
+    "Share the Room Equally": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dividir igualmente"
+          }
+        }
+      }
+    },
+    "Unlink": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desvincular"
+          }
+        }
+      }
+    },
+    "In place of %@": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No lugar de %@"
+          }
+        }
+      }
+    },
+    "Pick the window that comes in, in the space it replaces · Esc closes": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escolha a janela que entra, no espaço que ela vai ocupar · Esc fecha"
+          }
+        }
+      }
+    },
+    "Choose the new layout · Return applies · Esc keeps this one": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escolha o novo layout · Enter aplica · Esc mantém o atual"
+          }
+        }
+      }
+    },
+    "Forget this group": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esquecer este grupo"
+          }
+        }
+      }
+    },
+    "Drag to resize both windows; click for more options.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arraste para redimensionar as duas janelas; clique para mais opções."
+          }
+        }
+      }
+    },
+    "In the middle of the top edge the panel takes the place of the top snap area; the top corners keep theirs. Windows put in a layout move together: drag the grip between two of them to resize both, click it for more (swap an app, swap sides, change the layout, unlink).": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No meio da borda de cima, o painel ocupa o lugar da área de encaixe de cima; os cantos de cima continuam como estão. As janelas colocadas num layout andam juntas: arraste a alça entre duas delas para redimensionar as duas, clique nela para mais opções (trocar app, inverter lados, alterar divisórias, desvincular)."
           }
         }
       }

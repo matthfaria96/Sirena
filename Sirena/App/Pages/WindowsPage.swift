@@ -144,7 +144,7 @@ private struct WindowsTab: View {
                         SettingsSubheader(L("Snap Layouts"), parent: L("Arrange Windows"), symbol: "rectangle.split.3x1")
                     } footer: {
                         if snapLayouts {
-                            Text(L("In the middle of the top edge the panel takes the place of the top snap area; the top corners keep theirs. Windows put in a layout move together: drag the grip between two of them to resize both, click it to let them go."))
+                            Text(L("In the middle of the top edge the panel takes the place of the top snap area; the top corners keep theirs. Windows put in a layout move together: drag the grip between two of them to resize both, click it for more (swap an app, swap sides, change the layout, unlink)."))
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }

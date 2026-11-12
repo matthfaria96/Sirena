@@ -23,6 +23,8 @@ final class ZoneAssist {
         let zone: Int
         /// Inside the panel (y down).
         let frame: CGRect
+        /// What is there now ("Trocar app": the window a pick replaces).
+        var caption: String?
         var id: Int { zone }
     }
 
@@ -35,13 +37,16 @@ final class ZoneAssist {
 
     var isShown: Bool { panel?.isVisible == true }
 
-    /// `zones` in Accessibility coordinates.
-    func show(on screen: NSScreen, zones: [(zone: Int, frame: CGRect)], candidates: [Candidate]) {
+    /// `zones` in Accessibility coordinates. `captions`: what each zone holds now, when a pick
+    /// replaces it. `hint`: the line at the bottom, when not the Snap Assist one.
+    func show(on screen: NSScreen, zones: [(zone: Int, frame: CGRect)], candidates: [Candidate],
+              captions: [Int: String] = [:], hint: String? = nil) {
         guard !zones.isEmpty, !candidates.isEmpty else { return }
         let panel = self.panel ?? makePanel()
         self.panel = panel
         let origin = screen.frame.screenFlipped.origin
-        model.spots = zones.map { Spot(zone: $0.zone, frame: $0.frame.offsetBy(dx: -origin.x, dy: -origin.y)) }
+        model.spots = zones.map { Spot(zone: $0.zone, frame: $0.frame.offsetBy(dx: -origin.x, dy: -origin.y), caption: captions[$0.zone]) }
+        model.hint = hint
         model.candidates = candidates
         model.previews = [:]
         model.focusSpot = 0
@@ -188,6 +193,8 @@ final class ZoneAssistModel {
     var candidates: [ZoneAssist.Candidate] = []
     var previews: [CGWindowID: CGImage] = [:]
     var isOpen = false
+    /// The line at the bottom (nil: Snap Assist's).
+    var hint: String?
     /// The zone and the window under the keyboard (nil until a key is used).
     var focusSpot = 0
     var focused: CGWindowID?
@@ -229,7 +236,7 @@ private struct ZoneAssistView: View {
                 .opacity(model.isOpen ? 1 : 0)
                 .transition(reduceMotion ? .opacity : .opacity.combined(with: .scale(scale: 0.95)))
             }
-            AssistHint()
+            AssistHint(text: model.hint)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
                 .padding(.bottom, 28)
                 .opacity(model.isOpen ? 1 : 0)
@@ -241,8 +248,10 @@ private struct ZoneAssistView: View {
 
 /// How to use it, low in the middle of the display.
 private struct AssistHint: View {
+    let text: String?
+
     var body: some View {
-        Text(L("Choose a window for each space · arrows and Return · Esc closes"))
+        Text(text ?? L("Choose a window for each space · arrows and Return · Esc closes"))
             .font(.system(size: 12, weight: .medium))
             .foregroundStyle(.secondary)
             .padding(.horizontal, 16)
@@ -266,6 +275,12 @@ private struct SpotView: View {
         let minimum = min(200, max(130, spot.frame.width / 3.4))
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 16, pinnedViews: []) {
+                if let caption = spot.caption {
+                    Label(caption, systemImage: "arrow.triangle.2.circlepath")
+                        .font(.system(size: 12.5, weight: .semibold))
+                        .foregroundStyle(Color.accentColor)
+                        .lineLimit(1)
+                }
                 ForEach(model.byApp, id: \.pid) { app in
                     VStack(alignment: .leading, spacing: 8) {
                         HStack(spacing: 7) {

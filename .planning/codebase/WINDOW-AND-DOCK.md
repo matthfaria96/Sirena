@@ -126,7 +126,7 @@ Files: `Sirena/Modules/WindowManagement/Zones/`
 | `ZoneLayout.swift` | Pure geometry: `ZoneNode` (tree of column/row splits with shares), `ZoneGeometry` (regions, frames with gaps, dividers, moving a line, resizing, evening), `ZoneTemplate` (the 6 layouts of the panel) |
 | `ZonePopup.swift` | `ZonePopupGeometry` (one geometry for drawing and hit-testing), the glass panel, `ZoneHint` (the pill at the top middle while dragging), `ZonePreview` (where the window will go) |
 | `ZoneAssist.swift` | Snap Assist: the other zones with the open windows (previews from `SwitcherWindowPreviewProvider.captureViaWindowServer`, grouped by app). Keyboard: arrows move, Tab / ⇧ Tab change zone, Return picks, Esc closes |
-| `ZoneGroupDecor.swift` | Group outlines, grips (drag = resize both, click = let go, double click = even), "Juntar de novo" bubble |
+| `ZoneGroupDecor.swift` | Dashed group outlines, grips (drag = resize both, click = the grip's menu), "Juntar de novo" bubble |
 | `ZoneController.swift` | The engine: drag hooks, placing, groups, timer, last group per display |
 
 Geometry tests: `scripts/test-zone-layout.sh` (`scripts/tests/zone-layout/main.swift`).
@@ -146,6 +146,19 @@ Flow:
 4. Resize by an edge (mouse up without moving) → `resizeEnded`: the lines it touched move
    (`ZoneGeometry.resizing`), the other members follow.
 5. `WindowManager.execute` (any Rectangle action) → `noteWindowAction`: the window leaves its group.
+7. A click on a grip → its menu (`gripClicked`, an `NSMenu` of `ZoneMenuItem`s):
+   - **Trocar app…** (`startReplace`): Snap Assist over the group's own zones ("No lugar de …");
+     the pick replaces that zone's window, which leaves the group where it is. The only way a
+     window from outside comes into a group.
+   - **Inverter lados** (`swapSides` → `ZoneGeometry.swappingSides`): the two sides of that line
+     trade places in the tree, windows and room included (the layout's shape is kept per
+     display in `roots`, like resized proportions).
+   - **Alterar divisórias…** (`openRelayout`): the panel in keyboard mode choosing a whole layout
+     (`Session.relayout`); Return applies it (`applyLayout`: windows keep their order, extras
+     leave, empty zones get Snap Assist), Esc keeps the current one.
+   - **Dividir igualmente** (`evenSides`), **Desvincular** (`unlink`: the group is forgotten,
+     no "Último grupo" card; "Juntar de novo" undoes it for 5 s), **Cancelar**.
+   In the ⌃⌥0 panel the "Último grupo" card has a × (or Delete) that forgets it.
 6. ⌃⌥0 → `openForFrontWindow`: the same panel in keyboard mode, on the display of the focused
    window (`Session.target` holds it). The panel takes the keyboard (nonactivating, so the app
    stays in front) and the pointer: ← → walk every zone, ↑ ↓ change layout, Return or a click

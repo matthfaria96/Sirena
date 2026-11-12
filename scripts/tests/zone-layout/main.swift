@@ -81,5 +81,25 @@ do {
     expect(near(frames[0].width, frames[1].width), "evened: \(frames)")
 }
 
+// "Inverter lados": the two sides of a line trade places, windows follow.
+do {
+    let two = ZoneTemplate.twoColumns.root
+    let swapped = ZoneGeometry.swappingSides(ZoneGeometry.dividers(two, in: area)[0], root: two)
+    expect(swapped.moved == [1, 0], "two columns: left and right trade: \(swapped.moved)")
+
+    let side = ZoneTemplate.mainAndSide.root
+    let flipped = ZoneGeometry.swappingSides(ZoneGeometry.dividers(side, in: area)[0], root: side)
+    let frames = ZoneGeometry.frames(flipped.root, in: area, gap: 0)
+    expect(near(frames[0].width, 1600 * 0.34, 2) && near(frames[1].width, 1600 * 0.66, 2),
+           "main + side: the main zone moves right with its size: \(frames)")
+
+    let stack = ZoneTemplate.mainAndStack.root // A | (B / C)
+    let column = ZoneGeometry.swappingSides(ZoneGeometry.dividers(stack, in: area)[0], root: stack)
+    expect(column.moved == [2, 0, 1], "1 + 2, the column line: A goes right, B and C go left in order: \(column.moved)")
+    let rows = ZoneGeometry.swappingSides(ZoneGeometry.dividers(stack, in: area)[1], root: stack)
+    expect(rows.moved == [0, 2, 1], "1 + 2, the row line: B and C trade, A stays: \(rows.moved)")
+    expect(ZoneGeometry.leafPaths(ZoneTemplate.grid.root) == [[0, 0], [0, 1], [1, 0], [1, 1]], "leaf paths, depth first")
+}
+
 print("\(checks - failures)/\(checks) checks passed")
 exit(failures == 0 ? 0 : 1)

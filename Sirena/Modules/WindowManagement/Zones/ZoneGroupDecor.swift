@@ -2,9 +2,9 @@
 ///
 /// What shows that windows are held together: while one window of a group (windows put in
 /// the zones of the same layout on a display) is the one in use, each member gets a thin
-/// accent outline, and every line two members share gets a grip. Dragging a grip resizes
-/// the windows on both sides at once (Windows 11's snap group resize); a click lets the
-/// windows go (a "join again" bubble stays a few seconds), a double click evens the sides.
+/// dashed outline, and every line two members share gets a grip. Dragging a grip resizes the
+/// windows on both sides at once (Windows 11's snap group resize); a click opens its menu
+/// (swap an app, swap the sides, change the layout, even, let go).
 
 import AppKit
 import SwiftUI
@@ -21,8 +21,8 @@ final class ZoneGroupDecor {
     var onGripBegin: (() -> Void)?
     var onGripDrag: ((ZoneDivider, CGFloat) -> Void)?
     var onGripEnd: ((ZoneDivider) -> Void)?
-    /// A grip was clicked without dragging (1 or 2 clicks), with its centre.
-    var onGripClick: ((ZoneDivider, Int, CGPoint) -> Void)?
+    /// A grip was clicked without dragging: its line, its centre, and the view to open a menu in.
+    var onGripClick: ((ZoneDivider, CGPoint, NSView) -> Void)?
 
     private var relinkPanel: NSPanel?
     private var relinkHide: DispatchWorkItem?
@@ -142,12 +142,10 @@ final class ZoneGroupDecor {
 
     private func makeOutline() -> NSPanel {
         let panel = basePanel(ignoresMouse: true)
-        // Present for as long as one of the windows is in use: quiet enough to live with.
+        // Present for as long as one of the windows is in use: a quiet dashed line.
         panel.contentView = NSHostingView(rootView:
             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .strokeBorder(LinearGradient(colors: [Color.accentColor.opacity(0.9), Color.accentColor.opacity(0.45)],
-                                             startPoint: .top, endPoint: .bottom), lineWidth: 2)
-                .shadow(color: Color.accentColor.opacity(0.25), radius: 4))
+                .strokeBorder(Color.accentColor.opacity(0.55), style: StrokeStyle(lineWidth: 1.5, dash: [7, 5])))
         return panel
     }
 
@@ -162,10 +160,10 @@ final class ZoneGroupDecor {
         view.onDrag = { [weak self] point in
             self?.onGripDrag?(grip.divider, grip.divider.axis == .columns ? point.x : point.y)
         }
-        view.onClick = { [weak self] count in
-            guard let self else { return }
+        view.onClick = { [weak self, weak view] _ in
+            guard let self, let view else { return }
             self.isDraggingGrip = false
-            self.onGripClick?(grip.divider, count, grip.center)
+            self.onGripClick?(grip.divider, grip.center, view)
         }
         view.onEnd = { [weak self] in
             guard let self else { return }
@@ -204,7 +202,7 @@ private final class GripView: NSView {
         setAccessibilityElement(true)
         setAccessibilityRole(.splitter)
         setAccessibilityLabel(L("Line between the windows"))
-        setAccessibilityHelp(L("Drag to resize both windows, click to let them go, double click to share the room equally."))
+        setAccessibilityHelp(L("Drag to resize both windows; click for more options."))
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }

@@ -76,6 +76,11 @@ struct ZonePopupGeometry {
 
     var panelFrame: CGRect { card.insetBy(dx: -Self.margin, dy: -Self.margin) }
 
+    /// The × on the last group's card (keyboard mode): forgets that group.
+    var forgetButton: CGRect? {
+        groupThumb.map { CGRect(x: $0.maxX - 13, y: $0.minY - 9, width: 22, height: 22) }
+    }
+
     /// What `point` picks: anywhere in the row of drawings counts, for the closest drawing (and
     /// the closest zone in it). Not the top of the card: that is where the dragged window
     /// arrives, and letting go there must not snap it by surprise.
@@ -120,7 +125,10 @@ final class ZonePopup {
 
     /// `groupIcons`: the app in each zone of the last group. `keyboard`: opened by the
     /// shortcut, so the panel takes the keyboard and the pointer; dragging leaves both alone.
-    func open(_ geometry: ZonePopupGeometry, roots: [ZoneNode], groupIcons: [Int: pid_t] = [:], keyboard: Bool = false) {
+    /// `hint`: the line at the bottom, when not the default one. `wholeLayout`: the choice is a
+    /// layout, not a zone ("Alterar divisórias"), so the lit drawing lights up entirely.
+    func open(_ geometry: ZonePopupGeometry, roots: [ZoneNode], groupIcons: [Int: pid_t] = [:], keyboard: Bool = false,
+              hint: String? = nil, wholeLayout: Bool = false) {
         closeWork?.cancel()
         let panel = self.panel ?? makePanel()
         self.panel = panel
@@ -132,6 +140,9 @@ final class ZonePopup {
         model.groupThumb = geometry.groupThumb?.offsetBy(dx: -origin.x, dy: -origin.y)
         model.groupZones = geometry.groupZones.map { $0.offsetBy(dx: -origin.x, dy: -origin.y) }
         model.groupIcons = groupIcons
+        model.forgetButton = keyboard ? geometry.forgetButton?.offsetBy(dx: -origin.x, dy: -origin.y) : nil
+        model.hint = hint
+        model.wholeLayout = wholeLayout
         model.hover = nil
         model.isOpen = false
         model.keyboard = keyboard
@@ -246,6 +257,10 @@ final class ZonePopupModel {
     var isOpen = false
     /// Opened by the shortcut: the hint speaks of keys.
     var keyboard = false
+    var hint: String?
+    var wholeLayout = false
+    /// The × on the last group's card, inside the panel.
+    var forgetButton: CGRect?
 }
 
 private struct ZonePopupView: View {
@@ -274,7 +289,7 @@ private struct ZonePopupView: View {
                 if template < model.zones.count {
                     ForEach(model.zones[template].indices, id: \.self) { zone in
                         let frame = model.zones[template][zone]
-                        let isOn = model.hover == [template, zone]
+                        let isOn = model.hover == [template, zone] || (model.wholeLayout && model.hover?.first == template)
                         RoundedRectangle(cornerRadius: 6, style: .continuous)
                             .fill(isOn ? AnyShapeStyle(LinearGradient(colors: [Color.accentColor, Color.accentColor.opacity(0.75)],
                                                                       startPoint: .top, endPoint: .bottom))
@@ -321,10 +336,20 @@ private struct ZonePopupView: View {
                     .fill(Color.primary.opacity(0.15))
                     .frame(width: 1, height: thumb.height)
                     .offset(x: thumb.maxX + 15, y: thumb.minY)
+                if let forget = model.forgetButton {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 17, weight: .semibold))
+                        .symbolRenderingMode(.palette)
+                        .foregroundStyle(.white, Color(white: 0.35))
+                        .shadow(color: .black.opacity(0.3), radius: 2, y: 1)
+                        .frame(width: forget.width, height: forget.height)
+                        .offset(x: forget.minX, y: forget.minY)
+                        .help(L("Forget this group"))
+                }
             }
 
             let hintStart = model.groupThumb.map { $0.maxX + 16 } ?? model.card.minX
-            Text(model.keyboard ? L("Arrows choose · Return snaps the window · Esc cancels") : L("Drop on a zone · Esc cancels"))
+            Text(model.hint ?? (model.keyboard ? L("Arrows choose · Return snaps the window · Esc cancels") : L("Drop on a zone · Esc cancels")))
                 .font(.system(size: 11, weight: .medium))
                 .foregroundStyle(.secondary)
                 .frame(width: max(1, model.card.maxX - hintStart))

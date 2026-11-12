@@ -10,9 +10,11 @@
 ///   they get an accent outline, and each line two of them share gets a grip that resizes
 ///   both. Resizing one of them by its own edge moves the line too.
 /// - A window of a group let go outside a zone leaves it and gets its own size back.
-/// - A click on a grip lets the whole group go (windows stay where they are); "Join again"
-///   stays a few seconds, and the panel keeps a "Last group" card per display that puts
-///   them all back. A double click on a grip evens its two sides.
+/// - A click on a grip opens its menu: swap an app (the only way a new window comes in),
+///   swap the sides, change the layout, share the room equally, unlink (the windows stay
+///   where they are and the group is forgotten; "Juntar de novo" undoes it for a few
+///   seconds), cancel. The panel keeps a "Último grupo" card per display until it is
+///   unlinked or forgotten (its × in the ⌃⌥0 panel).
 ///
 /// - ⌃⌥0 (ctrl + start + 0 on Logitech keyboards; Windows' Win+Z) opens the panel for the
 ///   window in front: arrows choose a zone, ↑ ↓ another layout, Return snaps it, Esc cancels.
@@ -59,6 +61,10 @@ final class ZoneController {
         let geometry: ZonePopupGeometry
         /// Opened by the shortcut: the window it is for (nil while dragging).
         var target: (element: AccessibilityElement, id: CGWindowID)?
+        /// Opened by "Alterar divisórias": the group whose layout is being chosen.
+        var relayout: String?
+        /// Driven by the keyboard and the pointer (not by a drag).
+        var isKeyboard: Bool { target != nil || relayout != nil }
     }
 
     /// A window put in a zone.
@@ -88,8 +94,6 @@ final class ZoneController {
     private var hover: ZonePopupGeometry.Hit?
     /// Per display, the last group of two or more windows.
     private var lastGroups: [String: SavedGroup] = [:]
-    /// A single click on a grip waits for a possible second one.
-    private var pendingUnlink: DispatchWorkItem?
     private var placements: [CGWindowID: Placement] = [:]
     /// A window's own size before it went into a zone, given back when it leaves.
     private var ownSizes: [CGWindowID: CGSize] = [:]
@@ -113,14 +117,14 @@ final class ZoneController {
         popup.onKey = { [weak self] code, flags in self?.keyboardKey(code, flags: flags) }
         popup.onPointer = { [weak self] point, clicked in self?.keyboardPointer(point, clicked: clicked) }
         popup.onResign = { [weak self] in
-            guard self?.session?.target != nil else { return }
+            guard self?.session?.isKeyboard == true else { return }
             self?.closePopup()
         }
         assist.onPick = { [weak self] id, zone in self?.assistPicked(id, zone: zone) }
         decor.onGripBegin = { [weak self] in self?.gripBegan() }
         decor.onGripDrag = { [weak self] divider, position in self?.gripMoved(divider, to: position) }
         decor.onGripEnd = { [weak self] divider in self?.gripEnded(divider) }
-        decor.onGripClick = { [weak self] divider, count, center in self?.gripClicked(divider, count: count, at: center) }
+        decor.onGripClick = { [weak self] divider, center, view in self?.gripClicked(divider, at: center, in: view) }
     }
 
     // MARK: - The shortcut
@@ -176,7 +180,7 @@ final class ZoneController {
     /// The shortcut: the panel for the window in front, on its display, driven by the keyboard.
     func openForFrontWindow() {
         guard Self.isEnabled, AccessibilityGuard.isTrusted, NSEvent.pressedMouseButtons & 1 == 0 else { return }
-        if session?.target != nil {
+        if session?.isKeyboard == true {
             closePopup()
             return
         }
@@ -197,9 +201,13 @@ final class ZoneController {
 
     // MARK: - The keyboard and the pointer (shortcut mode)
 
-    /// The panel's choices, one row per drawing (the last group first, when shown).
+    /// The panel's choices, one row per drawing (the last group first, when shown). Choosing a
+    /// layout ("Alterar divisórias") has one choice per drawing.
     private func keyboardRows() -> [[ZonePopupGeometry.Hit]] {
         guard let geometry = session?.geometry else { return [] }
+        if session?.relayout != nil {
+            return [geometry.zones.indices.map { .zone(template: $0, zone: 0) }]
+        }
         var rows: [[ZonePopupGeometry.Hit]] = geometry.groupThumb == nil ? [] : [[.lastGroup]]
         for (template, zones) in geometry.zones.enumerated() {
             rows.append(zones.indices.map { .zone(template: template, zone: $0) })
@@ -208,7 +216,7 @@ final class ZoneController {
     }
 
     private func keyboardKey(_ code: UInt16, flags: NSEvent.ModifierFlags) {
-        guard session?.target != nil else { return }
+        guard let session, session.isKeyboard else { return }
         let rows = keyboardRows()
         guard !rows.isEmpty else { return }
         let flat = rows.flatMap { $0 }
@@ -226,22 +234,51 @@ final class ZoneController {
             setHover(rows[next][min(column, rows[next].count - 1)])
         case kVK_Return, kVK_ANSI_KeypadEnter:
             commitKeyboard()
+        case kVK_Delete, kVK_ForwardDelete:
+            if hover == .lastGroup { forgetLastGroup(on: session.screen) }
         default:
             break
         }
     }
 
     private func keyboardPointer(_ point: CGPoint, clicked: Bool) {
-        guard let session, session.target != nil else { return }
-        let hit = session.geometry.hit(point)
+        guard let session, session.isKeyboard else { return }
+        if clicked, session.relayout == nil, session.geometry.forgetButton?.contains(point) == true {
+            forgetLastGroup(on: session.screen)
+            return
+        }
+        var hit = session.geometry.hit(point)
+        if session.relayout != nil {
+            if case let .zone(template, _) = hit { hit = .zone(template: template, zone: 0) } else { hit = nil }
+        }
         if let hit { setHover(hit) }
         if clicked, hit != nil { commitKeyboard() }
     }
 
-    /// The window the shortcut was for goes to the chosen zone (or the last group comes back).
-    private func commitKeyboard() {
-        guard let session, let target = session.target, let hover else { return }
+    /// The × on the "Último grupo" card (or Delete on it): that group is forgotten.
+    private func forgetLastGroup(on screen: NSScreen) {
+        lastGroups[Self.key(for: screen)] = nil
+        log.notice("last group forgotten")
+        // Open again without the card, for the same window.
+        guard let target = session?.target else {
+            closePopup()
+            return
+        }
         closePopup()
+        openPopup(on: screen, target: target)
+        if let first = keyboardRows().first?.first { setHover(first) }
+    }
+
+    /// The window the shortcut was for goes to the chosen zone (or the last group comes back);
+    /// with "Alterar divisórias", the group takes the chosen layout.
+    private func commitKeyboard() {
+        guard let session, session.isKeyboard, let hover else { return }
+        closePopup()
+        if let group = session.relayout {
+            if case let .zone(template, _) = hover { applyLayout(template, to: group, on: session.screen) }
+            return
+        }
+        guard let target = session.target else { return }
         switch hover {
         case .lastGroup:
             relink(on: session.screen)
@@ -259,7 +296,7 @@ final class ZoneController {
         guard let session, hit != hover else { return }
         hover = hit
         popup.setHover(hit)
-        if case let .zone(template, zone) = hit, let frame = frames(template: template, on: session.screen)[safe: zone] {
+        if session.relayout == nil, case let .zone(template, zone) = hit, let frame = frames(template: template, on: session.screen)[safe: zone] {
             preview.show(frame)
         } else {
             preview.hide()
@@ -313,7 +350,7 @@ final class ZoneController {
         }
         decor.hide()
         // The panel opened by the shortcut gives way to a drag.
-        if session?.target != nil { closePopup() }
+        if session?.isKeyboard == true { closePopup() }
         let cursor = NSEvent.mouseLocation.screenFlipped
         dragLowest = max(dragLowest ?? cursor.y, cursor.y)
         if session == nil, let screen = NSScreen.screens.first(where: { $0.frame.screenFlipped.contains(cursor) }) {
@@ -346,7 +383,7 @@ final class ZoneController {
         dragLowest = nil
         hint.hide()
         defer { closePopup() }
-        guard let session, session.target == nil else {
+        guard let session, !session.isKeyboard else {
             // Let go elsewhere: it leaves its group and gets its own size back.
             if let id, let element, placements[id] != nil { release(id, element: element) }
             return false
@@ -366,22 +403,26 @@ final class ZoneController {
         return true
     }
 
-    private func openPopup(on screen: NSScreen, target: (element: AccessibilityElement, id: CGWindowID)? = nil) {
+    private func openPopup(on screen: NSScreen, target: (element: AccessibilityElement, id: CGWindowID)? = nil,
+                           relayout: String? = nil) {
         assist.close()
         let display = Self.key(for: screen)
         let roots = ZoneTemplate.allCases.map { root($0.rawValue, display: display) }
-        // The last group is offered while at least two of its windows are still around.
-        let saved = lastGroups[display].flatMap { group -> SavedGroup? in
+        // The last group is offered while at least two of its windows are still around (not
+        // while choosing a group's new layout).
+        let saved = relayout != nil ? nil : lastGroups[display].flatMap { group -> SavedGroup? in
             let alive = Set(WindowUtil.getWindowList(ids: Array(group.zones.keys), all: true, forceRefresh: true).map(\.id))
             return group.zones.keys.filter(alive.contains).count >= 2 ? group : nil
         }
         let geometry = ZonePopupGeometry(screen: screen, roots: roots, lastGroup: saved?.root)
-        session = Session(display: display, screen: screen, geometry: geometry, target: target)
+        session = Session(display: display, screen: screen, geometry: geometry, target: target, relayout: relayout)
         hover = nil
         hint.hide()
         var icons: [Int: pid_t] = [:]
         for (id, zone) in saved?.zones ?? [:] { icons[zone] = saved?.pids[id] }
-        popup.open(geometry, roots: roots, groupIcons: icons, keyboard: target != nil)
+        popup.open(geometry, roots: roots, groupIcons: icons, keyboard: target != nil || relayout != nil,
+                   hint: relayout != nil ? L("Choose the new layout · Return applies · Esc keeps this one") : nil,
+                   wholeLayout: relayout != nil)
     }
 
     private func closePopup() {
@@ -413,19 +454,52 @@ final class ZoneController {
         let members = Set(placements.filter { $0.value.group == group }.map(\.key))
         let candidates = openWindows().filter { !members.contains($0.id) && $0.id != placed }
         guard !candidates.isEmpty else { return }
-        assistContext = (screen, template)
+        assistContext = (screen, template, false)
         assist.show(on: screen, zones: free, candidates: candidates)
     }
 
-    private var assistContext: (screen: NSScreen, template: Int)?
+    /// Where the assist is, and whether a pick replaces the window of that zone ("Trocar app").
+    private var assistContext: (screen: NSScreen, template: Int, replacing: Bool)?
 
     private func assistPicked(_ id: CGWindowID, zone: Int) {
-        guard let (screen, template) = assistContext,
+        guard let (screen, template, replacing) = assistContext,
               let frame = frames(template: template, on: screen)[safe: zone],
               let element = AccessibilityElement.getWindowElement(id) else { return }
-        place(element, id: id, frame: frame,
-              placement: Placement(display: Self.key(for: screen), template: template, zone: zone, frame: frame))
+        let display = Self.key(for: screen)
+        if replacing {
+            // The window that was there leaves the group, where it is.
+            let group = "\(display)-\(template)"
+            for (other, spot) in placements where spot.group == group && spot.zone == zone {
+                placements.removeValue(forKey: other)
+                ownSizes.removeValue(forKey: other)
+            }
+            assist.close()
+        }
+        place(element, id: id, frame: frame, placement: Placement(display: display, template: template, zone: zone, frame: frame))
         element.raise()
+    }
+
+    /// "Trocar app": each window of the group shows in its zone what could take its place; the
+    /// pick replaces it. The only way a window from outside comes into a group.
+    private func startReplace(_ group: String) {
+        guard let member = placements.values.first(where: { $0.group == group }),
+              let screen = NSScreen.screens.first(where: { Self.key(for: $0) == member.display }) else { return }
+        let members = placements.filter { $0.value.group == group }
+        let frames = frames(template: member.template, on: screen)
+        let zones = members.values.map(\.zone).sorted().compactMap { zone in frames[safe: zone].map { (zone: zone, frame: $0) } }
+        var captions: [Int: String] = [:]
+        for placement in members.values {
+            let name = NSRunningApplication(processIdentifier: placement.pid)?.localizedName ?? ""
+            captions[placement.zone] = L("In place of \(name)")
+        }
+        let candidates = openWindows().filter { members[$0.id] == nil }
+        guard !zones.isEmpty, !candidates.isEmpty else {
+            NSSound.beep()
+            return
+        }
+        assistContext = (screen, member.template, true)
+        assist.show(on: screen, zones: zones, candidates: candidates, captions: captions,
+                    hint: L("Pick the window that comes in, in the space it replaces · Esc closes"))
     }
 
     /// The standard windows on the current Space, front to back.
@@ -627,47 +701,104 @@ final class ZoneController {
         refreshDecor()
     }
 
-    // MARK: - Letting a group go and joining it again
+    // MARK: - The grip's menu
 
-    private func gripClicked(_ divider: ZoneDivider, count: Int, at center: CGPoint) {
+    private func gripClicked(_ divider: ZoneDivider, at center: CGPoint, in view: NSView) {
         let group = gripDrag?.group
         gripDrag = nil
         gripTarget = nil
-        pendingUnlink?.cancel()
         guard let group else { return }
-        if count >= 2 {
-            evenSides(divider, group: group)
-            return
-        }
-        // Wait to see whether a second click makes it a double click.
-        let work = DispatchWorkItem { [weak self] in
-            MainActor.assumeIsolated { self?.unlink(group, at: center) }
-        }
-        pendingUnlink = work
-        DispatchQueue.main.asyncAfter(deadline: .now() + NSEvent.doubleClickInterval, execute: work)
+        let menu = NSMenu()
+        menu.autoenablesItems = false
+        menu.addItem(ZoneMenuItem(L("Swap App…"), symbol: "arrow.triangle.2.circlepath") { [weak self] in self?.startReplace(group) })
+        menu.addItem(ZoneMenuItem(L("Swap Sides"), symbol: divider.axis == .columns ? "arrow.left.arrow.right" : "arrow.up.arrow.down") { [weak self] in
+            self?.swapSides(divider, group: group)
+        })
+        menu.addItem(ZoneMenuItem(L("Change Layout…"), symbol: "rectangle.split.3x1") { [weak self] in self?.openRelayout(group) })
+        menu.addItem(ZoneMenuItem(L("Share the Room Equally"), symbol: "equal.square") { [weak self] in self?.evenSides(divider, group: group) })
+        menu.addItem(.separator())
+        menu.addItem(ZoneMenuItem(L("Unlink"), symbol: "xmark.circle") { [weak self] in self?.unlink(group, at: center) })
+        menu.addItem(ZoneMenuItem(L("Cancel")) {})
+        menu.popUp(positioning: nil, at: NSPoint(x: view.bounds.maxX + 4, y: view.bounds.midY), in: view)
+        refreshDecor()
     }
 
-    /// The windows of `group` stop going together; they stay where they are.
+    /// "Inverter lados": the windows on each side of the line trade places, with their room.
+    private func swapSides(_ divider: ZoneDivider, group: String) {
+        guard let member = placements.values.first(where: { $0.group == group }),
+              let screen = NSScreen.screens.first(where: { Self.key(for: $0) == member.display }) else { return }
+        let (swapped, moved) = ZoneGeometry.swappingSides(divider, root: root(member.template, display: member.display))
+        roots[group] = swapped
+        let frames = ZoneGeometry.frames(swapped, in: screen.adjustedVisibleFrame().screenFlipped, gap: gap)
+        for (id, placement) in placements where placement.group == group {
+            guard let zone = moved[safe: placement.zone], let frame = frames[safe: zone],
+                  let element = AccessibilityElement.getWindowElement(id) else { continue }
+            place(element, id: id, frame: frame,
+                  placement: Placement(display: placement.display, template: placement.template, zone: zone, frame: frame))
+        }
+        NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
+        decor.hide()
+        refreshDecor()
+    }
+
+    /// "Alterar divisórias": the panel to choose another layout for the group; Esc keeps it.
+    private func openRelayout(_ group: String) {
+        guard let member = placements.values.first(where: { $0.group == group }),
+              let screen = NSScreen.screens.first(where: { Self.key(for: $0) == member.display }) else { return }
+        openPopup(on: screen, relayout: group)
+        setHover(.zone(template: member.template, zone: 0))
+    }
+
+    /// The group's windows go into `template`'s zones, in the order they had. Windows beyond its
+    /// zones leave the group; empty zones get Snap Assist.
+    private func applyLayout(_ template: Int, to group: String, on screen: NSScreen) {
+        let members = placements.filter { $0.value.group == group }.sorted { $0.value.zone < $1.value.zone }
+        guard !members.isEmpty else { return }
+        let display = Self.key(for: screen)
+        let frames = frames(template: template, on: screen)
+        for (id, _) in members { placements.removeValue(forKey: id) }
+        var last: CGWindowID?
+        for (index, member) in members.enumerated() {
+            guard let frame = frames[safe: index], let element = AccessibilityElement.getWindowElement(member.key) else { continue }
+            place(element, id: member.key, frame: frame,
+                  placement: Placement(display: display, template: template, zone: index, frame: frame))
+            last = member.key
+        }
+        log.notice("group moved to layout \(template + 1)")
+        if frames.count > members.count, let last { startAssist(after: last, template: template, screen: screen) }
+        refreshDecor()
+    }
+
+    // MARK: - Unlinking and joining again
+
+    /// "Desvincular": the windows stop going together and stay where they are; the group is
+    /// forgotten (no "Último grupo" card), with a few seconds to join it again.
     private func unlink(_ group: String, at center: CGPoint) {
         guard let display = placements.values.first(where: { $0.group == group })?.display else { return }
         rememberGroup(group)
+        let saved = lastGroups[display]
+        lastGroups[display] = nil
         for (id, placement) in placements where placement.group == group {
             placements.removeValue(forKey: id)
         }
         decor.hide()
         NSHapticFeedbackManager.defaultPerformer.perform(.levelChange, performanceTime: .now)
-        log.notice("group let go")
+        log.notice("group unlinked")
         decor.showRelink(at: center) { [weak self] in
-            guard let self, let screen = NSScreen.screens.first(where: { Self.key(for: $0) == display }) else { return }
-            self.relink(on: screen)
+            guard let self, let saved, let screen = NSScreen.screens.first(where: { Self.key(for: $0) == display }) else { return }
+            self.relink(saved, on: screen)
         }
     }
 
-    /// Puts the last group of `screen` back: every window of it still open goes to its zone,
-    /// with the proportions it had.
+    /// Puts the last group of `screen` back (the "Último grupo" card).
     private func relink(on screen: NSScreen) {
+        guard let saved = lastGroups[Self.key(for: screen)] else { return }
+        relink(saved, on: screen)
+    }
+
+    /// Every window of `saved` still open goes back to its zone, with the proportions it had.
+    private func relink(_ saved: SavedGroup, on screen: NSScreen) {
         let display = Self.key(for: screen)
-        guard let saved = lastGroups[display] else { return }
         let group = "\(display)-\(saved.template)"
         roots[group] = saved.root
         let frames = frames(template: saved.template, on: screen)
@@ -701,7 +832,7 @@ final class ZoneController {
                                                zones: members.mapValues(\.zone), pids: pids)
     }
 
-    /// A double click on a grip: its two sides get the same room.
+    /// "Dividir igualmente": the two sides of the line get the same room.
     private func evenSides(_ divider: ZoneDivider, group: String) {
         guard let member = placements.values.first(where: { $0.group == group }),
               let screen = NSScreen.screens.first(where: { Self.key(for: $0) == member.display }) else { return }
@@ -800,4 +931,20 @@ final class ZoneController {
 
 private extension Array {
     subscript(safe index: Int) -> Element? { indices.contains(index) ? self[index] : nil }
+}
+
+/// A menu item that runs a closure (the grip's menu).
+private final class ZoneMenuItem: NSMenuItem {
+    private let handler: () -> Void
+
+    init(_ title: String, symbol: String? = nil, handler: @escaping () -> Void) {
+        self.handler = handler
+        super.init(title: title, action: #selector(run), keyEquivalent: "")
+        target = self
+        if let symbol { image = NSImage(systemSymbolName: symbol, accessibilityDescription: nil) }
+    }
+
+    required init(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+    @objc private func run() { handler() }
 }

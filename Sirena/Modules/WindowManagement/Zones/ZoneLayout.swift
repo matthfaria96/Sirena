@@ -118,6 +118,35 @@ enum ZoneGeometry {
         return root
     }
 
+    /// The two sides of `divider` trade places ("Inverter lados"): the windows on the left go
+    /// right, and so on. `moved[old]` is the zone each old zone's window goes to.
+    static func swappingSides(_ divider: ZoneDivider, root: ZoneNode) -> (root: ZoneNode, moved: [Int]) {
+        var node = root.node(at: divider.path)
+        let i = divider.index
+        guard i + 1 < node.children.count else { return (root, Array(leafPaths(root).indices)) }
+        node.children.swapAt(i, i + 1)
+        node.sizes.swapAt(i, i + 1)
+        var swapped = root
+        swapped.replace(at: divider.path, with: node)
+        let oldPaths = leafPaths(root)
+        let newPaths = leafPaths(swapped)
+        let depth = divider.path.count
+        let moved = oldPaths.enumerated().map { index, path -> Int in
+            var path = path
+            if path.count > depth, Array(path.prefix(depth)) == divider.path, path[depth] == i || path[depth] == i + 1 {
+                path[depth] = path[depth] == i ? i + 1 : i
+            }
+            return newPaths.firstIndex(of: path) ?? index
+        }
+        return (swapped, moved)
+    }
+
+    /// The child indices leading to every zone, depth first (the zones' order).
+    static func leafPaths(_ root: ZoneNode, path: [Int] = []) -> [[Int]] {
+        guard !root.children.isEmpty else { return [path] }
+        return root.children.enumerated().flatMap { leafPaths($1, path: path + [$0]) }
+    }
+
     /// A window in a zone was resized by hand from `old` to `new` (frames with gaps): the
     /// lines its moved edges sat on follow them, so its neighbours make room.
     static func resizing(from old: CGRect, to new: CGRect, root: ZoneNode,
