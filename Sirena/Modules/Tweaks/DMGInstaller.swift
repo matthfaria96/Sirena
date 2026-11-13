@@ -132,6 +132,9 @@ final class DMGInstaller {
     nonisolated private static func install(app: URL, to destination: URL, bundleID: String?,
                                             volume: URL, image: URL) async -> Result<URL, Error> {
         let fm = FileManager.default
+        // Copy beside the destination first, so a failed copy never loses the old app.
+        let staging = destination.deletingLastPathComponent()
+            .appendingPathComponent(".\(destination.lastPathComponent).sirena-install")
         do {
             // Quit the old copy first, or it keeps running from the Trash.
             if let bundleID {
@@ -142,9 +145,6 @@ final class DMGInstaller {
                     if !instance.isTerminated { _ = await MainActor.run { instance.forceTerminate() } }
                 }
             }
-            // Copy beside the destination first, so a failed copy never loses the old app.
-            let staging = destination.deletingLastPathComponent()
-                .appendingPathComponent(".\(destination.lastPathComponent).sirena-install")
             try? fm.removeItem(at: staging)
             try runDitto(from: app, to: staging)
             if fm.fileExists(atPath: destination.path) {
@@ -159,6 +159,9 @@ final class DMGInstaller {
             }
             return .success(destination)
         } catch {
+            // A copy that never made it in would stay hidden in Applications (770 MB once).
+            // Kept only when the old app already went to the Trash: then it's the one left.
+            if fm.fileExists(atPath: destination.path) { try? fm.removeItem(at: staging) }
             return .failure(error)
         }
     }
