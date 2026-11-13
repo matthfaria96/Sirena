@@ -1,9 +1,10 @@
 /// ZoneGroupDecor.swift
 ///
 /// What shows that windows are held together: while one window of a group (windows put in
-/// the zones of the same layout on a display) is the one in use, each member gets a thin
-/// dashed outline, and every line two members share gets a grip. Dragging a grip resizes the
-/// windows on both sides at once (Windows 11's snap group resize); a click opens its menu
+/// the zones of the same layout on a display) is the one in use, every edge two of them share
+/// gets one quiet line — neutral, translucent, never the accent colour — with a small glass
+/// grip in its middle. Nothing is drawn around the windows themselves. Dragging a grip resizes
+/// the windows on both sides at once (Windows 11's snap group resize); a click opens its menu
 /// (swap an app, swap the sides, change the layout, even, let go).
 
 import AppKit
@@ -11,6 +12,13 @@ import SwiftUI
 
 @MainActor
 final class ZoneGroupDecor {
+    /// The stretch of a line two windows share, in Accessibility coordinates.
+    struct Line: Equatable {
+        let divider: ZoneDivider
+        let from: CGPoint
+        let to: CGPoint
+    }
+
     struct Grip: Equatable {
         let divider: ZoneDivider
         /// Its centre, in Accessibility coordinates.
@@ -27,30 +35,37 @@ final class ZoneGroupDecor {
     private var relinkPanel: NSPanel?
     private var relinkHide: DispatchWorkItem?
 
-    private var outlines: [CGWindowID: NSPanel] = [:]
+    private var lines: [NSPanel] = []
+    private var shownLines: [Line] = []
     private var grips: [NSPanel] = []
     private var shownGrips: [Grip] = []
     private(set) var isDraggingGrip = false
 
-    /// Outlines around `frames` (Accessibility coordinates) and the grips.
-    func show(frames: [CGWindowID: CGRect], grips: [Grip]) {
-        for (id, panel) in outlines where frames[id] == nil {
-            panel.orderOut(nil)
-            outlines.removeValue(forKey: id)
-        }
-        for (id, frame) in frames {
-            let panel = outlines[id] ?? makeOutline()
-            outlines[id] = panel
-            let target = frame.insetBy(dx: -3, dy: -3).screenFlipped
-            if panel.frame != target { panel.setFrame(target, display: true) }
-            if !panel.isVisible { fadeIn(panel) }
+    /// How thick a line's panel is (the line itself is thinner, with room for its soft edge)
+    /// and how far it stays from the ends of the edge.
+    private static let lineThickness: CGFloat = 9
+    private static let lineInset: CGFloat = 12
+
+    /// The lines between the windows, and the grips. While a grip is dragged the lines follow
+    /// and the grips are left alone (`moveGrip` moves the one in hand).
+    func show(lines: [Line], grips: [Grip]) {
+        if lines != shownLines {
+            while self.lines.count > lines.count { self.lines.removeLast().orderOut(nil) }
+            for (index, line) in lines.enumerated() {
+                if index == self.lines.count { self.lines.append(makeLine()) }
+                let panel = self.lines[index]
+                let frame = Self.frame(of: line).screenFlipped
+                if panel.frame != frame { panel.setFrame(frame, display: true) }
+                if !panel.isVisible { fadeIn(panel) }
+            }
+            shownLines = lines
         }
         guard !isDraggingGrip, grips != shownGrips else { return }
         shownGrips = grips
         for panel in self.grips { panel.orderOut(nil) }
         self.grips = grips.map { grip in
             let vertical = grip.divider.axis == .columns
-            let size = vertical ? CGSize(width: 14, height: 64) : CGSize(width: 64, height: 14)
+            let size = vertical ? CGSize(width: 16, height: 64) : CGSize(width: 64, height: 16)
             let frame = CGRect(x: grip.center.x - size.width / 2, y: grip.center.y - size.height / 2,
                                width: size.width, height: size.height)
             let panel = makeGrip(grip)
@@ -58,6 +73,17 @@ final class ZoneGroupDecor {
             fadeIn(panel)
             return panel
         }
+    }
+
+    /// A line's panel: along the shared edge, short of its ends.
+    private static func frame(of line: Line) -> CGRect {
+        let half = lineThickness / 2
+        if line.divider.axis == .columns {
+            let inset = min(lineInset, max(0, (line.to.y - line.from.y) / 2 - 8))
+            return CGRect(x: line.from.x - half, y: line.from.y + inset, width: lineThickness, height: max(1, line.to.y - line.from.y - inset * 2))
+        }
+        let inset = min(lineInset, max(0, (line.to.x - line.from.x) / 2 - 8))
+        return CGRect(x: line.from.x + inset, y: line.from.y - half, width: max(1, line.to.x - line.from.x - inset * 2), height: lineThickness)
     }
 
     /// Moves a grip with its line while it's dragged.
@@ -105,13 +131,14 @@ final class ZoneGroupDecor {
 
     func hide() {
         guard !isDraggingGrip else { return }
-        for panel in outlines.values {
+        for panel in lines {
             NSAnimationContext.runAnimationGroup({ context in
                 context.duration = 0.18
                 panel.animator().alphaValue = 0
             }, completionHandler: { panel.orderOut(nil) })
         }
-        outlines.removeAll()
+        lines.removeAll()
+        shownLines.removeAll()
         for panel in grips { panel.orderOut(nil) }
         grips.removeAll()
         shownGrips.removeAll()
@@ -140,12 +167,9 @@ final class ZoneGroupDecor {
         return panel
     }
 
-    private func makeOutline() -> NSPanel {
+    private func makeLine() -> NSPanel {
         let panel = basePanel(ignoresMouse: true)
-        // Present for as long as one of the windows is in use: a quiet dashed line.
-        panel.contentView = NSHostingView(rootView:
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .strokeBorder(Color.accentColor.opacity(0.55), style: StrokeStyle(lineWidth: 1.5, dash: [7, 5])))
+        panel.contentView = NSHostingView(rootView: SeamShape())
         return panel
     }
 
@@ -175,8 +199,19 @@ final class ZoneGroupDecor {
     }
 }
 
-/// The grip: a pill with a ⟷ (or ↕) mark, a link while the pointer is on it, the resize
-/// cursor over it. Dragging resizes; a click (or two) without moving goes to `onClick`.
+/// The line between two windows of a group: thin, neutral and translucent, a light core
+/// with a darker hairline so it reads over light and dark windows alike without standing out.
+private struct SeamShape: View {
+    var body: some View {
+        Capsule()
+            .fill(Color.white.opacity(0.4))
+            .overlay(Capsule().strokeBorder(Color.black.opacity(0.22), lineWidth: 0.5))
+            .padding(3)
+    }
+}
+
+/// The grip: a small glass pill on the line, a little bigger under the pointer, with the
+/// resize cursor over it. Dragging resizes; a click (or two) without moving goes to `onClick`.
 private final class GripView: NSView {
     let axis: ZoneNode.Axis
     var onDown: (() -> Void)?
@@ -199,6 +234,7 @@ private final class GripView: NSView {
         ])
         addTrackingArea(NSTrackingArea(rect: .zero, options: [.mouseEnteredAndExited, .activeAlways, .inVisibleRect],
                                        owner: self, userInfo: nil))
+        toolTip = L("Drag to resize both windows; click for more options.")
         setAccessibilityElement(true)
         setAccessibilityRole(.splitter)
         setAccessibilityLabel(L("Line between the windows"))
@@ -222,12 +258,13 @@ private final class GripView: NSView {
     }
 
     override func mouseExited(with event: NSEvent) {
-        hosting.rootView = GripShape(vertical: axis == .columns, hovering: false)
+        if pressedAt == nil { hosting.rootView = GripShape(vertical: axis == .columns, hovering: false) }
     }
 
     override func mouseDown(with event: NSEvent) {
         pressedAt = NSEvent.mouseLocation
         dragged = false
+        hosting.rootView = GripShape(vertical: axis == .columns, hovering: true)
         onDown?()
     }
 
@@ -255,22 +292,21 @@ private struct GripShape: View {
     let hovering: Bool
 
     var body: some View {
-        ZStack {
-            Capsule()
-                .fill(LinearGradient(colors: [Color.accentColor, Color.accentColor.opacity(0.78)],
-                                     startPoint: .top, endPoint: .bottom))
-                .overlay(Capsule().strokeBorder(.white.opacity(0.45), lineWidth: 1))
-                .shadow(color: .black.opacity(0.3), radius: 3, y: 1)
-            Image(systemName: hovering ? "link" : (vertical ? "arrow.left.and.right" : "arrow.up.and.down"))
-                .font(.system(size: hovering ? 8.5 : 8, weight: .heavy))
-                .foregroundStyle(.white)
-                .rotationEffect(.degrees(hovering && vertical ? 90 : 0))
-        }
-        .padding(1)
+        let thickness: CGFloat = hovering ? 8 : 6
+        let length: CGFloat = hovering ? 52 : 42
+        Capsule()
+            .fill(Color.white.opacity(hovering ? 0.55 : 0.3))
+            .compatGlass(.regular, in: Capsule())
+            .overlay(Capsule().strokeBorder(Color.white.opacity(0.6), lineWidth: 0.6))
+            .overlay(Capsule().strokeBorder(Color.black.opacity(0.28), lineWidth: 0.5).padding(-0.5))
+            .shadow(color: .black.opacity(0.28), radius: 2, y: 0.5)
+            .frame(width: vertical ? thickness : length, height: vertical ? length : thickness)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .animation(.snappy(duration: 0.15), value: hovering)
     }
 }
 
-/// "Join again": back to the group that was just let go.
+/// "Join again": back to the group that was just let go. Glass, like the grip.
 private struct RelinkButton: View {
     let action: () -> Void
     @State private var isHovering = false
@@ -279,13 +315,13 @@ private struct RelinkButton: View {
         Button(action: action) {
             Label(L("Join again"), systemImage: "link")
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(.white)
+                .foregroundStyle(.primary)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(Capsule().fill(LinearGradient(colors: [Color.accentColor, Color.accentColor.opacity(0.8)],
-                                                          startPoint: .top, endPoint: .bottom)))
-                .overlay(Capsule().strokeBorder(.white.opacity(0.4), lineWidth: 1))
-                .shadow(color: .black.opacity(0.3), radius: 5, y: 2)
-                .scaleEffect(isHovering ? 1.04 : 1)
+                .background(Capsule().fill(Color.primary.opacity(isHovering ? 0.12 : 0.04)))
+                .compatGlass(.regular, in: Capsule())
+                .overlay(Capsule().strokeBorder(Color.white.opacity(0.3), lineWidth: 0.8))
+                .shadow(color: .black.opacity(0.25), radius: 5, y: 2)
+                .scaleEffect(isHovering ? 1.03 : 1)
                 .contentShape(Capsule())
         }
         .buttonStyle(.plain)

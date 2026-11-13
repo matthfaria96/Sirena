@@ -89,6 +89,10 @@ read it before touching the page and update it in the same commit. The rules tha
   window in front. Each display gets its own list of layouts (`ZoneTemplate.fitting`, by shape and
   size); `ZoneTemplate` raw values are stored, so append new layouts, never reorder. Their geometry
   is tested by `scripts/test-zone-layout.sh` (no app, no AX).
+- Snap Assist's windows come from the ⌘ Tab switcher's enumerator (`ZoneWindows`), never from a
+  hand-made AX filter, and the zones' main thread never waits for another app (lists, the window in
+  use and grip frames go through background queues). One window per zone; a window that won't
+  shrink gets the room (`settle`). The engine's rules are listed in the map's §5.
 
 ## Showcase mode (site screenshots)
 

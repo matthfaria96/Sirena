@@ -361,6 +361,8 @@ class SnappingManager {
             initialEventWindowID = nil
             windowIdAttempt = 0
             lastWindowIdAttempt = nil
+            // A click may have put another window of a snap group in use.
+            ZoneController.pointerReleased()
         case .leftMouseDragged:
             nativeGesture.drag()
 
@@ -392,6 +394,7 @@ class SnappingManager {
                 }
                 else if geometry.isResizing, let windowId {
                     WindowManagementModule.windowHistory.lastRectangleActions.removeValue(forKey: windowId)
+                    ZoneController.resizeMoved(id: windowId)
                 }
             }
             if windowMoving {

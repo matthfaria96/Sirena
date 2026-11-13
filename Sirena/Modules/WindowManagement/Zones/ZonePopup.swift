@@ -305,7 +305,6 @@ private struct ZonePopupView: View {
                                        : AnyShapeStyle(Color.primary.opacity(isHovered ? 0.2 : 0.14)))
                             .overlay(RoundedRectangle(cornerRadius: 6, style: .continuous)
                                 .strokeBorder(isOn ? Color.white.opacity(0.35) : Color.primary.opacity(0.15), lineWidth: 0.7))
-                            .shadow(color: isOn ? Color.accentColor.opacity(0.5) : .clear, radius: 6)
                             .frame(width: max(1, frame.width), height: max(1, frame.height))
                             .offset(x: frame.minX, y: frame.minY)
                     }
@@ -315,10 +314,9 @@ private struct ZonePopupView: View {
             if let thumb = model.groupThumb {
                 let isOn = model.hover == [-1, -1]
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(isOn ? AnyShapeStyle(Color.accentColor.opacity(0.28)) : AnyShapeStyle(Color.accentColor.opacity(0.1)))
+                    .fill(Color.primary.opacity(isOn ? 0.2 : 0.07))
                     .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .strokeBorder(Color.accentColor.opacity(isOn ? 1 : 0.5), lineWidth: isOn ? 2 : 1))
-                    .shadow(color: isOn ? Color.accentColor.opacity(0.45) : .clear, radius: 8)
+                        .strokeBorder(Color.primary.opacity(isOn ? 0.7 : 0.28), lineWidth: isOn ? 1.5 : 1))
                     .frame(width: thumb.width + 6, height: thumb.height + 6)
                     .offset(x: thumb.minX - 3, y: thumb.minY - 3)
                 ForEach(model.groupZones.indices, id: \.self) { zone in
@@ -338,7 +336,7 @@ private struct ZonePopupView: View {
                 }
                 Label(L("Last group"), systemImage: "link")
                     .font(.system(size: 10.5, weight: .semibold))
-                    .foregroundStyle(Color.accentColor)
+                    .foregroundStyle(isOn ? .primary : .secondary)
                     .lineLimit(1)
                     // One line even under a portrait display's narrow drawing.
                     .frame(width: max(thumb.width + 20, 110))
@@ -447,6 +445,19 @@ struct ZoneHintView: View {
 
 // MARK: - Where the window will go
 
+/// A sheet of glass over the zone, with a light rim: clear to see, never the accent colour.
+struct ZonePreviewShape: View {
+    var body: some View {
+        let shape = RoundedRectangle(cornerRadius: 14, style: .continuous)
+        shape
+            .fill(Color.white.opacity(0.08))
+            .compatGlass(.regular, in: shape)
+            .overlay(shape.strokeBorder(Color.white.opacity(0.55), lineWidth: 1.5))
+            .overlay(shape.strokeBorder(Color.black.opacity(0.25), lineWidth: 0.5).padding(-0.5))
+            .padding(3)
+    }
+}
+
 @MainActor
 final class ZonePreview {
     private var panel: NSPanel?
@@ -496,12 +507,7 @@ final class ZonePreview {
         panel.hidesOnDeactivate = false
         panel.level = .floating
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary, .ignoresCycle, .transient]
-        panel.contentView = NSHostingView(rootView:
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.accentColor.opacity(0.18))
-                .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .strokeBorder(Color.accentColor.opacity(0.9), lineWidth: 3))
-                .padding(3))
+        panel.contentView = NSHostingView(rootView: ZonePreviewShape())
         return panel
     }
 }

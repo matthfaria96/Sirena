@@ -14142,16 +14142,6 @@
         }
       }
     },
-    "Choose a window for each space · arrows and Return · Esc closes": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Escolha uma janela para cada espaço · setas e Enter · Esc fecha"
-          }
-        }
-      }
-    },
     "Line between the windows": {
       "localizations": {
         "pt-BR": {
@@ -14262,16 +14252,6 @@
         }
       }
     },
-    "Pick the window that comes in, in the space it replaces · Esc closes": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Escolha a janela que entra, no espaço que ela vai ocupar · Esc fecha"
-          }
-        }
-      }
-    },
     "Choose the new layout · Return applies · Esc keeps this one": {
       "localizations": {
         "pt-BR": {
@@ -14328,6 +14308,96 @@
           "stringUnit": {
             "state": "translated",
             "value": "Em %@"
+          }
+        }
+      }
+    },
+    "Type to filter": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Digite para filtrar"
+          }
+        }
+      }
+    },
+    "No window matches “%@”": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nenhuma janela com “%@”"
+          }
+        }
+      }
+    },
+    "Minimized": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minimizada"
+          }
+        }
+      }
+    },
+    "App hidden": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App oculto"
+          }
+        }
+      }
+    },
+    "Minimized or hidden": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minimizadas ou ocultas"
+          }
+        }
+      }
+    },
+    "Free space": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Espaço livre"
+          }
+        }
+      }
+    },
+    "Click to choose its window": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clique para escolher a janela"
+          }
+        }
+      }
+    },
+    "Snap": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encaixar"
+          }
+        }
+      }
+    },
+    "Other space": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outro espaço"
           }
         }
       }

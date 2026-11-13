@@ -42,6 +42,17 @@ struct ZoneDivider: Equatable {
     var position: CGFloat { axis == .columns ? line.minX : line.minY }
 }
 
+/// The stretch of a line between windows of a group: from `low` to `high` along it.
+struct ZoneSeam: Equatable {
+    let divider: ZoneDivider
+    let low: CGFloat
+    let high: CGFloat
+
+    var from: CGPoint { divider.axis == .columns ? CGPoint(x: divider.position, y: low) : CGPoint(x: low, y: divider.position) }
+    var to: CGPoint { divider.axis == .columns ? CGPoint(x: divider.position, y: high) : CGPoint(x: high, y: divider.position) }
+    var center: CGPoint { CGPoint(x: (from.x + to.x) / 2, y: (from.y + to.y) / 2) }
+}
+
 enum ZoneGeometry {
     /// The smallest share a child can be dragged down to.
     static let minShare = 0.06
@@ -175,6 +186,114 @@ enum ZoneGeometry {
         return root
     }
 
+    // MARK: - Seams
+
+    /// The part of each line that windows on both of its sides share, given the zones that
+    /// hold a window (`occupied`): where a group shows it is held together, and where its grip
+    /// goes. A line with a window on one side only has none.
+    static func seams(_ root: ZoneNode, in rect: CGRect, occupied: Set<Int>) -> [ZoneSeam] {
+        let regions = regions(root, in: rect)
+        return dividers(root, in: rect).compactMap { divider in
+            let columns = divider.axis == .columns
+            let line = divider.line
+            func extent(before: Bool) -> ClosedRange<CGFloat>? {
+                let touching = regions.indices.filter { index in
+                    guard occupied.contains(index) else { return false }
+                    let region = regions[index]
+                    if columns {
+                        return abs((before ? region.maxX : region.minX) - line.minX) <= 1 && region.minY < line.maxY && region.maxY > line.minY
+                    }
+                    return abs((before ? region.maxY : region.minY) - line.minY) <= 1 && region.minX < line.maxX && region.maxX > line.minX
+                }.map { regions[$0] }
+                guard let low = touching.map({ columns ? $0.minY : $0.minX }).min(),
+                      let high = touching.map({ columns ? $0.maxY : $0.maxX }).max() else { return nil }
+                return low...high
+            }
+            guard let before = extent(before: true), let after = extent(before: false) else { return nil }
+            let low = max(before.lowerBound, after.lowerBound, columns ? line.minY : line.minX)
+            let high = min(before.upperBound, after.upperBound, columns ? line.maxY : line.maxX)
+            guard high > low else { return nil }
+            return ZoneSeam(divider: divider, low: low, high: high)
+        }
+    }
+
+    // MARK: - Windows that can't get smaller
+
+    /// Where `divider` may go when it is asked to go to `position`, so that no zone gets
+    /// smaller than the size its window is known to keep (`minimums`, by zone, as frames with
+    /// gaps): the line stops there instead of sliding a window under its neighbour. Only the
+    /// zones on its two sides count; when both sides are at their minimum it stays between.
+    static func clamping(_ divider: ZoneDivider, to position: CGFloat, root: ZoneNode,
+                         in area: CGRect, gap: CGFloat, minimums: [Int: CGSize]) -> CGFloat {
+        guard !minimums.isEmpty else { return position }
+        let half = max(0, gap) / 2
+        let rect = area.insetBy(dx: half, dy: half)
+        let paths = leafPaths(root)
+        let before = divider.path + [divider.index]
+        let after = divider.path + [divider.index + 1]
+        var low = -CGFloat.infinity
+        var high = CGFloat.infinity
+        var position = position
+        for _ in 0..<8 {
+            let frames = frames(moving(divider, to: position, root: root, in: rect), in: area, gap: gap)
+            var settled = true
+            for (zone, minimum) in minimums where zone < frames.count && zone < paths.count {
+                let missing = divider.axis == .columns ? minimum.width - frames[zone].width : minimum.height - frames[zone].height
+                guard missing > 0.5 else { continue }
+                if paths[zone].starts(with: before) {
+                    low = max(low, position + missing)
+                    settled = false
+                } else if paths[zone].starts(with: after) {
+                    high = min(high, position - missing)
+                    settled = false
+                }
+            }
+            if settled { return position }
+            if low > high { return ((low + high) / 2).rounded() }
+            position = min(max(position, low), high)
+        }
+        return position
+    }
+
+    /// `root` with its lines moved as little as it takes for every zone to be as big as its
+    /// window is known to stay (`minimums`, by zone, as frames with gaps): a window that
+    /// won't shrink into its zone gets the room, and its neighbours give it.
+    static func makingRoom(for minimums: [Int: CGSize], root: ZoneNode, in area: CGRect, gap: CGFloat) -> ZoneNode {
+        guard !minimums.isEmpty else { return root }
+        let half = max(0, gap) / 2
+        let rect = area.insetBy(dx: half, dy: half)
+        var root = root
+        // Twice: a line moved for one zone can take room from another.
+        for _ in 0..<2 {
+            var moved = false
+            for index in dividers(root, in: rect).indices {
+                // Found again each time: moving a line shifts the ones inside its sides.
+                let divider = dividers(root, in: rect)[index]
+                let held = clamping(divider, to: divider.position, root: root, in: area, gap: gap, minimums: minimums)
+                if abs(held - divider.position) > 0.5 {
+                    root = moving(divider, to: held, root: root, in: rect)
+                    moved = true
+                }
+            }
+            if !moved { break }
+        }
+        return root
+    }
+
+    // MARK: - Displays
+
+    /// The display (index in `displays`) most of `frame` is on, nil when it is on none.
+    static func display(of frame: CGRect, in displays: [CGRect]) -> Int? {
+        var best: (index: Int, area: CGFloat)?
+        for (index, display) in displays.enumerated() {
+            let shared = display.intersection(frame)
+            guard !shared.isNull, shared.width > 0, shared.height > 0 else { continue }
+            let area = shared.width * shared.height
+            if area > (best?.area ?? 0) { best = (index, area) }
+        }
+        return best?.index
+    }
+
     // MARK: - Helpers
 
     private static func childRects(_ node: ZoneNode, axis: ZoneNode.Axis, in rect: CGRect) -> [CGRect] {
@@ -209,6 +328,90 @@ extension ZoneNode {
         }
         guard first < children.count else { return }
         children[first].replace(at: Array(path.dropFirst()), with: node)
+    }
+}
+
+// MARK: - Snap Assist's picker
+
+/// How Snap Assist lays the window cards in a zone `width` points wide, and how the arrow keys
+/// move through them. Shared by the view and the keyboard, so the two can't disagree.
+struct ZonePickerLayout: Equatable {
+    static let padding: CGFloat = 16
+    static let spacing: CGFloat = 12
+
+    let columns: Int
+    let cardWidth: CGFloat
+
+    init(width: CGFloat) {
+        let inner = max(0, width - Self.padding * 2)
+        // Narrow zones get smaller cards, so a few still fit side by side.
+        let minimum = min(200, max(130, width / 3.4))
+        let columns = max(1, min(6, Int((inner + Self.spacing) / (minimum + Self.spacing))))
+        self.columns = columns
+        cardWidth = min(280, max(60, ((inner - CGFloat(columns - 1) * Self.spacing) / CGFloat(columns)).rounded(.down)))
+    }
+
+    /// A stretch of one app's cards on a row: `group` is the app's index, `range` which of its
+    /// cards. The app's header goes above the stretch that starts at its first card.
+    struct Block: Hashable {
+        let group: Int
+        let range: Range<Int>
+        var isFirst: Bool { range.lowerBound == 0 }
+    }
+
+    /// The apps' cards (`counts`: how many each has) packed in rows of `columns`: apps follow
+    /// each other on a row while they fit whole, so a dozen apps with one window each take a
+    /// few rows, not a dozen; an app with more cards than a row takes rows of its own.
+    static func packing(_ counts: [Int], columns: Int) -> [[Block]] {
+        let columns = max(1, columns)
+        var rows: [[Block]] = []
+        var current: [Block] = []
+        var used = 0
+        for (group, count) in counts.enumerated() where count > 0 {
+            if count > columns {
+                if !current.isEmpty { rows.append(current) }
+                current = []
+                used = 0
+                for start in stride(from: 0, to: count, by: columns) {
+                    rows.append([Block(group: group, range: start..<min(start + columns, count))])
+                }
+                continue
+            }
+            if used + count > columns {
+                rows.append(current)
+                current = []
+                used = 0
+            }
+            current.append(Block(group: group, range: 0..<count))
+            used += count
+        }
+        if !current.isEmpty { rows.append(current) }
+        return rows
+    }
+
+    /// The cards row by row, as `packing` lays them (for the arrow keys).
+    static func rows<ID>(_ groups: [[ID]], columns: Int) -> [[ID]] {
+        packing(groups.map(\.count), columns: columns).map { row in
+            row.flatMap { Array(groups[$0.group][$0.range]) }
+        }
+    }
+
+    /// The card the keyboard goes to from `current`: ← → through all of them in order (around
+    /// the ends), ↑ ↓ to the row above or below, in the same column when it has one.
+    static func moving<ID: Equatable>(from current: ID?, dx: Int, dy: Int, in rows: [[ID]]) -> ID? {
+        let flat = rows.flatMap { $0 }
+        guard !flat.isEmpty else { return nil }
+        guard let current, let row = rows.firstIndex(where: { $0.contains(current) }),
+              let column = rows[row].firstIndex(of: current) else {
+            return dx < 0 || dy < 0 ? flat.last : flat.first
+        }
+        if dy != 0 {
+            let target = row + (dy > 0 ? 1 : -1)
+            guard rows.indices.contains(target) else { return current }
+            return rows[target][min(column, rows[target].count - 1)]
+        }
+        guard dx != 0, let index = flat.firstIndex(of: current) else { return current }
+        return flat[(index + (dx > 0 ? 1 : -1) + flat.count) % flat.count]
     }
 }
 

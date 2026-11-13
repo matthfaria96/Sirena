@@ -165,9 +165,34 @@ class AccessibilityElement {
         }
     }
 
-    /// A regular document window (not a panel, dialog, sheet or floating palette).
-    var isStandardWindow: Bool {
-        subrole == .standardWindow
+    /// A window that can be put in a snap zone: a regular one, or one its app describes
+    /// loosely (some give their main window a dialog subrole) that can still be resized.
+    /// Sheets, system dialogs and floating palettes are not.
+    var isSnappableWindow: Bool {
+        guard role == .window else { return false }
+        switch subrole {
+        case .standardWindow:
+            return true
+        case .systemDialog, .floatingWindow, .systemFloatingWindow:
+            return false
+        default:
+            var settable: DarwinBoolean = false
+            return AXUIElementIsAttributeSettable(wrappedElement, kAXSizeAttribute as CFString, &settable) == .success
+                && settable.boolValue
+        }
+    }
+
+    /// For a run of frame changes written straight to the window (a snap group's grip being
+    /// dragged): `setFrame`'s enhanced UI handling, once around all of them. Call the result
+    /// when the run is over.
+    func beginFrameAdjustments() -> () -> Void {
+        let appElement = applicationElement
+        return Defaults.enhancedUI.value.beginWindowAdjustment(
+            bundleIdentifier: appElement?.bundleIdentifier,
+            builtInAssistiveTechnologyEnabled: NSWorkspace.shared.isVoiceOverEnabled
+                || NSWorkspace.shared.isSwitchControlEnabled,
+            readEnhancedUI: { appElement?.enhancedUserInterface },
+            writeEnhancedUI: { enabled in appElement?.enhancedUserInterface = enabled })
     }
 
     /// A move can release a size restriction imposed by the old screen or Dock edge.

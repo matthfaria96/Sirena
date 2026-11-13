@@ -123,11 +123,13 @@ Files: `Sirena/Modules/WindowManagement/Zones/`
 
 | File | Role |
 |---|---|
-| `ZoneLayout.swift` | Pure geometry: `ZoneNode` (tree of column/row splits with shares), `ZoneGeometry` (regions, frames with gaps, dividers, moving a line, resizing, evening), `ZoneTemplate` (15 layouts, identified by raw value — append new cases at the end, never reorder: placements and saved groups store it) and `ZoneTemplate.fitting(size)`, which picks each display's list: ordered by shape (portrait → rows first; near square; regular → halves, 66/34, thirds, 1 + 2, quarters…; ultrawide → thirds, centred main zone, four columns), without layouts whose smallest zone would be under `minimumZone` (400 × 260 pt), at most 6 on displays under 1.8 Mpt² and 8 elsewhere. `ZonePopupGeometry.templates` maps each drawing to its layout: a hit carries the raw value, the view keeps drawing indices |
+| `ZoneLayout.swift` | Pure geometry: `ZoneNode` (tree of column/row splits with shares), `ZoneGeometry` (regions, frames with gaps, dividers, moving a line, resizing, evening, `clamping` a line where a window can't get smaller, `makingRoom` for such a window, `display(of:in:)`), `ZonePickerLayout` (Snap Assist's grid and arrow keys), `ZoneTemplate` (15 layouts, identified by raw value — append new cases at the end, never reorder: placements and saved groups store it) and `ZoneTemplate.fitting(size)`, which picks each display's list: ordered by shape (portrait → rows first; near square; regular → halves, 66/34, thirds, 1 + 2, quarters…; ultrawide → thirds, centred main zone, four columns), without layouts whose smallest zone would be under `minimumZone` (400 × 260 pt), at most 6 on displays under 1.8 Mpt² and 8 elsewhere. `ZonePopupGeometry.templates` maps each drawing to its layout: a hit carries the raw value, the view keeps drawing indices |
 | `ZonePopup.swift` | `ZonePopupGeometry` (one geometry for drawing and hit-testing), the glass panel, `ZoneHint` (the pill at the top middle while dragging), `ZonePreview` (where the window will go) |
-| `ZoneAssist.swift` | Snap Assist: the other zones with the open windows (previews from `SwitcherWindowPreviewProvider.captureViaWindowServer`, grouped by app; windows whose centre is on another display come last, under “Em outros monitores”, dimmed and labelled with that display — `openWindows(for:)` sets `Candidate.otherDisplay`). Keyboard: arrows move, Tab / ⇧ Tab change zone, Return picks, Esc closes |
-| `ZoneGroupDecor.swift` | Dashed group outlines, grips (drag = resize both, click = the grip's menu), "Juntar de novo" bubble |
-| `ZoneController.swift` | The engine: drag hooks, placing, groups, timer, last group per display |
+| `ZoneWindows.swift` | The windows Snap Assist offers (`ZoneWindow`, with where it is: here, another display, minimized, hidden app). **The ⌘ Tab switcher's list** (`SwitcherWindowEnumerator.listSnappableWindows`: visible desktops, minimized and hidden included, no switcher preference applied), most recently used first, built on its own queue. Never a hand-made filter by AX subrole: apps describe their windows loosely (a main window can read `AXDialog`), the enumerator already knows |
+| `ZoneAssist.swift` | Snap Assist's panel. One zone at a time holds the picker (`ZoneAssistModel.active`); the other free zones are placeholders (a click, or Tab, moves the picker). Sections: this display, “Em outros monitores”, “Minimizadas ou ocultas”, by app. Pictures through `SwitcherWindowPreviewProvider.shared.refreshPreviews` (the switcher's cache, its paused apps, and its second way of capturing a window the window server only returns a slice of — one hanging over a display's edge; never `captureViaWindowServer` alone). Keyboard: typing filters (`query`), ← → in order, ↑ ↓ by row (`ZonePickerLayout`), Tab / ⇧ Tab another zone, Return picks, Esc clears the filter then closes |
+| `ZoneFrameWriter.swift` | Writes the frames of a grip drag on its own queue, latest frame per window only, and reports a window that won't shrink (read back 80 ms after the write, margin 24 pt in the controller: terminals size in steps) |
+| `ZoneGroupDecor.swift` | What marks a group: **one neutral translucent line along each edge two members share** (`ZoneGeometry.seams`; nothing around the windows, no accent colour) with a small glass grip in its middle (drag = resize both, click = the grip's menu), "Juntar de novo" bubble (glass) |
+| `ZoneController.swift` | The engine: drag hooks, placing, groups, timer, last group per display. **Its main thread never waits for another app**: windows listed by `ZoneWindows`, the window in use asked on `focusQueue`, grip frames by `ZoneFrameWriter` |
 
 Geometry tests: `scripts/test-zone-layout.sh` (`scripts/tests/zone-layout/main.swift`).
 
@@ -144,7 +146,9 @@ Flow:
    Esc (`SnappingManager` keyDown) → `cancelDrag()`.
 3. A drop elsewhere of a window in a group → `release`: out of the group, own size back.
 4. Resize by an edge (mouse up without moving) → `resizeEnded`: the lines it touched move
-   (`ZoneGeometry.resizing`), the other members follow.
+   (`ZoneGeometry.resizing`), the other members follow. While it is resized `resizeMoved`
+   hides the outlines; any mouse up → `pointerReleased` → the outlines follow the window in
+   use at once (so does `didActivateApplication`); the timer is only the fallback.
 5. `WindowManager.execute` (any Rectangle action) → `noteWindowAction`: the window leaves its group.
 7. A click on a grip → its menu (`gripClicked`, an `NSMenu` of `ZoneMenuItem`s):
    - **Trocar app…** (`startReplace`): Snap Assist over the group's own zones ("No lugar de …");
@@ -166,11 +170,33 @@ Flow:
    drag closes it. `ZoneController.start()` (from `WindowManagementModule.accessibilityTrusted`)
    binds the shortcut; `enabledChanged()` rebinds when the switch changes.
 
+Rules of the engine (keep them when changing it):
+- **One window per zone.** `place` puts the previous occupant out of the group. A row of windows
+  (`applyLayout`, `swapSides`, `relink`, `evenSides`, a resize) is placed `batched` and finished
+  once with `finishPlacing` (settle, remember, outlines).
+- **No window under a neighbour.** `settle` reads back what the windows took; one still bigger
+  than its zone 0.25 s later (an app's minimum size) gets the room (`ZoneGeometry.makingRoom`)
+  and the others follow. While a grip is dragged the line stops there (`learnMinimum` →
+  `ZoneGeometry.clamping`).
+- **A pick brings the window back.** `reveal` unhides its app, takes it out of the Dock, raises it
+  and sets the frame again once it is shown (0.35 s and 0.8 s), then settles.
+- **Async and cancellable.** `startAssist` / `startReplace` list the windows in the background;
+  `closeAssist()` (never `assist.close()` alone) also drops a list still on its way
+  (`assistRequest`). A drag, the panel or a display change call it.
+- `decorGroup` is the group whose lines and grips show; hide them with `hideDecor()` (not
+  `decor.hide()`), so a grip press always knows its group.
+- **Look:** neutral glass everywhere (lines, grips, the preview of where a window goes, Snap
+  Assist's rims and its lit card). The accent colour is only the zone under the pointer in the
+  panel's drawings. The user finds accent-coloured lines loud: don't bring them back.
+- Displays changing (`screensChanged`) close everything and drop the groups of displays gone.
+
 State is in memory only (lost on quit): `placements` (window → display, layout, zone, frame, pid),
 `ownSizes`, `roots` (proportions per display + layout), `lastGroups` (per display). Placing never
 writes Rectangle's `lastRectangleActions`, otherwise Rectangle would restore the size as soon as
-a drag starts. A 0.35 s timer runs only while a group exists; it never asks the app in front
-anything unless that app owns a group window (0.25 s AX timeout).
+a drag starts. A 0.35 s timer runs only while a group exists; the app in front is only asked which
+window is in use when it owns a group window, and in the background (0.25 s AX timeout).
+`log stream --predicate 'category == "Zones"'` shows each placement and what Snap Assist offered
+(counts by place, never titles).
 
 ## 6. macOS 27 notes
 
@@ -206,8 +232,11 @@ anything unless that app owns a group window (0.25 s AX timeout).
   out (size restored); green button with "Preencher a tela" (fills, click again restores).
 - Snap layouts: ⌃⌥0 with a window in front → panel; arrows, ↑ ↓, Return snaps; again with Esc.
   Drag up to the top middle → panel; hover a zone (preview), drop; Snap Assist shows
-  previews by app, pick one; outlines and grip appear; drag the grip, double click it, click it
-  ("Juntar de novo" for 5 s); drag up again → "Último grupo" card; Esc while the panel is open.
+  previews by app (minimized and hidden ones under their own heading), type to filter, arrows,
+  pick one, pick a minimized one (it comes out of the Dock into the zone); outlines and grip
+  appear; drag the grip past a window's minimum size (the line stops, nothing overlaps), click
+  it (menu; "Juntar de novo" for 5 s after Desvincular); drag up again → "Último grupo" card;
+  Esc while the panel is open.
 - ⌘ Tab: open, cycle, release; with "Substituir ⌘Tab e ⌘` do macOS" on and off.
 - Dock, each minimize mode: yellow button, ⌘M, click the app in front in the Dock twice, with an
   app that has a minimized window (VS Code covers Electron).

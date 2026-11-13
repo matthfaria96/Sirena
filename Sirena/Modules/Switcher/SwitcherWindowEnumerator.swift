@@ -202,6 +202,27 @@ enum SwitcherWindowEnumerator {
                     snapshot: snapshot).items
     }
 
+    /// Sirena: every real window of the visible desktops, whatever the switcher's own
+    /// preferences (app rules, minimized placement, grouping), for the snap layouts'
+    /// Snap Assist. Minimized windows and hidden apps' windows are in; windows on another
+    /// desktop are not (they can't be brought from there). Most recently used first.
+    static func listSnappableWindows(snapshot: Snapshot,
+                                     isCancelled: @escaping () -> Bool = { false }) -> [SwitcherItem] {
+        listWindows(filterPID: nil,
+                    maximumCount: 96,
+                    windowlessApps: .off,
+                    appRules: [:],
+                    groupByApp: false,
+                    minimizedPlacement: .normal,
+                    treatHiddenAppsLikeMinimized: false,
+                    showFullscreenWindows: true,
+                    preservingGroupedWindows: false,
+                    currentSpaceOnly: true,
+                    marksHiddenSpaces: false,
+                    snapshot: snapshot,
+                    isCancelled: isCancelled).items
+    }
+
     private static func listWindows(filterPID: pid_t?,
                                     maximumCount: Int,
                                     windowlessApps: SwitcherWindowlessApps,

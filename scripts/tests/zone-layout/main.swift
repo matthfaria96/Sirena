@@ -137,5 +137,106 @@ do {
     expect(ZoneGeometry.leafPaths(ZoneTemplate.grid.root) == [[0, 0], [0, 1], [1, 0], [1, 1]], "leaf paths, depth first")
 }
 
+// A line stops where a window can't get smaller.
+do {
+    let root = ZoneTemplate.twoColumns.root
+    let rect = area.insetBy(dx: 5, dy: 5)
+    let line = ZoneGeometry.dividers(root, in: rect)[0]
+    let free = ZoneGeometry.clamping(line, to: 300, root: root, in: area, gap: 10, minimums: [:])
+    expect(free == 300, "no known minimum: the line goes where it is asked")
+    // The left window keeps 500 pt: the line stops at its right edge (10 + 500 + half a gap).
+    let held = ZoneGeometry.clamping(line, to: 300, root: root, in: area, gap: 10, minimums: [0: CGSize(width: 500, height: 100)])
+    let frames = ZoneGeometry.frames(ZoneGeometry.moving(line, to: held, root: root, in: rect), in: area, gap: 10)
+    expect(near(frames[0].width, 500, 1.5) && frames[1].minX >= frames[0].maxX + 9, "the left window keeps its 500 pt: \(frames)")
+    let right = ZoneGeometry.clamping(line, to: 1500, root: root, in: area, gap: 10, minimums: [1: CGSize(width: 400, height: 100)])
+    let pushed = ZoneGeometry.frames(ZoneGeometry.moving(line, to: right, root: root, in: rect), in: area, gap: 10)
+    expect(near(pushed[1].width, 400, 1.5), "the right window keeps its 400 pt: \(pushed)")
+    let fine = ZoneGeometry.clamping(line, to: 900, root: root, in: area, gap: 10, minimums: [0: CGSize(width: 500, height: 100), 1: CGSize(width: 400, height: 100)])
+    expect(fine == 900, "room for both: untouched")
+    // 1 + 2: the row line only answers to the two stacked windows; the main one doesn't count.
+    let stack = ZoneTemplate.mainAndStack.root
+    let rowLine = ZoneGeometry.dividers(stack, in: rect)[1]
+    let rows = ZoneGeometry.clamping(rowLine, to: 100, root: stack, in: area, gap: 10,
+                                     minimums: [0: CGSize(width: 5000, height: 5000), 1: CGSize(width: 100, height: 300)])
+    let stacked = ZoneGeometry.frames(ZoneGeometry.moving(rowLine, to: rows, root: stack, in: rect), in: area, gap: 10)
+    expect(near(stacked[1].height, 300, 1.5), "the top stacked window keeps its 300 pt: \(stacked)")
+    // Both at their minimum: the line stays between them instead of flying off.
+    let stuck = ZoneGeometry.clamping(line, to: 300, root: root, in: area, gap: 10,
+                                      minimums: [0: CGSize(width: 900, height: 100), 1: CGSize(width: 900, height: 100)])
+    expect(stuck > 600 && stuck < 1000, "both sides too big: somewhere in the middle: \(stuck)")
+}
+
+// A window that won't shrink into its zone gets the room; its neighbours give it.
+do {
+    let three = ZoneTemplate.threeColumns.root
+    let roomy = ZoneGeometry.makingRoom(for: [1: CGSize(width: 900, height: 300)], root: three, in: area, gap: 10)
+    let frames = ZoneGeometry.frames(roomy, in: area, gap: 10)
+    expect(frames[1].width >= 899, "the middle column grows to 900: \(frames)")
+    expect(frames[0].maxX + 9 <= frames[1].minX && frames[1].maxX + 9 <= frames[2].minX, "and nothing overlaps: \(frames)")
+    expect(frames.allSatisfy { $0.minX >= 10 && $0.maxX <= 1590 }, "all inside the area")
+    expect(ZoneGeometry.makingRoom(for: [1: CGSize(width: 300, height: 300)], root: three, in: area, gap: 10) == three,
+           "a window that fits changes nothing")
+    expect(ZoneGeometry.makingRoom(for: [:], root: three, in: area, gap: 10) == three, "nothing known, nothing moved")
+    // 1 + 2: the bottom right window is too tall and too wide.
+    let stack = ZoneTemplate.mainAndStack.root
+    let fitted = ZoneGeometry.frames(ZoneGeometry.makingRoom(for: [2: CGSize(width: 1000, height: 700)], root: stack, in: area, gap: 10),
+                                     in: area, gap: 10)
+    expect(fitted[2].width >= 999 && fitted[2].height >= 699, "both of its lines move: \(fitted)")
+    expect(near(fitted[1].maxY + 10, fitted[2].minY) && near(fitted[0].maxX + 10, fitted[2].minX), "its neighbours follow")
+}
+
+// One seam per line windows on both sides share, over the part they share.
+do {
+    let rect = CGRect(x: 0, y: 0, width: 1600, height: 1000)
+    let two = ZoneGeometry.seams(ZoneTemplate.twoColumns.root, in: rect, occupied: [0, 1])
+    expect(two.count == 1 && two[0].from == CGPoint(x: 800, y: 0) && two[0].to == CGPoint(x: 800, y: 1000),
+           "two columns: the whole line: \(two)")
+    expect(ZoneGeometry.seams(ZoneTemplate.twoColumns.root, in: rect, occupied: [0]).isEmpty, "a window alone has no seam")
+    let stack = ZoneTemplate.mainAndStack.root // A | (B / C)
+    let all = ZoneGeometry.seams(stack, in: rect, occupied: [0, 1, 2])
+    expect(all.count == 2 && all[0].high - all[0].low == 1000 && all[1].from.x == 800 && all[1].to.x == 1600,
+           "1 + 2: the column line whole, the row line across the right half: \(all)")
+    let topOnly = ZoneGeometry.seams(stack, in: rect, occupied: [0, 1])
+    expect(topOnly.count == 1 && topOnly[0].low == 0 && topOnly[0].high == 500 && topOnly[0].center == CGPoint(x: 800, y: 250),
+           "1 + the top one only: the seam stops where the top window does: \(topOnly)")
+    let apart = ZoneGeometry.seams(ZoneTemplate.threeColumns.root, in: rect, occupied: [0, 2])
+    expect(apart.isEmpty, "three columns, the outer two: no shared line")
+}
+
+// The display a window is on: the one holding most of it.
+do {
+    let displays = [CGRect(x: 0, y: 0, width: 2560, height: 1440), CGRect(x: -1080, y: -175, width: 1080, height: 1920),
+                    CGRect(x: 2560, y: 237, width: 756, height: 1344)]
+    expect(ZoneGeometry.display(of: CGRect(x: 1536, y: 30, width: 1024, height: 582), in: displays) == 0, "on the main display")
+    expect(ZoneGeometry.display(of: CGRect(x: -1061, y: -135, width: 1080, height: 630), in: displays) == 1, "mostly on the left display")
+    expect(ZoneGeometry.display(of: CGRect(x: 2400, y: 300, width: 600, height: 400), in: displays) == 2, "straddling: the bigger part wins")
+    expect(ZoneGeometry.display(of: CGRect(x: 9000, y: 9000, width: 600, height: 400), in: displays) == nil, "off every display")
+}
+
+// Snap Assist's picker: the grid and the arrow keys.
+do {
+    let wide = ZonePickerLayout(width: 1270)
+    expect(wide.columns == 5 && wide.cardWidth >= 200 && wide.cardWidth <= 280, "a half of a 27\" display: \(wide)")
+    let narrow = ZonePickerLayout(width: 400)
+    expect(narrow.columns == 2 && narrow.cardWidth >= 130, "the smallest zone still shows two side by side: \(narrow)")
+    expect(ZonePickerLayout(width: 150).columns == 1, "never zero columns")
+    let rows = ZonePickerLayout.rows([[1, 2, 3, 4, 5], [6], [7, 8]], columns: 3)
+    expect(rows == [[1, 2, 3], [4, 5], [6, 7, 8]], "a big app takes its own rows, small ones share one: \(rows)")
+    let packed = ZonePickerLayout.packing([1, 2, 1, 1, 1, 3], columns: 5)
+    expect(packed.map { $0.map(\.group) } == [[0, 1, 2, 3], [4, 5]] && packed.allSatisfy { $0.allSatisfy(\.isFirst) },
+           "apps share a row while they fit whole: \(packed)")
+    expect(ZonePickerLayout.packing([0, 2], columns: 4).map { $0.map(\.group) } == [[1]], "an app without cards takes no room")
+    let long = ZonePickerLayout.packing([7], columns: 3)
+    expect(long.map { $0[0].range } == [0..<3, 3..<6, 6..<7] && long.map { $0[0].isFirst } == [true, false, false],
+           "an app with many windows: its header once, on its first row: \(long)")
+    func move(_ from: Int?, _ dx: Int, _ dy: Int) -> Int? { ZonePickerLayout.moving(from: from, dx: dx, dy: dy, in: rows) }
+    expect(move(nil, 1, 0) == 1 && move(nil, -1, 0) == 8, "no card yet: the first, or the last going back")
+    expect(move(3, 1, 0) == 4 && move(8, 1, 0) == 1 && move(1, -1, 0) == 8, "← →: in order, around the ends")
+    expect(move(3, 0, 1) == 5 && move(5, 0, 1) == 7 && move(4, 0, 1) == 6, "↓: the row below, the nearest column")
+    expect(move(2, 0, -1) == 2 && move(8, 0, 1) == 8, "↑ on the first row and ↓ on the last stay")
+    expect(move(8, 0, -1) == 5 && move(4, 0, -1) == 1, "↑: the row above")
+    expect(ZonePickerLayout.moving(from: 1, dx: 1, dy: 0, in: [[Int]]()) == nil, "nothing to move through")
+}
+
 print("\(checks - failures)/\(checks) checks passed")
 exit(failures == 0 ? 0 : 1)

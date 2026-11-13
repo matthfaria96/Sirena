@@ -4,10 +4,11 @@
 /// as usual stays where it's let go.
 /// - Drag a window up to the top of a display (middle part): a panel drops with layouts.
 ///   Let go over one of their zones and the window goes there; Esc or moving away closes it.
-/// - Snap Assist: the other zones of that layout light up with the open windows; a click
-///   puts one in, Esc or a click elsewhere stops.
+/// - Snap Assist: the other zones of that layout wait to be filled, one at a time, from the
+///   open windows (the ⌘ Tab switcher's list: minimized ones and hidden apps' too, other
+///   displays' marked); a click puts one in, Esc or a click elsewhere stops.
 /// - The windows put by one layout on a display form a group. While one of them is in use
-///   they get an accent outline, and each line two of them share gets a grip that resizes
+///   each edge two of them share gets one quiet neutral line with a glass grip that resizes
 ///   both. Resizing one of them by its own edge moves the line too.
 /// - A window of a group let go outside a zone leaves it and gets its own size back.
 /// - A click on a grip opens its menu: swap an app (the only way a new window comes in),
@@ -21,7 +22,9 @@
 ///
 /// The drag rides on Rectangle's tracking (SnappingManager): while the panel is open
 /// Rectangle's snap areas stand aside; the top corners stay Rectangle's. No event tap of
-/// its own; a light timer runs only while a group exists. Main thread only.
+/// its own; a light timer runs only while a group exists. Main thread only, and the main
+/// thread never waits for another app: the list of windows (ZoneWindows), the window in use
+/// and the frames of a grip being dragged (ZoneFrameWriter) are asked for in the background.
 
 import AppKit
 import Carbon.HIToolbox
@@ -53,6 +56,7 @@ final class ZoneController {
     private let hint = ZoneHint()
     private let assist = ZoneAssist()
     private let decor = ZoneGroupDecor()
+    private let writer = ZoneFrameWriter()
 
     /// The panel open on a display.
     private struct Session {
@@ -102,11 +106,36 @@ final class ZoneController {
 
     /// The drag in progress: the lowest the pointer went (the panel opens once it rises).
     private var dragLowest: CGFloat?
-    /// A grip being dragged: the group and its layout when it started.
-    private var gripDrag: (group: String, root: ZoneNode, lastWrite: Date)?
-    /// The last place a grip was dragged to, applied when it's let go.
-    private var gripTarget: (divider: ZoneDivider, position: CGFloat)?
+    /// A grip being dragged.
+    private struct GripDrag {
+        let group: String
+        /// The layout when the drag started.
+        let root: ZoneNode
+        /// The windows' Accessibility elements, found once.
+        let elements: [CGWindowID: AccessibilityElement]
+        /// Gives each app its enhanced UI back when the drag is over.
+        let restore: [() -> Void]
+        /// Sizes windows refused to go under, by zone, learned as the drag goes.
+        var minimums: [Int: CGSize] = [:]
+    }
+
+    private var gripDrag: GripDrag?
+    /// Where the pointer last asked the line to be (before any window's minimum held it).
+    private var gripAsked: (divider: ZoneDivider, position: CGFloat)?
+    /// The group whose outlines and grips are showing.
+    private var decorGroup: String?
     private var timer: Timer?
+
+    /// The window in use in the app in front, as last answered (asked in the background).
+    private var focused: (pid: pid_t, window: CGWindowID?)?
+    private var focusQueryRunning = false
+    private static let focusQueue = DispatchQueue(label: "com.matheusfaria.Sirena.zones.focus", qos: .userInteractive)
+
+    /// Bumped whenever a pending Snap Assist (its windows are being listed) is no longer wanted.
+    private var assistRequest = 0
+    /// The open windows as last listed for each display, and who waits for a list on its way.
+    private var listed: [String: (at: Date, windows: [ZoneWindow])] = [:]
+    private var listing: [String: [([ZoneWindow]) -> Void]] = [:]
 
     private var isStarted = false
     private var shortcutBound = false
@@ -120,7 +149,12 @@ final class ZoneController {
             guard self?.session?.isKeyboard == true else { return }
             self?.closePopup()
         }
-        assist.onPick = { [weak self] id, zone in self?.assistPicked(id, zone: zone) }
+        assist.onPick = { [weak self] window, zone in self?.assistPicked(window, zone: zone) ?? false }
+        // The outlines were held back while it showed.
+        assist.onClose = { [weak self] in self?.focusMayHaveChanged() }
+        writer.onRefused = { [weak self] id, asked, kept in
+            MainActor.assumeIsolated { self?.learnMinimum(of: id, asked: asked, kept: kept) }
+        }
         decor.onGripBegin = { [weak self] in self?.gripBegan() }
         decor.onGripDrag = { [weak self] divider, position in self?.gripMoved(divider, to: position) }
         decor.onGripEnd = { [weak self] divider in self?.gripEnded(divider) }
@@ -143,6 +177,13 @@ final class ZoneController {
                 self.bindShortcut()
             }
         }
+        // The outlines follow the window in use without waiting for the timer.
+        NSWorkspace.shared.notificationCenter.addObserver(forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.focusMayHaveChanged() }
+        }
+        NotificationCenter.default.addObserver(forName: NSApplication.didChangeScreenParametersNotification, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.screensChanged() }
+        }
         bindShortcut()
     }
 
@@ -152,9 +193,23 @@ final class ZoneController {
         if !Self.isEnabled {
             closePopup()
             hint.hide()
-            assist.close()
+            closeAssist()
             refreshDecor()
         }
+    }
+
+    /// A display came, went or changed: what is on screen was laid out for the old ones.
+    private func screensChanged() {
+        closePopup()
+        closeAssist()
+        hint.hide()
+        hideDecor()
+        let displays = Set(NSScreen.screens.map { Self.key(for: $0) })
+        for (id, placement) in placements where !displays.contains(placement.display) {
+            placements.removeValue(forKey: id)
+            ownSizes.removeValue(forKey: id)
+        }
+        refreshDecor()
     }
 
     /// The default (⌃⌥0) shows in its recorder even before Sirena binds anything (no
@@ -185,7 +240,7 @@ final class ZoneController {
             return
         }
         guard let element = AccessibilityElement.getFocusedWindowElement(), let id = element.windowId,
-              element.pid != ProcessInfo.processInfo.processIdentifier, element.isStandardWindow,
+              element.pid != ProcessInfo.processInfo.processIdentifier, element.isSnappableWindow,
               element.isFullScreen != true, element.isMinimized != true else {
             NSSound.beep()
             return
@@ -193,10 +248,11 @@ final class ZoneController {
         let frame = element.frame
         let center = frame.isNull ? NSEvent.mouseLocation.screenFlipped : frame.centerPoint
         let screen = NSScreen.screens.first { $0.frame.screenFlipped.contains(center) } ?? NSScreen.main ?? NSScreen.screens[0]
-        assist.close()
         openPopup(on: screen, target: (element, id))
-        // Starts on the first zone, so the keys have something to move from.
-        if let first = keyboardRows().first?.first { setHover(first) }
+        // Starts on the first layout's first zone, so the keys have something to move from and
+        // Return snaps this window (the "Último grupo" card is one ← or ↑ away).
+        let rows = keyboardRows()
+        if let first = rows.first(where: { $0.first != .lastGroup })?.first ?? rows.first?.first { setHover(first) }
     }
 
     // MARK: - The keyboard and the pointer (shortcut mode)
@@ -287,7 +343,7 @@ final class ZoneController {
             place(target.element, id: target.id, frame: frame,
                   placement: Placement(display: session.display, template: template, zone: zone, frame: frame))
             log.notice("window into zone \(zone + 1) of layout \(template + 1) (keyboard)")
-            startAssist(after: target.id, template: template, screen: session.screen)
+            startAssist(template: template, screen: session.screen)
         }
     }
 
@@ -296,6 +352,8 @@ final class ZoneController {
         guard let session, hit != hover else { return }
         hover = hit
         popup.setHover(hit)
+        // Still choosing: the list for Snap Assist stays fresh.
+        if hit != nil { warmWindows(for: session.screen) }
         if session.relayout == nil, case let .zone(template, zone) = hit, let frame = frames(template: template, on: session.screen)[safe: zone] {
             preview.show(frame)
         } else {
@@ -328,6 +386,20 @@ final class ZoneController {
         MainActor.assumeIsolated { shared.handleResizeEnded(element: element, id: id) }
     }
 
+    /// A window is being resized by its edge: its group's outlines would lag behind it.
+    nonisolated static func resizeMoved(id: CGWindowID) {
+        guard Thread.isMainThread else { return }
+        MainActor.assumeIsolated {
+            if shared.placements[id] != nil { shared.hideDecor() }
+        }
+    }
+
+    /// The mouse button went up: a click may have put another window in use.
+    nonisolated static func pointerReleased() {
+        guard Thread.isMainThread else { return }
+        MainActor.assumeIsolated { shared.focusMayHaveChanged() }
+    }
+
     /// A window action (⌃⌥←, a snap area…) moved a window: it leaves its group.
     nonisolated static func noteWindowAction(on windowID: CGWindowID?) {
         guard let windowID else { return }
@@ -348,9 +420,10 @@ final class ZoneController {
             hint.hide()
             return false
         }
-        decor.hide()
-        // The panel opened by the shortcut gives way to a drag.
+        hideDecor()
+        // A drag takes over: the panel opened by the shortcut and Snap Assist give way.
         if session?.isKeyboard == true { closePopup() }
+        closeAssist()
         let cursor = NSEvent.mouseLocation.screenFlipped
         dragLowest = max(dragLowest ?? cursor.y, cursor.y)
         if session == nil, let screen = NSScreen.screens.first(where: { $0.frame.screenFlipped.contains(cursor) }) {
@@ -398,14 +471,14 @@ final class ZoneController {
             place(element, id: id, frame: frame,
                   placement: Placement(display: session.display, template: template, zone: zone, frame: frame))
             log.notice("window into zone \(zone + 1) of layout \(template + 1)")
-            startAssist(after: id, template: template, screen: session.screen)
+            startAssist(template: template, screen: session.screen)
         }
         return true
     }
 
     private func openPopup(on screen: NSScreen, target: (element: AccessibilityElement, id: CGWindowID)? = nil,
                            relayout: String? = nil) {
-        assist.close()
+        closeAssist()
         let display = Self.key(for: screen)
         // The layouts that suit this display's size and shape (a portrait display gets rows,
         // an ultrawide one more columns, a small one no cramped zones).
@@ -426,6 +499,7 @@ final class ZoneController {
         popup.open(geometry, roots: roots, groupIcons: icons, keyboard: target != nil || relayout != nil,
                    hint: relayout != nil ? L("Choose the new layout · Return applies · Esc keeps this one") : nil,
                    wholeLayout: relayout != nil)
+        warmWindows(for: screen)
     }
 
     private func closePopup() {
@@ -447,107 +521,245 @@ final class ZoneController {
 
     // MARK: - Snap Assist
 
-    private func startAssist(after placed: CGWindowID, template: Int, screen: NSScreen) {
-        let display = Self.key(for: screen)
-        let group = "\(display)-\(template)"
-        let taken = Set(placements.values.filter { $0.group == group }.map(\.zone))
-        let frames = frames(template: template, on: screen)
-        let free = frames.indices.filter { !taken.contains($0) }.map { (zone: $0, frame: frames[$0]) }
-        guard !free.isEmpty else { return }
-        let members = Set(placements.filter { $0.value.group == group }.map(\.key))
-        let candidates = openWindows(for: screen).filter { !members.contains($0.id) && $0.id != placed }
-        guard !candidates.isEmpty else { return }
-        assistContext = (screen, template, false)
-        assist.show(on: screen, zones: free, candidates: candidates)
-    }
+    /// How long Snap Assist may take to show after a window was placed.
+    private static let assistPatience: TimeInterval = 1.5
 
     /// Where the assist is, and whether a pick replaces the window of that zone ("Trocar app").
     private var assistContext: (screen: NSScreen, template: Int, replacing: Bool)?
 
-    private func assistPicked(_ id: CGWindowID, zone: Int) {
-        guard let (screen, template, replacing) = assistContext,
-              let frame = frames(template: template, on: screen)[safe: zone],
-              let element = AccessibilityElement.getWindowElement(id) else { return }
+    /// The open windows for `screen` (ZoneWindows, in the background): a list no older than
+    /// `maxAge` at once, otherwise as soon as it is built; one is built at a time per display,
+    /// and whoever asks meanwhile gets that one. The panel asks as it opens (`warmWindows`),
+    /// so by the time a window is let go on a zone Snap Assist has its list, and the pictures
+    /// are already taken.
+    private func windows(for screen: NSScreen, maxAge: TimeInterval, then: @escaping ([ZoneWindow]) -> Void) {
         let display = Self.key(for: screen)
-        if replacing {
-            // The window that was there leaves the group, where it is.
-            let group = "\(display)-\(template)"
-            for (other, spot) in placements where spot.group == group && spot.zone == zone {
-                placements.removeValue(forKey: other)
-                ownSizes.removeValue(forKey: other)
-            }
-            assist.close()
+        if let known = listed[display], Date().timeIntervalSince(known.at) <= maxAge {
+            then(known.windows)
+            return
         }
-        place(element, id: id, frame: frame, placement: Placement(display: display, template: template, zone: zone, frame: frame))
-        element.raise()
+        if listing[display] != nil {
+            listing[display]?.append(then)
+            return
+        }
+        listing[display] = [then]
+        ZoneWindows.list(for: screen) { [weak self] windows in
+            guard let self else { return }
+            self.listed[display] = (Date(), windows)
+            ZoneAssist.warmPreviews(of: windows)
+            for waiting in self.listing.removeValue(forKey: display) ?? [] { waiting(windows) }
+        }
     }
 
-    /// "Trocar app": each window of the group shows in its zone what could take its place; the
-    /// pick replaces it. The only way a window from outside comes into a group.
+    /// The panel is up on `screen`: Snap Assist's list and pictures get ready meanwhile.
+    private func warmWindows(for screen: NSScreen) {
+        windows(for: screen, maxAge: 1) { _ in }
+    }
+
+    /// Snap Assist for the zones of `template` nobody is in yet. It shows as soon as the open
+    /// windows are known (at once when the panel had them listed), unless something else took
+    /// the stage meanwhile.
+    private func startAssist(template: Int, screen: NSScreen) {
+        guard !freeZones(of: template, on: screen).isEmpty else { return }
+        assistRequest += 1
+        let request = assistRequest
+        let asked = Date()
+        windows(for: screen, maxAge: 2.5) { [weak self] windows in
+            // Too late (an app took its time to answer): the user has moved on, a panel taking
+            // the display and the keyboard now would only be in the way.
+            guard let self, request == self.assistRequest, self.session == nil, Self.isEnabled,
+                  Date().timeIntervalSince(asked) < Self.assistPatience else { return }
+            let group = "\(Self.key(for: screen))-\(template)"
+            let members = Set(self.placements.filter { $0.value.group == group }.map(\.key))
+            let free = self.freeZones(of: template, on: screen)
+            let candidates = windows.filter { !members.contains($0.id) }
+            guard !free.isEmpty, !candidates.isEmpty else { return }
+            self.assistContext = (screen, template, false)
+            Self.logOffer(candidates, zones: free.count)
+            self.assist.show(on: screen, zones: free, windows: candidates)
+        }
+    }
+
+    /// The zones of `template` on `screen` no window of its group is in, in order.
+    private func freeZones(of template: Int, on screen: NSScreen) -> [(zone: Int, frame: CGRect)] {
+        let group = "\(Self.key(for: screen))-\(template)"
+        let taken = Set(placements.values.filter { $0.group == group }.map(\.zone))
+        let frames = frames(template: template, on: screen)
+        return frames.indices.filter { !taken.contains($0) }.map { (zone: $0, frame: frames[$0]) }
+    }
+
+    /// Snap Assist goes away, and one still waiting for its windows never shows.
+    private func closeAssist() {
+        assistRequest += 1
+        assist.close()
+    }
+
+    /// The window picked in Snap Assist goes into `zone`. False when it can't be reached (its
+    /// app stopped answering, or it closed meanwhile).
+    private func assistPicked(_ window: ZoneWindow, zone: Int) -> Bool {
+        guard let (screen, template, replacing) = assistContext,
+              let frame = frames(template: template, on: screen)[safe: zone],
+              let element = AccessibilityElement.getWindowElement(window.id) else { return false }
+        // "Trocar app" is one pick: the window that was there leaves the group, where it is
+        // (place() sees to that).
+        if replacing { closeAssist() }
+        // A window in the Dock or of a hidden app may only take its frame once it is back:
+        // reveal() settles it then.
+        let isAway = window.state == .minimized || window.state == .hidden
+        let placement = Placement(display: Self.key(for: screen), template: template, zone: zone, frame: frame)
+        place(element, id: window.id, frame: frame, placement: placement, batched: isAway)
+        if isAway {
+            rememberGroup(placement.group)
+            refreshDecor()
+        }
+        reveal(window, element: element, zone: zone, template: template, screen: screen)
+        return true
+    }
+
+    /// A window picked in Snap Assist comes into view: out of the Dock, its app unhidden, in
+    /// front of the others.
+    private func reveal(_ window: ZoneWindow, element: AccessibilityElement, zone: Int, template: Int, screen: NSScreen) {
+        let wasAway = window.state == .minimized || window.state == .hidden
+        if let app = NSRunningApplication(processIdentifier: window.pid), app.isHidden { app.unhide() }
+        if window.state == .minimized || element.isMinimized == true {
+            SwitcherWindowActivator.setWindowMinimized(false, windowID: window.id, pid: window.ownerPID)
+        }
+        element.raise()
+        guard wasAway else { return }
+        let group = "\(Self.key(for: screen))-\(template)"
+        // Once it is back: the frame again when it didn't take (some apps only do then), in
+        // front, and at last what it really took.
+        for (attempt, delay) in [0.35, 0.8].enumerated() {
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+                MainActor.assumeIsolated {
+                    guard let self, let now = self.placements[window.id], now.group == group, now.zone == zone,
+                          let frame = self.frames(template: template, on: screen)[safe: zone] else { return }
+                    let current = element.frame
+                    if !current.isNull, !self.isClose(current, frame) { element.setFrame(frame) }
+                    let taken = element.frame
+                    self.placements[window.id]?.frame = taken.isNull ? frame : taken
+                    element.raise()
+                    if attempt == 1 { self.settle(group, elements: [window.id: element]) }
+                }
+            }
+        }
+    }
+
+    /// "Trocar app": each window of the group can be replaced; the pick takes its zone. The
+    /// only way a window from outside comes into a group.
     private func startReplace(_ group: String) {
         guard let member = placements.values.first(where: { $0.group == group }),
               let screen = NSScreen.screens.first(where: { Self.key(for: $0) == member.display }) else { return }
-        let members = placements.filter { $0.value.group == group }
-        let frames = frames(template: member.template, on: screen)
-        let zones = members.values.map(\.zone).sorted().compactMap { zone in frames[safe: zone].map { (zone: zone, frame: $0) } }
-        var captions: [Int: String] = [:]
-        for placement in members.values {
-            let name = NSRunningApplication(processIdentifier: placement.pid)?.localizedName ?? ""
-            captions[placement.zone] = L("In place of \(name)")
+        assistRequest += 1
+        let request = assistRequest
+        windows(for: screen, maxAge: 1) { [weak self] windows in
+            guard let self, request == self.assistRequest, self.session == nil, Self.isEnabled else { return }
+            let members = self.placements.filter { $0.value.group == group }
+            let frames = self.frames(template: member.template, on: screen)
+            let zones = members.values.map(\.zone).sorted().compactMap { zone in frames[safe: zone].map { (zone: zone, frame: $0) } }
+            var captions: [Int: String] = [:]
+            for placement in members.values {
+                let name = NSRunningApplication(processIdentifier: placement.pid)?.localizedName ?? ""
+                captions[placement.zone] = L("In place of \(name)")
+            }
+            let candidates = windows.filter { members[$0.id] == nil }
+            guard !zones.isEmpty, !candidates.isEmpty else {
+                NSSound.beep()
+                return
+            }
+            self.assistContext = (screen, member.template, true)
+            Self.logOffer(candidates, zones: zones.count)
+            self.assist.show(on: screen, zones: zones, windows: candidates, captions: captions)
         }
-        let candidates = openWindows(for: screen).filter { members[$0.id] == nil }
-        guard !zones.isEmpty, !candidates.isEmpty else {
-            NSSound.beep()
-            return
-        }
-        assistContext = (screen, member.template, true)
-        assist.show(on: screen, zones: zones, candidates: candidates, captions: captions,
-                    hint: L("Pick the window that comes in, in the space it replaces · Esc closes"))
     }
 
-    /// The standard windows on the current Space, front to back.
-    /// Each one says which other display it is on, when it isn't on `screen` (its centre decides).
-    private func openWindows(for screen: NSScreen) -> [ZoneAssist.Candidate] {
-        let here = Self.key(for: screen)
-        let screens = NSScreen.screens.map { (frame: $0.frame.screenFlipped, key: Self.key(for: $0), name: $0.localizedName) }
-        let own = ProcessInfo.processInfo.processIdentifier
-        let infos = WindowUtil.getWindowList(forceRefresh: true).filter {
-            $0.level == 0 && $0.pid != own && $0.frame.width >= 80 && $0.frame.height >= 60
-                && !["Dock", "WindowManager", "Window Server"].contains($0.processName ?? "")
-        }
-        var standard: [CGWindowID: AccessibilityElement] = [:]
-        for pid in Set(infos.map(\.pid)) {
-            let app = AccessibilityElement(pid)
-            app.setMessagingTimeout(0.25)
-            for element in app.windowElements ?? [] {
-                guard let id = element.windowId, element.isStandardWindow, element.isMinimized != true else { continue }
-                standard[id] = element
-            }
-        }
-        return infos.compactMap { info in
-            guard let element = standard[info.id] else { return nil }
-            let appName = NSRunningApplication(processIdentifier: info.pid)?.localizedName ?? info.processName ?? ""
-            let display = screens.first { $0.frame.contains(info.frame.centerPoint) }
-            let elsewhere = display.flatMap { $0.key == here ? nil : $0.name }
-            return ZoneAssist.Candidate(id: info.id, pid: info.pid, title: element.title ?? "", appName: appName,
-                                        otherDisplay: elsewhere)
-        }
+    /// How many windows were offered and where they were (no titles: they are the user's).
+    private static func logOffer(_ windows: [ZoneWindow], zones: Int) {
+        let here = windows.filter { $0.state == .here }.count
+        let minimized = windows.filter { $0.state == .minimized }.count
+        let hidden = windows.filter { $0.state == .hidden }.count
+        log.notice("assist: \(zones) zones, \(windows.count) windows (\(here) here, \(windows.count - here - minimized - hidden) on other displays, \(minimized) minimized, \(hidden) hidden)")
     }
 
     // MARK: - Groups
 
-    private func place(_ element: AccessibilityElement, id: CGWindowID, frame: CGRect, placement: Placement) {
+    /// `batched` when several windows are placed in a row: the caller settles and remembers
+    /// the group once, at the end (`finishPlacing`).
+    private func place(_ element: AccessibilityElement, id: CGWindowID, frame: CGRect, placement: Placement,
+                       batched: Bool = false) {
+        // One window per zone: the one that was there leaves the group, where it is.
+        for (other, spot) in placements where other != id && spot.group == placement.group && spot.zone == placement.zone {
+            placements.removeValue(forKey: other)
+            ownSizes.removeValue(forKey: other)
+        }
         let current = element.frame
         if placements[id] == nil, ownSizes[id] == nil, !current.isNull { ownSizes[id] = current.size }
         element.setFrame(frame)
         var placement = placement
-        placement.frame = element.frame.isNull ? frame : element.frame
+        let taken = element.frame
+        placement.frame = taken.isNull ? frame : taken
         placement.pid = element.pid ?? 0
         placements[id] = placement
-        rememberGroup(placement.group)
         // Not Rectangle's snap history: it would give the size back as soon as the drag starts.
         WindowManagementModule.windowHistory.lastRectangleActions.removeValue(forKey: id)
         startTimer()
+        if !batched { finishPlacing(placement.group, elements: [id: element]) }
+    }
+
+    /// After one window or a row of them went into `group`: what they took, the group as the
+    /// display's last one, the outlines.
+    private func finishPlacing(_ group: String, elements: [CGWindowID: AccessibilityElement] = [:]) {
+        settle(group, elements: elements)
+        rememberGroup(group)
+        refreshDecor()
+    }
+
+    /// What the windows of `group` actually took. One that keeps a bigger size than its zone
+    /// (its app's minimum) gets the room it needs: the lines it touches move and the others
+    /// follow, so no window ends under a neighbour. It is looked at twice: an app may take a
+    /// size a beat after answering, and only what it still keeps a moment later (`confirming`)
+    /// is its minimum. `known`: elements already at hand.
+    private func settle(_ group: String, elements known: [CGWindowID: AccessibilityElement] = [:], confirming: Bool = false) {
+        if confirming, gripDrag != nil || session != nil || NSEvent.pressedMouseButtons & 1 == 1 { return }
+        guard let member = placements.values.first(where: { $0.group == group }),
+              let screen = NSScreen.screens.first(where: { Self.key(for: $0) == member.display }) else { return }
+        let members = placements.filter { $0.value.group == group }
+        var elements = known.filter { members[$0.key] != nil }
+        let missing = members.keys.filter { elements[$0] == nil }
+        if !missing.isEmpty { elements.merge(Self.elements(for: missing)) { known, _ in known } }
+        let usable = screen.adjustedVisibleFrame().screenFlipped
+        let root = self.root(member.template, display: member.display)
+        let zones = ZoneGeometry.frames(root, in: usable, gap: gap)
+        var taken: [CGWindowID: CGRect] = [:]
+        var minimums: [Int: CGSize] = [:]
+        for (id, placement) in members {
+            guard let frame = elements[id]?.frame, !frame.isNull else { continue }
+            taken[id] = frame
+            if let zone = zones[safe: placement.zone], frame.width > zone.width + 1.5 || frame.height > zone.height + 1.5 {
+                minimums[placement.zone] = frame.size
+            }
+        }
+        for (id, frame) in taken { placements[id]?.frame = frame }
+        guard !minimums.isEmpty else { return }
+        guard confirming else {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
+                MainActor.assumeIsolated { self?.settle(group, elements: elements, confirming: true) }
+            }
+            return
+        }
+        let fitted = ZoneGeometry.makingRoom(for: minimums, root: root, in: usable, gap: gap)
+        guard fitted != root else { return }
+        roots[group] = fitted
+        let frames = ZoneGeometry.frames(fitted, in: usable, gap: gap)
+        for (id, placement) in members {
+            guard let frame = frames[safe: placement.zone], let element = elements[id] else { continue }
+            if taken[id] != frame { element.setFrame(frame) }
+            let now = element.frame
+            placements[id]?.frame = now.isNull ? frame : now
+        }
+        log.notice("room made for \(minimums.count) window(s) that would not shrink")
+        rememberGroup(group)
+        hideDecor()
         refreshDecor()
     }
 
@@ -563,7 +775,7 @@ final class ZoneController {
     }
 
     private func leaveGroup(_ id: CGWindowID) {
-        placements.removeValue(forKey: id)
+        guard placements.removeValue(forKey: id) != nil else { return }
         ownSizes.removeValue(forKey: id)
         refreshDecor()
     }
@@ -575,148 +787,206 @@ final class ZoneController {
         }
     }
 
+    /// The outlines and grips go away (unless a grip is being dragged).
+    private func hideDecor() {
+        guard !decor.isDraggingGrip else { return }
+        decorGroup = nil
+        decor.hide()
+    }
+
+    /// Something may have put another window in use (a click, another app in front): the
+    /// outlines follow now, and once more when the apps have settled.
+    private func focusMayHaveChanged() {
+        guard !placements.isEmpty, gripDrag == nil else { return }
+        for delay in [0.04, 0.25] {
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+                MainActor.assumeIsolated { self?.refreshDecor() }
+            }
+        }
+    }
+
     /// Keeps the groups honest (closed, moved away) and draws the one in use.
     private func refreshDecor() {
         guard gripDrag == nil else { return }
         guard Self.isEnabled, !placements.isEmpty else {
-            decor.hide()
+            hideDecor()
             timer?.invalidate()
             timer = nil
             return
         }
         // Mouse held: a drag or a resize is going on; decide when it's over.
         if NSEvent.pressedMouseButtons & 1 == 1 || session != nil || assist.isShown {
-            decor.hide()
+            hideDecor()
             return
         }
         let ids = Array(placements.keys)
         let infos = Dictionary(WindowUtil.getWindowList(ids: ids, forceRefresh: true).map { ($0.id, $0) },
                                uniquingKeysWith: { a, _ in a })
+        let visible = Set(WindowUtil.getWindowList(forceRefresh: true).map(\.id))
         for (id, placement) in placements {
             guard let info = infos[id] else {
                 // Closed (it would still be listed if only minimized or on another Space).
-                if WindowUtil.getWindowList(ids: [id], all: true, forceRefresh: true).isEmpty { leaveGroup(id) }
+                if WindowUtil.getWindowList(ids: [id], all: true, forceRefresh: true).isEmpty {
+                    placements.removeValue(forKey: id)
+                    ownSizes.removeValue(forKey: id)
+                }
                 continue
             }
             // Moved or resized by something else: no longer in its zone.
-            if Date().timeIntervalSince(placement.at) > 1, !isClose(info.frame, placement.frame), WindowUtil.getWindowList(forceRefresh: false).contains(where: { $0.id == id }) {
+            if Date().timeIntervalSince(placement.at) > 1, !isClose(info.frame, placement.frame), visible.contains(id) {
                 placements.removeValue(forKey: id)
                 ownSizes.removeValue(forKey: id)
             }
         }
-        // The group of the window in use, when it has company on screen. The app in front is
-        // only asked which window that is when one of its windows is in a group.
-        let visible = Set(WindowUtil.getWindowList(forceRefresh: false).map(\.id))
+        // The group of the window in use, when it has company on screen.
         guard let focused = focusedGroupWindow(), let group = placements[focused]?.group else {
-            decor.hide()
+            hideDecor()
             return
         }
         let members = placements.filter { $0.value.group == group && visible.contains($0.key) }
         guard members.count >= 2, let first = members.first?.value,
               let screen = NSScreen.screens.first(where: { Self.key(for: $0) == first.display }) else {
-            decor.hide()
+            hideDecor()
             return
         }
-        decor.show(frames: members.mapValues(\.frame), grips: grips(for: first, members: Array(members.values), on: screen))
+        decorGroup = group
+        let drawn = seams(root: root(first.template, display: first.display), zones: Set(members.values.map(\.zone)), on: screen)
+        decor.show(lines: drawn.lines, grips: drawn.grips)
     }
 
-    /// A grip on every line two members of the group share.
-    private func grips(for placement: Placement, members: [Placement], on screen: NSScreen) -> [ZoneGroupDecor.Grip] {
-        let area = layoutArea(screen)
-        let root = self.root(placement.template, display: placement.display)
-        let regions = ZoneGeometry.regions(root, in: area)
-        let used = Set(members.map(\.zone))
-        return ZoneGeometry.dividers(root, in: area).compactMap { divider in
-            let line = divider.line
-            func touches(_ region: CGRect, before: Bool) -> Bool {
-                if divider.axis == .columns {
-                    let edge = before ? region.maxX : region.minX
-                    return abs(edge - line.minX) <= 1 && region.minY < line.maxY && region.maxY > line.minY
-                }
-                let edge = before ? region.maxY : region.minY
-                return abs(edge - line.minY) <= 1 && region.minX < line.maxX && region.maxX > line.minX
-            }
-            let before = regions.indices.filter { used.contains($0) && touches(regions[$0], before: true) }
-            let after = regions.indices.filter { used.contains($0) && touches(regions[$0], before: false) }
-            guard !before.isEmpty, !after.isEmpty else { return nil }
-            // Centred on the part of the line the members share.
-            let spans = (before + after).map { regions[$0] }
-            let center: CGPoint
-            if divider.axis == .columns {
-                let low = max(line.minY, spans.map(\.minY).min() ?? line.minY)
-                let high = min(line.maxY, spans.map(\.maxY).max() ?? line.maxY)
-                center = CGPoint(x: line.minX, y: (low + high) / 2)
-            } else {
-                let low = max(line.minX, spans.map(\.minX).min() ?? line.minX)
-                let high = min(line.maxX, spans.map(\.maxX).max() ?? line.maxX)
-                center = CGPoint(x: (low + high) / 2, y: line.minY)
-            }
-            return ZoneGroupDecor.Grip(divider: divider, center: center)
-        }
+    /// What shows a group is held together: one line along every edge two of its windows
+    /// share (`zones`: the ones that hold a window), with a grip in its middle.
+    private func seams(root: ZoneNode, zones: Set<Int>, on screen: NSScreen) -> (lines: [ZoneGroupDecor.Line], grips: [ZoneGroupDecor.Grip]) {
+        let seams = ZoneGeometry.seams(root, in: layoutArea(screen), occupied: zones)
+        return (seams.map { ZoneGroupDecor.Line(divider: $0.divider, from: $0.from, to: $0.to) },
+                seams.map { ZoneGroupDecor.Grip(divider: $0.divider, center: $0.center) })
     }
 
     // MARK: - Grips
 
-    /// The grip under the pointer was pressed: the group of the window in use is held.
+    /// The grip under the pointer was pressed: the group showing is held, and its windows'
+    /// elements are found once for the whole drag.
     private func gripBegan() {
-        guard let focused = focusedGroupWindow(), let member = placements[focused] else { return }
-        gripDrag = (member.group, root(member.template, display: member.display), .distantPast)
+        if let unfinished = gripDrag { finishGrip(unfinished) }
+        guard let group = decorGroup, let member = placements.values.first(where: { $0.group == group }) else { return }
+        let members = placements.filter { $0.value.group == group }
+        let elements = Self.elements(for: Array(members.keys))
+        gripAsked = nil
+        gripDrag = GripDrag(group: group, root: root(member.template, display: member.display), elements: elements,
+                            restore: elements.values.map { $0.beginFrameAdjustments() })
+        writer.begin(frames: members.mapValues(\.frame))
     }
 
-    private func gripMoved(_ divider: ZoneDivider, to position: CGFloat, force: Bool = false) {
+    /// The grip follows the pointer at once; the windows are written to in the background
+    /// (ZoneFrameWriter), each as fast as its app takes it.
+    private func gripMoved(_ divider: ZoneDivider, to position: CGFloat) {
+        guard gripDrag != nil else { return }
+        gripAsked = (divider, position)
+        guard let (frames, line) = layGrip(divider, at: position), let drag = gripDrag else { return }
+        var targets: [CGWindowID: ZoneFrameWriter.Target] = [:]
+        for (id, frame) in frames {
+            if let element = drag.elements[id] { targets[id] = ZoneFrameWriter.Target(element: element, frame: frame) }
+        }
+        writer.write(targets)
+        if let line {
+            let pointer = NSEvent.mouseLocation.screenFlipped
+            decor.moveGrip(divider, to: divider.axis == .columns ? CGPoint(x: line, y: pointer.y) : CGPoint(x: pointer.x, y: line))
+        }
+        // The lines follow at once (the grip in hand is moved above).
+        if let member = placements.values.first(where: { $0.group == drag.group }),
+           let screen = NSScreen.screens.first(where: { Self.key(for: $0) == member.display }) {
+            let zones = Set(placements.values.filter { $0.group == drag.group }.map(\.zone))
+            decor.show(lines: seams(root: root(member.template, display: member.display), zones: zones, on: screen).lines, grips: [])
+        }
+    }
+
+    /// The group's layout with `divider` as near `position` as its windows' known minimum
+    /// sizes allow: each window's frame, and where the line ended up.
+    private func layGrip(_ divider: ZoneDivider, at position: CGFloat) -> (frames: [CGWindowID: CGRect], line: CGFloat?)? {
         guard let drag = gripDrag,
               let member = placements.values.first(where: { $0.group == drag.group }),
-              let screen = NSScreen.screens.first(where: { Self.key(for: $0) == member.display }) else { return }
-        gripTarget = (divider, position)
-        // About 30 writes a second: AX moves are not free.
-        guard force || Date().timeIntervalSince(drag.lastWrite) > 1 / 30 else { return }
-        gripDrag?.lastWrite = Date()
-        let group = drag.group
+              let screen = NSScreen.screens.first(where: { Self.key(for: $0) == member.display }) else { return nil }
+        let usable = screen.adjustedVisibleFrame().screenFlipped
         let area = layoutArea(screen)
-        let moved = ZoneGeometry.moving(divider, to: position, root: drag.root, in: area)
-        roots[group] = moved
-        let frames = ZoneGeometry.frames(moved, in: screen.adjustedVisibleFrame().screenFlipped, gap: gap)
-        var outlines: [CGWindowID: CGRect] = [:]
-        for (id, placement) in placements where placement.group == group {
-            guard let frame = frames[safe: placement.zone], let element = AccessibilityElement.getWindowElement(id) else { continue }
-            element.setFrame(frame)
+        let held = ZoneGeometry.clamping(divider, to: position, root: drag.root, in: usable, gap: gap, minimums: drag.minimums)
+        let moved = ZoneGeometry.moving(divider, to: held, root: drag.root, in: area)
+        roots[drag.group] = moved
+        let zones = ZoneGeometry.frames(moved, in: usable, gap: gap)
+        var frames: [CGWindowID: CGRect] = [:]
+        for (id, placement) in placements where placement.group == drag.group {
+            guard let frame = zones[safe: placement.zone] else { continue }
             placements[id]?.frame = frame
-            outlines[id] = frame
+            frames[id] = frame
         }
         let line = ZoneGeometry.dividers(moved, in: area).first { $0.path == divider.path && $0.index == divider.index }
-        if let line {
-            let center = divider.axis == .columns
-                ? CGPoint(x: line.line.minX, y: NSEvent.mouseLocation.screenFlipped.y)
-                : CGPoint(x: NSEvent.mouseLocation.screenFlipped.x, y: line.line.minY)
-            decor.moveGrip(divider, to: center)
-        }
-        decor.show(frames: outlines, grips: [])
+        return (frames, line?.position)
     }
 
+    /// How much bigger than asked a window must stay for it to count as refusing to shrink.
+    private static let refusalMargin: CGFloat = 24
+
+    /// A window would not get as small as asked (ZoneFrameWriter): the line goes back to
+    /// where that window lets it be, and stops there for the rest of the drag.
+    private func learnMinimum(of id: CGWindowID, asked: CGSize, kept: CGSize) {
+        guard var drag = gripDrag, let placement = placements[id], placement.group == drag.group else { return }
+        // A clear refusal only: a window that sizes in steps (a terminal's rows and columns)
+        // keeps a little more or less than asked without being at its minimum.
+        var minimum = drag.minimums[placement.zone] ?? .zero
+        if kept.width > asked.width + Self.refusalMargin { minimum.width = max(minimum.width, kept.width) }
+        if kept.height > asked.height + Self.refusalMargin { minimum.height = max(minimum.height, kept.height) }
+        guard minimum != drag.minimums[placement.zone] else { return }
+        drag.minimums[placement.zone] = minimum
+        gripDrag = drag
+        if let asked = gripAsked { gripMoved(asked.divider, to: asked.position) }
+    }
+
+    /// The grip was let go: once the last frames are written, the drag is settled.
     private func gripEnded(_ divider: ZoneDivider) {
-        if let target = gripTarget { gripMoved(target.divider, to: target.position, force: true) }
-        gripTarget = nil
         guard let drag = gripDrag else { return }
+        writer.flush { [weak self] in
+            MainActor.assumeIsolated { self?.finishGrip(drag) }
+        }
+    }
+
+    /// Reads back what the apps accepted (settle: a window still bigger than its zone pulls
+    /// its line back), and lets the group go.
+    private func finishGrip(_ drag: GripDrag) {
+        guard let current = gripDrag, current.group == drag.group else { return }
+        endGrip()
+        // The outlines stay where the drag left them: no blink at the end of it.
+        finishPlacing(drag.group, elements: current.elements)
+    }
+
+    /// The drag (or the press that turned out to be a click) is over: the group is let go and
+    /// its apps get their enhanced UI back. Returns the group it was.
+    @discardableResult
+    private func endGrip() -> String? {
+        guard let drag = gripDrag else { return nil }
         gripDrag = nil
-        // Read back what the apps accepted.
-        for (id, placement) in placements where placement.group == drag.group {
-            if let frame = AccessibilityElement.getWindowElement(id)?.frame, !frame.isNull {
-                placements[id]?.frame = frame
+        gripAsked = nil
+        drag.restore.forEach { $0() }
+        return drag.group
+    }
+
+    /// The Accessibility elements of `ids`, asking each app for its windows once.
+    private static func elements(for ids: [CGWindowID]) -> [CGWindowID: AccessibilityElement] {
+        var wanted: [pid_t: Set<CGWindowID>] = [:]
+        for info in WindowUtil.getWindowList(ids: ids, forceRefresh: true) { wanted[info.pid, default: []].insert(info.id) }
+        var elements: [CGWindowID: AccessibilityElement] = [:]
+        for (pid, ids) in wanted {
+            let app = AccessibilityElement(pid)
+            app.setMessagingTimeout(0.35)
+            for element in app.windowElements ?? [] {
+                if let id = element.windowId, ids.contains(id) { elements[id] = element }
             }
         }
-        _ = divider
-        rememberGroup(drag.group)
-        decor.hide()
-        refreshDecor()
+        return elements
     }
 
     // MARK: - The grip's menu
 
     private func gripClicked(_ divider: ZoneDivider, at center: CGPoint, in view: NSView) {
-        let group = gripDrag?.group
-        gripDrag = nil
-        gripTarget = nil
-        guard let group else { return }
+        guard let group = endGrip() else { return }
         let menu = NSMenu()
         menu.autoenablesItems = false
         menu.addItem(ZoneMenuItem(L("Swap App…"), symbol: "arrow.triangle.2.circlepath") { [weak self] in self?.startReplace(group) })
@@ -739,15 +1009,23 @@ final class ZoneController {
         let (swapped, moved) = ZoneGeometry.swappingSides(divider, root: root(member.template, display: member.display))
         roots[group] = swapped
         let frames = ZoneGeometry.frames(swapped, in: screen.adjustedVisibleFrame().screenFlipped, gap: gap)
-        for (id, placement) in placements where placement.group == group {
-            guard let zone = moved[safe: placement.zone], let frame = frames[safe: zone],
-                  let element = AccessibilityElement.getWindowElement(id) else { continue }
+        let members = placements.filter { $0.value.group == group }
+        let elements = Self.elements(for: Array(members.keys))
+        // All of them out first (keeping their own sizes), so none pushes another out of the
+        // zone it is about to leave.
+        for id in members.keys { placements.removeValue(forKey: id) }
+        for (id, placement) in members {
+            guard let zone = moved[safe: placement.zone], let frame = frames[safe: zone], let element = elements[id] else {
+                ownSizes.removeValue(forKey: id)
+                continue
+            }
             place(element, id: id, frame: frame,
-                  placement: Placement(display: placement.display, template: placement.template, zone: zone, frame: frame))
+                  placement: Placement(display: placement.display, template: placement.template, zone: zone, frame: frame),
+                  batched: true)
         }
         NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
-        decor.hide()
-        refreshDecor()
+        hideDecor()
+        finishPlacing(group, elements: elements)
     }
 
     /// "Alterar divisórias": the panel to choose another layout for the group; Esc keeps it.
@@ -765,17 +1043,22 @@ final class ZoneController {
         guard !members.isEmpty else { return }
         let display = Self.key(for: screen)
         let frames = frames(template: template, on: screen)
+        let elements = Self.elements(for: members.map(\.key))
         for (id, _) in members { placements.removeValue(forKey: id) }
-        var last: CGWindowID?
+        var placed = 0
         for (index, member) in members.enumerated() {
-            guard let frame = frames[safe: index], let element = AccessibilityElement.getWindowElement(member.key) else { continue }
+            // Beyond the new layout's zones, or gone: out of the group.
+            guard let frame = frames[safe: index], let element = elements[member.key] else {
+                ownSizes.removeValue(forKey: member.key)
+                continue
+            }
             place(element, id: member.key, frame: frame,
-                  placement: Placement(display: display, template: template, zone: index, frame: frame))
-            last = member.key
+                  placement: Placement(display: display, template: template, zone: index, frame: frame), batched: true)
+            placed += 1
         }
         log.notice("group moved to layout \(template + 1)")
-        if frames.count > members.count, let last { startAssist(after: last, template: template, screen: screen) }
-        refreshDecor()
+        finishPlacing("\(display)-\(template)", elements: elements)
+        if frames.count > members.count, placed > 0 { startAssist(template: template, screen: screen) }
     }
 
     // MARK: - Unlinking and joining again
@@ -790,7 +1073,7 @@ final class ZoneController {
         for (id, placement) in placements where placement.group == group {
             placements.removeValue(forKey: id)
         }
-        decor.hide()
+        hideDecor()
         NSHapticFeedbackManager.defaultPerformer.perform(.levelChange, performanceTime: .now)
         log.notice("group unlinked")
         decor.showRelink(at: center) { [weak self] in
@@ -811,13 +1094,15 @@ final class ZoneController {
         let group = "\(display)-\(saved.template)"
         roots[group] = saved.root
         let frames = frames(template: saved.template, on: screen)
+        let elements = Self.elements(for: Array(saved.zones.keys))
         var placed: [AccessibilityElement] = []
         for (id, zone) in saved.zones.sorted(by: { $0.value < $1.value }) {
-            guard let frame = frames[safe: zone], let element = AccessibilityElement.getWindowElement(id) else { continue }
+            guard let frame = frames[safe: zone], let element = elements[id] else { continue }
             place(element, id: id, frame: frame,
-                  placement: Placement(display: display, template: saved.template, zone: zone, frame: frame))
+                  placement: Placement(display: display, template: saved.template, zone: zone, frame: frame), batched: true)
             placed.append(element)
         }
+        finishPlacing(group, elements: elements)
         // All of them in front, the one in use on top.
         let focused = AccessibilityElement.getFocusedWindowElement()
         for element in placed where element != focused { element.raise() }
@@ -825,7 +1110,6 @@ final class ZoneController {
         decor.hideRelink()
         NSHapticFeedbackManager.defaultPerformer.perform(.levelChange, performanceTime: .now)
         log.notice("group joined again (\(placed.count) windows)")
-        refreshDecor()
     }
 
     /// Keeps a copy of `group` (two or more windows) as its display's last group.
@@ -848,14 +1132,15 @@ final class ZoneController {
         let evened = ZoneGeometry.evening(divider, root: root(member.template, display: member.display))
         roots[group] = evened
         let frames = ZoneGeometry.frames(evened, in: screen.adjustedVisibleFrame().screenFlipped, gap: gap)
-        for (id, placement) in placements where placement.group == group {
-            guard let frame = frames[safe: placement.zone], let element = AccessibilityElement.getWindowElement(id) else { continue }
+        let members = placements.filter { $0.value.group == group }
+        let elements = Self.elements(for: Array(members.keys))
+        for (id, placement) in members {
+            guard let frame = frames[safe: placement.zone], let element = elements[id] else { continue }
             element.setFrame(frame)
-            placements[id]?.frame = element.frame.isNull ? frame : element.frame
+            placements[id]?.frame = frame
         }
-        rememberGroup(group)
-        decor.hide()
-        refreshDecor()
+        hideDecor()
+        finishPlacing(group, elements: elements)
     }
 
     // MARK: - Resizing a window of a group by its edge
@@ -876,28 +1161,55 @@ final class ZoneController {
         roots[placement.group] = resized
         // The other members follow the new lines; one moved away meanwhile is left alone.
         let frames = frames(template: placement.template, on: screen)
-        for (other, spot) in placements where spot.group == placement.group {
-            guard let frame = frames[safe: spot.zone],
-                  let target = other == id ? element : AccessibilityElement.getWindowElement(other) else {
+        let members = placements.filter { $0.value.group == placement.group }
+        var elements = Self.elements(for: members.keys.filter { $0 != id })
+        elements[id] = element
+        for (other, spot) in members {
+            guard let frame = frames[safe: spot.zone], let target = elements[other] else {
                 placements.removeValue(forKey: other)
                 continue
             }
             if other != id, !isClose(target.frame, spot.frame) {
                 placements.removeValue(forKey: other)
+                elements.removeValue(forKey: other)
                 continue
             }
             target.setFrame(frame)
-            placements[other]?.frame = target.frame.isNull ? frame : target.frame
+            placements[other]?.frame = frame
         }
-        rememberGroup(placement.group)
-        refreshDecor()
+        // A neighbour that can't get that small pushes the line back (settle).
+        finishPlacing(placement.group, elements: elements)
     }
 
-    /// The window in use, when its app has a window in a group (otherwise nobody is asked).
+    /// The window in use, when its app has a window in a group (otherwise nobody is asked):
+    /// the last answer, asked again in the background, so an app that is slow to answer never
+    /// holds the main thread. A new answer draws the outlines again.
     private func focusedGroupWindow() -> CGWindowID? {
         guard let front = NSWorkspace.shared.frontmostApplication?.processIdentifier,
-              placements.values.contains(where: { $0.pid == front }) else { return nil }
-        let app = AXUIElementCreateApplication(front)
+              placements.values.contains(where: { $0.pid == front }) else {
+            focused = nil
+            return nil
+        }
+        if !focusQueryRunning {
+            focusQueryRunning = true
+            Self.focusQueue.async {
+                let window = Self.focusedWindow(of: front)
+                DispatchQueue.main.async {
+                    MainActor.assumeIsolated {
+                        let zones = ZoneController.shared
+                        zones.focusQueryRunning = false
+                        let changed = zones.focused?.pid != front || zones.focused?.window != window
+                        zones.focused = (front, window)
+                        if changed { zones.refreshDecor() }
+                    }
+                }
+            }
+        }
+        return focused?.pid == front ? focused?.window : nil
+    }
+
+    private nonisolated static func focusedWindow(of pid: pid_t) -> CGWindowID? {
+        let app = AXUIElementCreateApplication(pid)
         AXUIElementSetMessagingTimeout(app, 0.25)
         var value: CFTypeRef?
         guard AXUIElementCopyAttributeValue(app, kAXFocusedWindowAttribute as CFString, &value) == .success,
