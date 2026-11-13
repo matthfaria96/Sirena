@@ -355,7 +355,9 @@ final class ZoneController {
         // Still choosing: the list for Snap Assist stays fresh.
         if hit != nil { warmWindows(for: session.screen) }
         if session.relayout == nil, case let .zone(template, zone) = hit, let frame = frames(template: template, on: session.screen)[safe: zone] {
-            preview.show(frame)
+            // The app whose window goes there: the one in front (a drag brings it forward; the
+            // shortcut's panel doesn't take the front).
+            preview.show(frame, icon: NSWorkspace.shared.frontmostApplication?.icon)
         } else {
             preview.hide()
         }

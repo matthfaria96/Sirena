@@ -282,53 +282,56 @@ private struct ZonePopupView: View {
                 .fill(Color(nsColor: .windowBackgroundColor).opacity(supportsLiquidGlass ? 0.3 : 0.15))
                 .compatGlass(.regular, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
                 .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .strokeBorder(LinearGradient(colors: [.white.opacity(0.35), .white.opacity(0.06)],
+                    .fill(LinearGradient(colors: [.white.opacity(0.07), .white.opacity(0)],
+                                         startPoint: .top, endPoint: .center))
+                    .allowsHitTesting(false))
+                .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .strokeBorder(LinearGradient(colors: [.white.opacity(0.38), .white.opacity(0.05)],
                                                  startPoint: .top, endPoint: .bottom), lineWidth: 1))
-                .shadow(color: .black.opacity(0.3), radius: 22, y: 10)
+                .shadow(color: .black.opacity(0.12), radius: 3, y: 1)
+                .shadow(color: .black.opacity(0.24), radius: 24, y: 12)
                 .frame(width: model.card.width, height: model.card.height)
                 .offset(x: model.card.minX, y: model.card.minY)
 
             ForEach(model.thumbs.indices, id: \.self) { template in
                 let thumb = model.thumbs[template]
-                let isHovered = model.hover?.first == template
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(Color.primary.opacity(isHovered ? 0.1 : 0.05))
+                LayoutDrawing(thumb: thumb,
+                              zones: template < model.zones.count ? model.zones[template] : [],
+                              litZone: model.hover?.first == template ? model.hover?.last : nil,
+                              wholeLayout: model.wholeLayout,
+                              othersLit: model.hover != nil && model.hover?.first != template)
                     .frame(width: thumb.width + 6, height: thumb.height + 6)
                     .offset(x: thumb.minX - 3, y: thumb.minY - 3)
-                if template < model.zones.count {
-                    ForEach(model.zones[template].indices, id: \.self) { zone in
-                        let frame = model.zones[template][zone]
-                        let isOn = model.hover == [template, zone] || (model.wholeLayout && model.hover?.first == template)
-                        RoundedRectangle(cornerRadius: 6, style: .continuous)
-                            .fill(isOn ? AnyShapeStyle(LinearGradient(colors: [Color.accentColor, Color.accentColor.opacity(0.75)],
-                                                                      startPoint: .top, endPoint: .bottom))
-                                       : AnyShapeStyle(Color.primary.opacity(isHovered ? 0.2 : 0.14)))
-                            .overlay(RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                .strokeBorder(isOn ? Color.white.opacity(0.35) : Color.primary.opacity(0.15), lineWidth: 0.7))
-                            .frame(width: max(1, frame.width), height: max(1, frame.height))
-                            .offset(x: frame.minX, y: frame.minY)
-                    }
-                }
+                    // One after another, left to right, as the card drops.
+                    .opacity(model.isOpen ? 1 : 0)
+                    .offset(y: model.isOpen || reduceMotion ? 0 : -6)
+                    .animation(reduceMotion ? .easeOut(duration: 0.1)
+                               : .spring(response: 0.34, dampingFraction: 0.8).delay(model.isOpen ? 0.03 + Double(template) * 0.022 : 0),
+                               value: model.isOpen)
             }
 
             if let thumb = model.groupThumb {
                 let isOn = model.hover == [-1, -1]
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(Color.primary.opacity(isOn ? 0.2 : 0.07))
-                    .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .strokeBorder(Color.primary.opacity(isOn ? 0.7 : 0.28), lineWidth: isOn ? 1.5 : 1))
+                RoundedRectangle(cornerRadius: 9, style: .continuous)
+                    .fill(Color.primary.opacity(isOn ? 0.16 : 0.06))
+                    .overlay(RoundedRectangle(cornerRadius: 9, style: .continuous)
+                        .strokeBorder(Color.primary.opacity(isOn ? 0.55 : 0.2), lineWidth: isOn ? 1.2 : 0.8))
+                    .shadow(color: .black.opacity(isOn ? 0.18 : 0), radius: 6, y: 2)
                     .frame(width: thumb.width + 6, height: thumb.height + 6)
                     .offset(x: thumb.minX - 3, y: thumb.minY - 3)
                 ForEach(model.groupZones.indices, id: \.self) { zone in
                     let frame = model.groupZones[zone]
-                    RoundedRectangle(cornerRadius: 6, style: .continuous)
-                        .fill(Color.primary.opacity(isOn ? 0.22 : 0.14))
+                    RoundedRectangle(cornerRadius: 5, style: .continuous)
+                        .fill(Color.primary.opacity(isOn ? 0.2 : 0.12))
+                        .overlay(RoundedRectangle(cornerRadius: 5, style: .continuous)
+                            .strokeBorder(Color.primary.opacity(0.12), lineWidth: 0.6))
                         .overlay {
                             if let pid = model.groupIcons[zone], let icon = NSRunningApplication(processIdentifier: pid)?.icon {
                                 Image(nsImage: icon)
                                     .resizable()
                                     .frame(width: min(22, frame.width - 4, frame.height - 4),
                                            height: min(22, frame.width - 4, frame.height - 4))
+                                    .shadow(color: .black.opacity(0.2), radius: 1.5, y: 0.5)
                             }
                         }
                         .frame(width: max(1, frame.width), height: max(1, frame.height))
@@ -341,10 +344,11 @@ private struct ZonePopupView: View {
                     // One line even under a portrait display's narrow drawing.
                     .frame(width: max(thumb.width + 20, 110))
                     .offset(x: thumb.midX - max(thumb.width + 20, 110) / 2, y: thumb.maxY + 7)
-                Rectangle()
-                    .fill(Color.primary.opacity(0.15))
-                    .frame(width: 1, height: thumb.height)
-                    .offset(x: thumb.maxX + 15, y: thumb.minY)
+                // A divider that fades at both ends.
+                LinearGradient(colors: [Color.primary.opacity(0), Color.primary.opacity(0.18), Color.primary.opacity(0)],
+                               startPoint: .top, endPoint: .bottom)
+                    .frame(width: 1, height: thumb.height + 8)
+                    .offset(x: thumb.maxX + 15, y: thumb.minY - 4)
                 if let forget = model.forgetButton {
                     Image(systemName: "xmark.circle.fill")
                         .font(.system(size: 17, weight: .semibold))
@@ -371,14 +375,60 @@ private struct ZonePopupView: View {
     }
 }
 
+/// One layout drawn small: a frame like a tiny display with its zones. Under the pointer it
+/// lifts a little and its zone lights (the only place the accent colour shows); the other
+/// drawings step back meanwhile, so the eye stays on the choice.
+private struct LayoutDrawing: View {
+    let thumb: CGRect
+    let zones: [CGRect]
+    /// The zone under the pointer, when it's in this drawing.
+    let litZone: Int?
+    let wholeLayout: Bool
+    let othersLit: Bool
+
+    var body: some View {
+        let isHovered = litZone != nil
+        let origin = CGPoint(x: thumb.minX - 3, y: thumb.minY - 3)
+        ZStack(alignment: .topLeading) {
+            RoundedRectangle(cornerRadius: 9, style: .continuous)
+                .fill(Color.primary.opacity(isHovered ? 0.1 : 0.045))
+                .overlay(RoundedRectangle(cornerRadius: 9, style: .continuous)
+                    .strokeBorder(Color.primary.opacity(isHovered ? 0.22 : 0.1), lineWidth: 0.7))
+                .shadow(color: .black.opacity(isHovered ? 0.2 : 0), radius: 8, y: 3)
+            ForEach(zones.indices, id: \.self) { zone in
+                let frame = zones[zone].offsetBy(dx: -origin.x, dy: -origin.y)
+                let isOn = litZone == zone || (wholeLayout && isHovered)
+                let shape = RoundedRectangle(cornerRadius: 5, style: .continuous)
+                shape
+                    .fill(isOn ? AnyShapeStyle(LinearGradient(colors: [Color.accentColor.opacity(0.92), Color.accentColor.opacity(0.7)],
+                                                              startPoint: .top, endPoint: .bottom))
+                               : AnyShapeStyle(Color.primary.opacity(isHovered ? 0.19 : 0.13)))
+                    // A soft light along the top, like glass catching it.
+                    .overlay(shape.fill(LinearGradient(colors: [.white.opacity(isOn ? 0.28 : 0.08), .white.opacity(0)],
+                                                       startPoint: .top, endPoint: .center)))
+                    .overlay(shape.strokeBorder(isOn ? Color.white.opacity(0.4) : Color.primary.opacity(0.12), lineWidth: 0.7))
+                    .frame(width: max(1, frame.width), height: max(1, frame.height))
+                    .offset(x: frame.minX, y: frame.minY)
+            }
+        }
+        .frame(width: thumb.width + 6, height: thumb.height + 6, alignment: .topLeading)
+        .scaleEffect(isHovered ? 1.035 : 1)
+        .opacity(othersLit ? 0.72 : 1)
+        .animation(.snappy(duration: 0.16), value: isHovered)
+        .animation(.easeOut(duration: 0.16), value: othersLit)
+    }
+}
+
 // MARK: - The hint at the top while dragging
 
 /// A small glass pill at the top middle of the display while a window is dragged, where the
 /// panel drops from (Windows 11 shows the same), so the layouts can be found.
 @MainActor
 final class ZoneHint {
-    private static let size = CGSize(width: 132, height: 30)
+    /// The pill is 128 × 26; the rest is room for its shadow.
+    private static let size = CGSize(width: 136, height: 34)
     private var panel: NSPanel?
+    private let model = ZoneHintModel()
     private var screenFrame: CGRect?
 
     func show(on screen: NSScreen) {
@@ -387,7 +437,7 @@ final class ZoneHint {
         if panel.isVisible, panel.alphaValue > 0, screenFrame == screen.frame { return }
         screenFrame = screen.frame
         let top = screen.visibleFrame.screenFlipped
-        let frame = CGRect(x: (top.midX - Self.size.width / 2).rounded(), y: top.minY + 6,
+        let frame = CGRect(x: (top.midX - Self.size.width / 2).rounded(), y: top.minY + 4,
                            width: Self.size.width, height: Self.size.height)
         panel.setFrame(frame.screenFlipped, display: true)
         if !panel.isVisible { panel.alphaValue = 0 }
@@ -396,6 +446,7 @@ final class ZoneHint {
             context.duration = 0.18
             panel.animator().alphaValue = 1
         }
+        model.appeared += 1
     }
 
     func hide() {
@@ -421,50 +472,89 @@ final class ZoneHint {
         panel.hidesOnDeactivate = false
         panel.level = NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.popUpMenuWindow)))
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary, .ignoresCycle, .transient]
-        panel.contentView = NSHostingView(rootView: ZoneHintView())
+        panel.contentView = NSHostingView(rootView: ZoneHintView(model: model))
         return panel
     }
 }
 
+@MainActor
+@Observable
+final class ZoneHintModel {
+    /// Bumped each time the pill appears: its arrow hops once.
+    var appeared = 0
+}
+
 struct ZoneHintView: View {
+    let model: ZoneHintModel
+
     var body: some View {
         HStack(spacing: 6) {
             Image(systemName: "rectangle.split.3x1")
                 .font(.system(size: 11, weight: .semibold))
             Image(systemName: "chevron.up")
                 .font(.system(size: 9, weight: .bold))
+                .symbolEffect(.bounce.up, options: .nonRepeating, value: model.appeared)
         }
         .foregroundStyle(.secondary)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .compatGlass(.regular, in: Capsule())
-        .overlay(Capsule().strokeBorder(.white.opacity(0.25), lineWidth: 0.8))
-        .padding(2)
+        .overlay(Capsule().strokeBorder(LinearGradient(colors: [.white.opacity(0.35), .white.opacity(0.1)],
+                                                       startPoint: .top, endPoint: .bottom), lineWidth: 0.8))
+        .shadow(color: .black.opacity(0.15), radius: 4, y: 1.5)
+        .padding(4)
         .accessibilityLabel(L("Layouts at the top of the screen"))
     }
 }
 
 // MARK: - Where the window will go
 
+@MainActor
+@Observable
+final class ZonePreviewModel {
+    /// The app of the window on its way, shown faintly in the middle.
+    var icon: NSImage?
+}
+
 /// A sheet of glass over the zone, with a light rim: clear to see, never the accent colour.
+/// Light catches its top edge, and the app on its way sits faintly in the middle.
 struct ZonePreviewShape: View {
+    let model: ZonePreviewModel
+
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: 14, style: .continuous)
         shape
             .fill(Color.white.opacity(0.08))
             .compatGlass(.regular, in: shape)
+            .overlay(shape.fill(LinearGradient(colors: [.white.opacity(0.16), .white.opacity(0)],
+                                               startPoint: .top, endPoint: UnitPoint(x: 0.5, y: 0.35))))
+            .overlay {
+                if let icon = model.icon {
+                    Image(nsImage: icon)
+                        .resizable()
+                        .frame(width: 64, height: 64)
+                        .shadow(color: .black.opacity(0.25), radius: 6, y: 2)
+                        .opacity(0.85)
+                        .transition(.opacity.combined(with: .scale(scale: 0.9)))
+                }
+            }
             .overlay(shape.strokeBorder(Color.white.opacity(0.55), lineWidth: 1.5))
             .overlay(shape.strokeBorder(Color.black.opacity(0.25), lineWidth: 0.5).padding(-0.5))
-            .padding(3)
+            .shadow(color: .black.opacity(0.18), radius: 12, y: 4)
+            .padding(14)
     }
 }
 
 @MainActor
 final class ZonePreview {
     private var panel: NSPanel?
+    private let model = ZonePreviewModel()
+    /// Room around the sheet for its shadow.
+    private static let margin: CGFloat = 11
 
-    /// `frame` in Accessibility coordinates.
-    func show(_ frame: CGRect) {
-        let target = frame.screenFlipped
+    /// `frame` in Accessibility coordinates; `icon`: the app of the window going there.
+    func show(_ frame: CGRect, icon: NSImage? = nil) {
+        if model.icon !== icon { withAnimation(.easeOut(duration: 0.15)) { model.icon = icon } }
+        let target = frame.insetBy(dx: -Self.margin, dy: -Self.margin).screenFlipped
         let panel = self.panel ?? makePanel()
         self.panel = panel
         if panel.isVisible, panel.alphaValue > 0 {
@@ -507,7 +597,7 @@ final class ZonePreview {
         panel.hidesOnDeactivate = false
         panel.level = .floating
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary, .ignoresCycle, .transient]
-        panel.contentView = NSHostingView(rootView: ZonePreviewShape())
+        panel.contentView = NSHostingView(rootView: ZonePreviewShape(model: model))
         return panel
     }
 }

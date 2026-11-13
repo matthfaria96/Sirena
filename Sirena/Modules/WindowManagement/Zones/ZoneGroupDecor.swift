@@ -299,6 +299,18 @@ private struct GripShape: View {
             .compatGlass(.regular, in: Capsule())
             .overlay(Capsule().strokeBorder(Color.white.opacity(0.6), lineWidth: 0.6))
             .overlay(Capsule().strokeBorder(Color.black.opacity(0.28), lineWidth: 0.5).padding(-0.5))
+            // Under the pointer, two small dots say it can be taken.
+            .overlay {
+                if hovering {
+                    let dots = ForEach(0..<2, id: \.self) { _ in
+                        Circle().fill(Color.black.opacity(0.35)).frame(width: 2.5, height: 2.5)
+                    }
+                    Group {
+                        if vertical { VStack(spacing: 3) { dots } } else { HStack(spacing: 3) { dots } }
+                    }
+                    .transition(.opacity)
+                }
+            }
             .shadow(color: .black.opacity(0.28), radius: 2, y: 0.5)
             .frame(width: vertical ? thickness : length, height: vertical ? length : thickness)
             .frame(maxWidth: .infinity, maxHeight: .infinity)

@@ -596,11 +596,16 @@ private struct PlaceholderView: View {
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: 18, style: .continuous)
         Button(action: activate) {
-            VStack(spacing: 7) {
-                Image(systemName: spot.caption == nil ? "plus.circle.fill" : "arrow.triangle.2.circlepath.circle.fill")
-                    .font(.system(size: 30, weight: .medium))
-                    .symbolRenderingMode(.hierarchical)
-                    .foregroundStyle(Color.primary.opacity(isHovering ? 0.9 : 0.6))
+            VStack(spacing: 8) {
+                Image(systemName: spot.caption == nil ? "plus" : "arrow.triangle.2.circlepath")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(Color.primary.opacity(isHovering ? 0.85 : 0.6))
+                    .frame(width: 44, height: 44)
+                    .compatGlass(.regular, in: Circle())
+                    .overlay(Circle().strokeBorder(Color.white.opacity(0.3), lineWidth: 0.7))
+                    .shadow(color: .black.opacity(0.15), radius: 4, y: 1.5)
+                    .scaleEffect(isHovering ? 1.06 : 1)
+                    .padding(.bottom, 2)
                 Text(spot.caption ?? L("Free space"))
                     .font(.system(size: 13, weight: .semibold))
                     .lineLimit(1)
@@ -613,8 +618,9 @@ private struct PlaceholderView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .compatGlass(.regular, in: shape)
             .background(shape.fill(Color(nsColor: .windowBackgroundColor).opacity(isHovering ? 0.3 : 0.15)))
-            .overlay(shape.strokeBorder(Color.primary.opacity(isHovering ? 0.6 : 0.3),
-                                        style: StrokeStyle(lineWidth: 1.5, dash: [7, 6])))
+            .overlay(shape.strokeBorder(LinearGradient(colors: [Color.white.opacity(isHovering ? 0.55 : 0.35), Color.white.opacity(isHovering ? 0.25 : 0.1)],
+                                                       startPoint: .top, endPoint: .bottom), lineWidth: 1))
+            .overlay(shape.strokeBorder(Color.black.opacity(0.18), lineWidth: 0.5).padding(-0.5))
             .clipShape(shape)
             .contentShape(shape)
         }
@@ -641,26 +647,42 @@ private struct WindowCard: View {
         let place = Self.place(of: window.state)
         Button(action: action) {
             VStack(spacing: 7) {
+                let icon = NSRunningApplication(processIdentifier: window.pid)?.icon
                 ZStack {
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .fill(Color.black.opacity(0.25))
+                    RoundedRectangle(cornerRadius: 9, style: .continuous)
+                        .fill(Color.primary.opacity(0.06))
+                        .overlay(RoundedRectangle(cornerRadius: 9, style: .continuous)
+                            .strokeBorder(Color.primary.opacity(0.08), lineWidth: 0.6))
                     if let preview {
                         Image(decorative: preview, scale: 1)
                             .resizable()
                             .aspectRatio(contentMode: .fit)
                             .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-                            .shadow(color: .black.opacity(0.3), radius: 3, y: 1)
-                            .padding(5)
+                            .overlay(RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                .strokeBorder(Color.black.opacity(0.12), lineWidth: 0.5))
+                            .shadow(color: .black.opacity(0.25), radius: 4, y: 1.5)
+                            .padding(6)
                             .transition(.opacity)
-                    } else if let icon = NSRunningApplication(processIdentifier: window.pid)?.icon {
+                    } else if let icon {
                         Image(nsImage: icon)
                             .resizable()
                             .frame(width: 40, height: 40)
-                            .opacity(0.9)
+                            .shadow(color: .black.opacity(0.2), radius: 3, y: 1)
                     }
                 }
                 .aspectRatio(16 / 10, contentMode: .fit)
                 .frame(maxWidth: .infinity)
+                // Which app it is, at a glance, on the corner of its picture.
+                .overlay(alignment: .bottomLeading) {
+                    if preview != nil, let icon {
+                        Image(nsImage: icon)
+                            .resizable()
+                            .frame(width: 22, height: 22)
+                            .shadow(color: .black.opacity(0.3), radius: 2, y: 1)
+                            .offset(x: -3, y: 5)
+                            .transition(.opacity)
+                    }
+                }
 
                 Text(window.label)
                     .font(.system(size: 11.5, weight: .medium))
@@ -677,10 +699,11 @@ private struct WindowCard: View {
             }
             .padding(8)
             // Lit like the system's own ⌘ Tab: brighter, neutral, no accent colour.
-            .background(RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color.primary.opacity(isLit ? 0.18 : 0.07)))
-            .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .strokeBorder(Color.primary.opacity(isLit ? 0.6 : 0.12), lineWidth: isLit ? 1.5 : 1))
+            .background(RoundedRectangle(cornerRadius: 13, style: .continuous)
+                .fill(Color.primary.opacity(isLit ? 0.16 : 0.05)))
+            .overlay(RoundedRectangle(cornerRadius: 13, style: .continuous)
+                .strokeBorder(Color.primary.opacity(isLit ? 0.5 : 0.1), lineWidth: isLit ? 1.2 : 0.8))
+            .shadow(color: .black.opacity(isLit ? 0.16 : 0), radius: 8, y: 3)
             .scaleEffect(isLit && !reduceMotion ? 1.03 : 1)
             // Not on this display: there to be found, quieter until pointed at.
             .opacity(isLit ? 1 : place?.opacity ?? 1)

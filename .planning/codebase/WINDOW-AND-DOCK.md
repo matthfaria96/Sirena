@@ -1,4 +1,4 @@
-<!-- refreshed: 2026-11-12 -->
+<!-- refreshed: 2026-11-13 -->
 # Window & Dock map ("Janela e Dock")
 
 **Analysis Date:** 2026-11-12
@@ -187,7 +187,12 @@ Rules of the engine (keep them when changing it):
   `decor.hide()`), so a grip press always knows its group.
 - **Look:** neutral glass everywhere (lines, grips, the preview of where a window goes, Snap
   Assist's rims and its lit card). The accent colour is only the zone under the pointer in the
-  panel's drawings. The user finds accent-coloured lines loud: don't bring them back.
+  panel's drawings. The user finds accent-coloured lines loud: don't bring them back. Nor dashed
+  rims: Snap Assist's free zones have one fine solid rim and a glass "+". In the panel the
+  drawing under the pointer lifts (`LayoutDrawing`) and the others step back; drawings arrive one
+  after another. The preview carries the front app's icon, faint (`ZonePreviewModel`); the pill
+  at the top hops once when it shows (`ZoneHintModel`). All of it is drawing only: hit-testing
+  stays on `ZonePopupGeometry`, unscaled.
 - Displays changing (`screensChanged`) close everything and drop the groups of displays gone.
 
 State is in memory only (lost on quit): `placements` (window → display, layout, zone, frame, pid),
