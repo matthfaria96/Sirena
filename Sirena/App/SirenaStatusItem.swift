@@ -19,6 +19,8 @@ final class SirenaStatusItem: NSObject {
     /// What a click shows, in a popover below the icon.
     var panelProvider: (() -> NSViewController)?
     private var popover: NSPopover?
+    /// Closes the panel on a click in another app (see `watchOutsideClicks`).
+    private var outsideClickMonitor: Any?
     /// The app that was in front when the panel opened (the panel itself activates Sirena).
     private(set) var appBeforePanel: NSRunningApplication?
 
@@ -95,6 +97,25 @@ final class SirenaStatusItem: NSObject {
         }
         MainActor.assumeIsolated { SirenaActivation.activateForTool() }
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+        watchOutsideClicks()
+    }
+
+    /// A transient popover only closes when Sirena loses focus, and opening it doesn't always
+    /// bring Sirena forward (activation is cooperative since macOS 14): until something in the
+    /// panel was clicked, a click in another app left it open. A global monitor sees clicks in
+    /// other apps only (no Accessibility needed, no event tap), so Sirena's own windows — the
+    /// drawing canvas, the history, a menu opened from the panel — never close it.
+    private func watchOutsideClicks() {
+        guard outsideClickMonitor == nil else { return }
+        outsideClickMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown, .otherMouseDown]) { [weak self] _ in
+            guard let self, let popover = self.popover, popover.isShown else { return }
+            popover.performClose(nil)
+        }
+    }
+
+    private func stopWatchingOutsideClicks() {
+        if let outsideClickMonitor { NSEvent.removeMonitor(outsideClickMonitor) }
+        outsideClickMonitor = nil
     }
 
     private func showMenu() {
@@ -113,6 +134,7 @@ final class SirenaStatusItem: NSObject {
 extension SirenaStatusItem: NSPopoverDelegate {
     func popoverDidClose(_ notification: Notification) {
         lastClose = Date()
+        stopWatchingOutsideClicks()
         // Let the menu's views go: the mixer would otherwise keep re-rendering offscreen.
         popover?.contentViewController = nil
     }

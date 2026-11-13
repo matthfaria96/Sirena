@@ -14401,6 +14401,116 @@
           }
         }
       }
+    },
+    "Go to a path": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ir para um caminho"
+          }
+        }
+      }
+    },
+    "Go to a path: paste a folder's or file's path and Finder opens it": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ir para um caminho: cole o caminho de uma pasta ou arquivo e o Finder abre"
+          }
+        }
+      }
+    },
+    "Nothing at this path": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nada neste caminho"
+          }
+        }
+      }
+    },
+    "Nothing here — Return opens %@": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nada aqui — Return abre %@"
+          }
+        }
+      }
+    },
+    "On/off switches in the menu": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Liga/desliga no menu"
+          }
+        }
+      }
+    },
+    "Open in Finder (Return)": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir no Finder (Return)"
+          }
+        }
+      }
+    },
+    "Opens this folder in Finder": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abre esta pasta no Finder"
+          }
+        }
+      }
+    },
+    "Paste or type a path": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cole ou digite um caminho"
+          }
+        }
+      }
+    },
+    "Shows it selected in its folder": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostra selecionado na pasta"
+          }
+        }
+      }
+    },
+    "Window, Icons, Shelf and Island at the bottom of the menu, each turned on or off with one click. Off, each one is switched on its own page.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Janela, Ícones, Prateleira e Ilha no fim do menu, cada um ligado ou desligado com um clique. Desativado, cada um é ligado na própria página."
+          }
+        }
+      }
+    },
+    "~/, quotes, Terminal escapes and file:// all work": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aceita ~/, aspas, escapes do Terminal e file://"
+          }
+        }
+      }
     }
   }
 }

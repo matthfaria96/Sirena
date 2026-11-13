@@ -217,6 +217,12 @@ final class BoltMenuSettings {
         didSet { UserDefaults.standard.set(clearGlass, forKey: "boltMenu.clearGlass") }
     }
 
+    /// The row of on/off switches (Janela, Ícones, Prateleira, Ilha) at the bottom of the menu.
+    /// Off by default: those features have their own switches on Home. Turned on in Geral.
+    var showsFeatureSwitches = UserDefaults.standard.bool(forKey: "boltMenu.featureSwitches") {
+        didSet { UserDefaults.standard.set(showsFeatureSwitches, forKey: "boltMenu.featureSwitches") }
+    }
+
     func isOn(_ item: BoltMenuItem) -> Bool { enabled.contains(item) }
 
     func set(_ item: BoltMenuItem, _ on: Bool) {
@@ -248,6 +254,7 @@ struct BoltMenuView: View {
     @State private var showsHistory = false
     @State private var showsCapture = false
     @State private var showsFocus = false
+    @State private var showsGoToPath = false
 
     var body: some View {
         let visible = settings.visibleItems
@@ -301,14 +308,27 @@ struct BoltMenuView: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .background(.quaternary.opacity(0.6), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
             }
-            Divider()
-            FeatureSwitchRow()
+            if !controls.isEmpty || visible.contains(.sound) || settings.showsFeatureSwitches {
+                Divider()
+            }
+            if settings.showsFeatureSwitches {
+                FeatureSwitchRow()
+            }
             if visible.isEmpty {
                 ContentUnavailableView(L("Nothing here yet"), systemImage: "circle.hexagongrid",
                                        description: Text(L("Choose what this menu shows on Sirena's Home.")))
                     .frame(height: 140)
             }
+            if showsGoToPath {
+                InlineGoToPathPanel(close: close)
+                    .transition(.opacity.combined(with: .move(edge: .bottom)))
+            }
             HStack(spacing: 10) {
+                FooterIconButton(symbol: "point.topleft.down.to.point.bottomright.curvepath", isActive: showsGoToPath) {
+                    withAnimation(.snappy(duration: 0.25)) { showsGoToPath.toggle() }
+                }
+                .help(L("Go to a path: paste a folder's or file's path and Finder opens it"))
+                .accessibilityLabel(L("Go to a path"))
                 FooterButton(title: L("Settings"), symbol: "gearshape", tint: nil) {
                     close()
                     ModuleManager.shared.openPage(.home)
@@ -341,6 +361,7 @@ struct BoltMenuView: View {
         .animation(.snappy(duration: 0.28), value: showsHistory)
         .animation(.snappy(duration: 0.28), value: showsCapture)
         .animation(.snappy(duration: 0.28), value: showsFocus)
+        .animation(.snappy(duration: 0.28), value: showsGoToPath)
         .onAppear {
             if let item = settings.openInline {
                 settings.openInline = nil
@@ -616,6 +637,29 @@ private struct FooterButton: View {
                     .fill((tint ?? .primary).opacity(isHovering ? 0.22 : (tint == nil ? 0.07 : 0.14))))
                 .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous)
                     .strokeBorder((tint ?? .primary).opacity(0.25), lineWidth: 0.8))
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(PressableStyle())
+        .onHover { hovering in withAnimation(.snappy(duration: 0.15)) { isHovering = hovering } }
+    }
+}
+
+/// A square footer button with only an icon, for the smaller things (Ir para caminho).
+private struct FooterIconButton: View {
+    let symbol: String
+    var isActive = false
+    let action: () -> Void
+    @State private var isHovering = false
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(.system(size: 13, weight: .medium))
+                .frame(width: 34, height: 34)
+                .background(RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(Color.primary.opacity(isActive ? 0.18 : isHovering ? 0.22 : 0.07)))
+                .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .strokeBorder(Color.primary.opacity(0.25), lineWidth: 0.8))
                 .contentShape(Rectangle())
         }
         .buttonStyle(PressableStyle())

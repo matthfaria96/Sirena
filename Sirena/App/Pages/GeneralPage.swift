@@ -44,6 +44,11 @@ struct GeneralPage: View {
                                              set: { BoltMenuSettings.shared.clearGlass = $0 })).settingsSwitch()
                 }
                 SettingsSeparator(indented: true)
+                SettingsRow(L("On/off switches in the menu"), detail: L("Window, Icons, Shelf and Island at the bottom of the menu, each turned on or off with one click. Off, each one is switched on its own page."), symbol: "switch.2") {
+                    Toggle("", isOn: Binding(get: { BoltMenuSettings.shared.showsFeatureSwitches },
+                                             set: { BoltMenuSettings.shared.showsFeatureSwitches = $0 })).settingsSwitch()
+                }
+                SettingsSeparator(indented: true)
                 SettingsRow(L("Color of the app in use"), detail: L("The menu, ⌘ Tab and the Dock previews take on a touch of the color of the app you are using, taken from its icon."), symbol: "paintpalette") {
                     Toggle("", isOn: $appTint).settingsSwitch()
                 }
