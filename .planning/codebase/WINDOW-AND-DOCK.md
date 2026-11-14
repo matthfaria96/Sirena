@@ -129,7 +129,7 @@ Files: `Sirena/Modules/WindowManagement/Zones/`
 | `ZoneWindows.swift` | The windows Snap Assist offers (`ZoneWindow`, with where it is: here, another display, minimized, hidden app). **The ⌘ Tab switcher's list** (`SwitcherWindowEnumerator.listSnappableWindows`: visible desktops, minimized and hidden included, no switcher preference applied), most recently used first, built on its own queue. Never a hand-made filter by AX subrole: apps describe their windows loosely (a main window can read `AXDialog`), the enumerator already knows |
 | `ZoneAssist.swift` | Snap Assist's panel. One zone at a time holds the picker (`ZoneAssistModel.active`); the other free zones are placeholders (a click, or Tab, moves the picker). Sections: this display, “Em outros monitores”, “Minimizadas ou ocultas”, by app. Pictures through `SwitcherWindowPreviewProvider.shared.refreshPreviews` (the switcher's cache, its paused apps, and its second way of capturing a window the window server only returns a slice of — one hanging over a display's edge; never `captureViaWindowServer` alone). Keyboard: typing filters (`query`), ← → in order, ↑ ↓ by row (`ZonePickerLayout`), Tab / ⇧ Tab another zone, Return picks, Esc clears the filter then closes |
 | `ZoneFrameWriter.swift` | Writes the frames of a grip drag on its own queue, latest frame per window only, and reports a window that won't shrink (read back 80 ms after the write, margin 24 pt in the controller: terminals size in steps) |
-| `ZoneGroupDecor.swift` | What marks a group: **one neutral translucent line along each edge two members share** (`ZoneGeometry.seams`; nothing around the windows, no accent colour) with a small glass grip in its middle (drag = resize both, click = the grip's menu), "Juntar de novo" bubble (glass) |
+| `ZoneGroupDecor.swift` | What marks a group: **only a small glass grip in the middle of each edge two members share** (`ZoneGeometry.seams`; no line along the edge, nothing around the windows, no accent colour). Quiet at rest (thin, 75 %), bigger and clear under the pointer; a 22 × 76 pt panel to take it easily. Drag = resize both, click = the grip's menu. Grip panels are moved, not made again, while the group's edges stay the same (no blink). "Juntar de novo" bubble (glass) |
 | `ZoneController.swift` | The engine: drag hooks, placing, groups, timer, last group per display. **Its main thread never waits for another app**: windows listed by `ZoneWindows`, the window in use asked on `focusQueue`, grip frames by `ZoneFrameWriter` |
 
 Geometry tests: `scripts/test-zone-layout.sh` (`scripts/tests/zone-layout/main.swift`).
@@ -186,7 +186,13 @@ Rules of the engine (keep them when changing it):
   (`assistRequest`). A drag, the panel or a display change call it.
 - `decorGroup` is the group whose lines and grips show; hide them with `hideDecor()` (not
   `decor.hide()`), so a grip press always knows its group.
-- **Look:** neutral glass everywhere (lines, grips, the preview of where a window goes, Snap
+- **No blinking grips.** A held mouse button changes nothing (`refreshDecor` returns): a drag
+  or a resize of a group window hides them itself (`handleDragMoved`, `resizeMoved`). While the
+  window in use is still being asked for (an app just came forward) what shows stays. An app
+  with no group window coming forward hides them at once (`focusMayHaveChanged`), so they
+  never float over it. The user found the edge lines loud and the blinking irritating: don't
+  bring either back.
+- **Look:** neutral glass everywhere (grips, the preview of where a window goes, Snap
   Assist's rims and its lit card). The accent colour is only the zone under the pointer in the
   panel's drawings. The user finds accent-coloured lines loud: don't bring them back. Nor dashed
   rims: Snap Assist's free zones have one fine solid rim and a glass "+". In the panel the

@@ -800,6 +800,12 @@ final class ZoneController {
     /// outlines follow now, and once more when the apps have settled.
     private func focusMayHaveChanged() {
         guard !placements.isEmpty, gripDrag == nil else { return }
+        // An app with no window in a group came forward (one that just opened, say): the grips
+        // must not float over it, not even for the moment the check below takes.
+        if let front = NSWorkspace.shared.frontmostApplication?.processIdentifier,
+           !placements.values.contains(where: { $0.pid == front }) {
+            hideDecor()
+        }
         for delay in [0.04, 0.25] {
             DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
                 MainActor.assumeIsolated { self?.refreshDecor() }
@@ -816,11 +822,14 @@ final class ZoneController {
             timer = nil
             return
         }
-        // Mouse held: a drag or a resize is going on; decide when it's over.
-        if NSEvent.pressedMouseButtons & 1 == 1 || session != nil || assist.isShown {
+        if session != nil || assist.isShown {
             hideDecor()
             return
         }
+        // Mouse held: a click, a selection, maybe a drag. Leave the grips as they are (a drag or
+        // a resize of a group window hides them itself, see `handleDragMoved` / `resizeMoved`);
+        // hiding on every press made them blink at each click inside the windows.
+        if NSEvent.pressedMouseButtons & 1 == 1 { return }
         let ids = Array(placements.keys)
         let infos = Dictionary(WindowUtil.getWindowList(ids: ids, forceRefresh: true).map { ($0.id, $0) },
                                uniquingKeysWith: { a, _ in a })
@@ -840,8 +849,18 @@ final class ZoneController {
                 ownSizes.removeValue(forKey: id)
             }
         }
-        // The group of the window in use, when it has company on screen.
-        guard let focused = focusedGroupWindow(), let group = placements[focused]?.group else {
+        // The group of the window in use, when it has company on screen. The app in front has
+        // no window in a group: away at once. It has, but which window is in use is still being
+        // asked (the answer comes from the background): keep what shows, no blink.
+        guard let front = NSWorkspace.shared.frontmostApplication?.processIdentifier,
+              placements.values.contains(where: { $0.pid == front }) else {
+            hideDecor()
+            return
+        }
+        let inUse = focusedGroupWindow()
+        // No answer for this app yet (it just came forward): the one on its way decides.
+        if inUse == nil, focused?.pid != front { return }
+        guard let inUse, let group = placements[inUse]?.group else {
             hideDecor()
             return
         }
@@ -852,16 +871,16 @@ final class ZoneController {
             return
         }
         decorGroup = group
-        let drawn = seams(root: root(first.template, display: first.display), zones: Set(members.values.map(\.zone)), on: screen)
-        decor.show(lines: drawn.lines, grips: drawn.grips)
+        decor.show(grips: grips(root: root(first.template, display: first.display), zones: Set(members.values.map(\.zone)), on: screen))
     }
 
-    /// What shows a group is held together: one line along every edge two of its windows
-    /// share (`zones`: the ones that hold a window), with a grip in its middle.
-    private func seams(root: ZoneNode, zones: Set<Int>, on screen: NSScreen) -> (lines: [ZoneGroupDecor.Line], grips: [ZoneGroupDecor.Grip]) {
-        let seams = ZoneGeometry.seams(root, in: layoutArea(screen), occupied: zones)
-        return (seams.map { ZoneGroupDecor.Line(divider: $0.divider, from: $0.from, to: $0.to) },
-                seams.map { ZoneGroupDecor.Grip(divider: $0.divider, center: $0.center) })
+    /// What shows a group is held together: a grip in the middle of every edge two of its
+    /// windows share (`zones`: the ones that hold a window). No line along the edge: it was
+    /// loud, and it blinked with every click.
+    private func grips(root: ZoneNode, zones: Set<Int>, on screen: NSScreen) -> [ZoneGroupDecor.Grip] {
+        ZoneGeometry.seams(root, in: layoutArea(screen), occupied: zones).map {
+            ZoneGroupDecor.Grip(divider: $0.divider, center: $0.center)
+        }
     }
 
     // MARK: - Grips
@@ -893,12 +912,6 @@ final class ZoneController {
         if let line {
             let pointer = NSEvent.mouseLocation.screenFlipped
             decor.moveGrip(divider, to: divider.axis == .columns ? CGPoint(x: line, y: pointer.y) : CGPoint(x: pointer.x, y: line))
-        }
-        // The lines follow at once (the grip in hand is moved above).
-        if let member = placements.values.first(where: { $0.group == drag.group }),
-           let screen = NSScreen.screens.first(where: { Self.key(for: $0) == member.display }) {
-            let zones = Set(placements.values.filter { $0.group == drag.group }.map(\.zone))
-            decor.show(lines: seams(root: root(member.template, display: member.display), zones: zones, on: screen).lines, grips: [])
         }
     }
 

@@ -2,23 +2,19 @@
 ///
 /// What shows that windows are held together: while one window of a group (windows put in
 /// the zones of the same layout on a display) is the one in use, every edge two of them share
-/// gets one quiet line — neutral, translucent, never the accent colour — with a small glass
-/// grip in its middle. Nothing is drawn around the windows themselves. Dragging a grip resizes
-/// the windows on both sides at once (Windows 11's snap group resize); a click opens its menu
-/// (swap an app, swap the sides, change the layout, even, let go).
+/// gets a small glass grip in its middle — quiet until the pointer is on it, then bigger and
+/// clear. No line along the edge and nothing around the windows: they were loud. Dragging a
+/// grip resizes the windows on both sides at once (Windows 11's snap group resize); a click
+/// opens its menu (swap an app, swap the sides, change the layout, even, let go).
+///
+/// Grips stay put while the group stays the same: a panel is moved, not made again, and only
+/// a grip that wasn't showing fades in, so nothing blinks.
 
 import AppKit
 import SwiftUI
 
 @MainActor
 final class ZoneGroupDecor {
-    /// The stretch of a line two windows share, in Accessibility coordinates.
-    struct Line: Equatable {
-        let divider: ZoneDivider
-        let from: CGPoint
-        let to: CGPoint
-    }
-
     struct Grip: Equatable {
         let divider: ZoneDivider
         /// Its centre, in Accessibility coordinates.
@@ -35,58 +31,38 @@ final class ZoneGroupDecor {
     private var relinkPanel: NSPanel?
     private var relinkHide: DispatchWorkItem?
 
-    private var lines: [NSPanel] = []
-    private var shownLines: [Line] = []
     private var grips: [NSPanel] = []
     private var shownGrips: [Grip] = []
     private(set) var isDraggingGrip = false
 
-    /// How thick a line's panel is (the line itself is thinner, with room for its soft edge)
-    /// and how far it stays from the ends of the edge.
-    private static let lineThickness: CGFloat = 9
-    private static let lineInset: CGFloat = 12
+    /// The grip's panel: room around the pill to take it easily (the pill itself is thinner).
+    private static let gripPanel = CGSize(width: 22, height: 76)
 
-    /// The lines between the windows, and the grips. While a grip is dragged the lines follow
-    /// and the grips are left alone (`moveGrip` moves the one in hand).
-    func show(lines: [Line], grips: [Grip]) {
-        if lines != shownLines {
-            while self.lines.count > lines.count { self.lines.removeLast().orderOut(nil) }
-            for (index, line) in lines.enumerated() {
-                if index == self.lines.count { self.lines.append(makeLine()) }
-                let panel = self.lines[index]
-                let frame = Self.frame(of: line).screenFlipped
-                if panel.frame != frame { panel.setFrame(frame, display: true) }
-                if !panel.isVisible { fadeIn(panel) }
-            }
-            shownLines = lines
-        }
+    /// The grips. While a grip is dragged they're left alone (`moveGrip` moves the one in hand).
+    func show(grips: [Grip]) {
         guard !isDraggingGrip, grips != shownGrips else { return }
+        let sameDividers = grips.count == shownGrips.count
+            && zip(grips, shownGrips).allSatisfy { $0.divider == $1.divider }
+        if !sameDividers {
+            for panel in self.grips { panel.orderOut(nil) }
+            self.grips = grips.map(makeGrip)
+        }
+        for (grip, panel) in zip(grips, self.grips) {
+            let frame = Self.frame(of: grip).screenFlipped
+            if panel.frame != frame { panel.setFrame(frame, display: true) }
+            if !panel.isVisible || panel.alphaValue < 1 { fadeIn(panel) }
+        }
         shownGrips = grips
-        for panel in self.grips { panel.orderOut(nil) }
-        self.grips = grips.map { grip in
-            let vertical = grip.divider.axis == .columns
-            let size = vertical ? CGSize(width: 16, height: 64) : CGSize(width: 64, height: 16)
-            let frame = CGRect(x: grip.center.x - size.width / 2, y: grip.center.y - size.height / 2,
-                               width: size.width, height: size.height)
-            let panel = makeGrip(grip)
-            panel.setFrame(frame.screenFlipped, display: true)
-            fadeIn(panel)
-            return panel
-        }
     }
 
-    /// A line's panel: along the shared edge, short of its ends.
-    private static func frame(of line: Line) -> CGRect {
-        let half = lineThickness / 2
-        if line.divider.axis == .columns {
-            let inset = min(lineInset, max(0, (line.to.y - line.from.y) / 2 - 8))
-            return CGRect(x: line.from.x - half, y: line.from.y + inset, width: lineThickness, height: max(1, line.to.y - line.from.y - inset * 2))
-        }
-        let inset = min(lineInset, max(0, (line.to.x - line.from.x) / 2 - 8))
-        return CGRect(x: line.from.x + inset, y: line.from.y - half, width: max(1, line.to.x - line.from.x - inset * 2), height: lineThickness)
+    private static func frame(of grip: Grip) -> CGRect {
+        let vertical = grip.divider.axis == .columns
+        let size = vertical ? gripPanel : CGSize(width: gripPanel.height, height: gripPanel.width)
+        return CGRect(x: grip.center.x - size.width / 2, y: grip.center.y - size.height / 2,
+                      width: size.width, height: size.height)
     }
 
-    /// Moves a grip with its line while it's dragged.
+    /// Moves a grip with the line in hand while it's dragged.
     func moveGrip(_ divider: ZoneDivider, to center: CGPoint) {
         guard let index = shownGrips.firstIndex(where: { $0.divider.path == divider.path && $0.divider.index == divider.index }),
               index < grips.count else { return }
@@ -131,21 +107,20 @@ final class ZoneGroupDecor {
 
     func hide() {
         guard !isDraggingGrip else { return }
-        for panel in lines {
+        for panel in grips {
             NSAnimationContext.runAnimationGroup({ context in
-                context.duration = 0.18
+                context.duration = 0.12
                 panel.animator().alphaValue = 0
-            }, completionHandler: { panel.orderOut(nil) })
+            }, completionHandler: {
+                MainActor.assumeIsolated { if panel.alphaValue == 0 { panel.orderOut(nil) } }
+            })
         }
-        lines.removeAll()
-        shownLines.removeAll()
-        for panel in grips { panel.orderOut(nil) }
         grips.removeAll()
         shownGrips.removeAll()
     }
 
     private func fadeIn(_ panel: NSPanel) {
-        panel.alphaValue = 0
+        if !panel.isVisible { panel.alphaValue = 0 }
         panel.orderFrontRegardless()
         NSAnimationContext.runAnimationGroup { context in
             context.duration = 0.18
@@ -167,12 +142,6 @@ final class ZoneGroupDecor {
         return panel
     }
 
-    private func makeLine() -> NSPanel {
-        let panel = basePanel(ignoresMouse: true)
-        panel.contentView = NSHostingView(rootView: SeamShape())
-        return panel
-    }
-
     private func makeGrip(_ grip: Grip) -> NSPanel {
         let panel = basePanel(ignoresMouse: false)
         let view = GripView(axis: grip.divider.axis)
@@ -187,7 +156,9 @@ final class ZoneGroupDecor {
         view.onClick = { [weak self, weak view] _ in
             guard let self, let view else { return }
             self.isDraggingGrip = false
-            self.onGripClick?(grip.divider, grip.center, view)
+            // Where the grip is now (its panel is moved, not made again, as the group changes).
+            let center = view.window.map { CGPoint(x: $0.frame.midX, y: $0.frame.midY).screenFlipped } ?? grip.center
+            self.onGripClick?(grip.divider, center, view)
         }
         view.onEnd = { [weak self] in
             guard let self else { return }
@@ -196,17 +167,6 @@ final class ZoneGroupDecor {
         }
         panel.contentView = view
         return panel
-    }
-}
-
-/// The line between two windows of a group: thin, neutral and translucent, a light core
-/// with a darker hairline so it reads over light and dark windows alike without standing out.
-private struct SeamShape: View {
-    var body: some View {
-        Capsule()
-            .fill(Color.white.opacity(0.4))
-            .overlay(Capsule().strokeBorder(Color.black.opacity(0.22), lineWidth: 0.5))
-            .padding(3)
     }
 }
 
@@ -287,15 +247,16 @@ private final class GripView: NSView {
     }
 }
 
+/// Quiet at rest (thin, a little see-through), clear under the pointer (bigger, brighter).
 private struct GripShape: View {
     let vertical: Bool
     let hovering: Bool
 
     var body: some View {
-        let thickness: CGFloat = hovering ? 8 : 6
-        let length: CGFloat = hovering ? 52 : 42
+        let thickness: CGFloat = hovering ? 8 : 5
+        let length: CGFloat = hovering ? 54 : 36
         Capsule()
-            .fill(Color.white.opacity(hovering ? 0.55 : 0.3))
+            .fill(Color.white.opacity(hovering ? 0.55 : 0.28))
             .compatGlass(.regular, in: Capsule())
             .overlay(Capsule().strokeBorder(Color.white.opacity(0.6), lineWidth: 0.6))
             .overlay(Capsule().strokeBorder(Color.black.opacity(0.28), lineWidth: 0.5).padding(-0.5))
@@ -313,6 +274,7 @@ private struct GripShape: View {
             }
             .shadow(color: .black.opacity(0.28), radius: 2, y: 0.5)
             .frame(width: vertical ? thickness : length, height: vertical ? length : thickness)
+            .opacity(hovering ? 1 : 0.75)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .animation(.snappy(duration: 0.15), value: hovering)
     }
