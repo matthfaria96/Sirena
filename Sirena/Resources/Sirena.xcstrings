@@ -14402,42 +14402,12 @@
         }
       }
     },
-    "Go to a path": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ir para um caminho"
-          }
-        }
-      }
-    },
-    "Go to a path: paste a folder's or file's path and Finder opens it": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ir para um caminho: cole o caminho de uma pasta ou arquivo e o Finder abre"
-          }
-        }
-      }
-    },
     "Nothing at this path": {
       "localizations": {
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
             "value": "Nada neste caminho"
-          }
-        }
-      }
-    },
-    "Nothing here — Return opens %@": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nada aqui — Return abre %@"
           }
         }
       }
@@ -14452,42 +14422,12 @@
         }
       }
     },
-    "Open in Finder (Return)": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Abrir no Finder (Return)"
-          }
-        }
-      }
-    },
-    "Opens this folder in Finder": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Abre esta pasta no Finder"
-          }
-        }
-      }
-    },
     "Paste or type a path": {
       "localizations": {
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
             "value": "Cole ou digite um caminho"
-          }
-        }
-      }
-    },
-    "Shows it selected in its folder": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mostra selecionado na pasta"
           }
         }
       }
@@ -14502,12 +14442,52 @@
         }
       }
     },
-    "~/, quotes, Terminal escapes and file:// all work": {
+    "Address bar with ⌘L": {
       "localizations": {
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Aceita ~/, aspas, escapes do Terminal e file://"
+            "value": "Barra de endereço com ⌘L"
+          }
+        }
+      }
+    },
+    "In a Finder window, ⌘L shows its path to edit or paste another one; Return takes the window there, Tab completes.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Numa janela do Finder, o ⌘L mostra o caminho dela para editar ou colar outro; Return leva a janela até lá, Tab completa."
+          }
+        }
+      }
+    },
+    "Return goes there · Tab completes · Esc closes": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Return vai até lá · Tab completa · Esc fecha"
+          }
+        }
+      }
+    },
+    "The Finder couldn't open it": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Finder não conseguiu abrir"
+          }
+        }
+      }
+    },
+    "Sirena needs permission to control the Finder": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Sirena precisa de permissão para controlar o Finder"
           }
         }
       }

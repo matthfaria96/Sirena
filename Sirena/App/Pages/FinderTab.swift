@@ -41,6 +41,10 @@ struct FinderTab: View {
                 Toggle(L("Play sound effect when cutting"), isOn: $settings.finderCutSound)
                     .disabled(!settings.finderCutAndPaste)
                 Toggle(L("Move files to trash with ⌫ instead of ⌘⌫"), isOn: $settings.finderDeleteMovesToTrash)
+                Toggle(isOn: $settings.finderAddressBar) {
+                    Text(L("Address bar with ⌘L"))
+                    Text(L("In a Finder window, ⌘L shows its path to edit or paste another one; Return takes the window there, Tab completes."))
+                }
                 Toggle(isOn: $settings.finderCopyPath) {
                     Text(L("“Copy Path” in the Finder menu"))
                     Text(L("Right-click files or folders to copy their full path."))

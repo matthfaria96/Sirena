@@ -1,7 +1,9 @@
 /// FinderSync.swift
 ///
-/// Sirena's only addition to the Finder: "Copiar Caminho" in the right-click menu of
-/// files and folders. Turned on or off from Sirena (Melhorias › Finder).
+/// Sirena's additions to the Finder: "Copiar Caminho" in the right-click menu of files and
+/// folders, and a toolbar button (added through View › Customize Toolbar) whose menu opens
+/// Sirena's address bar over the window (the same bar as ⌘L) or copies the folder's path.
+/// Turned on or off from Sirena (Melhorias › Finder).
 
 import Cocoa
 import FinderSync
@@ -13,8 +15,29 @@ final class FinderSync: FIFinderSync {
         FIFinderSyncController.default().directoryURLs = [URL(fileURLWithPath: "/")]
     }
 
+    // MARK: Toolbar button
+
+    override var toolbarItemName: String { "Sirena" }
+    override var toolbarItemToolTip: String { "Editar o caminho desta janela (⌘L)" }
+    override var toolbarItemImage: NSImage {
+        let image = NSImage(systemSymbolName: "point.topleft.down.to.point.bottomright.curvepath",
+                            accessibilityDescription: "Caminho") ?? NSImage()
+        image.isTemplate = true
+        return image
+    }
+
     override func menu(for menuKind: FIMenuKind) -> NSMenu {
         let menu = NSMenu(title: "")
+        if menuKind == .toolbarItemMenu {
+            let edit = NSMenuItem(title: "Editar Caminho…", action: #selector(editPath(_:)), keyEquivalent: "l")
+            edit.keyEquivalentModifierMask = .command
+            edit.image = Self.menuIcon("character.cursor.ibeam")
+            menu.addItem(edit)
+            let copy = NSMenuItem(title: "Copiar Caminho desta Pasta", action: #selector(copyPath(_:)), keyEquivalent: "")
+            copy.image = Self.menuIcon("square.and.arrow.up")
+            menu.addItem(copy)
+            return menu
+        }
         guard menuKind == .contextualMenuForItems || menuKind == .contextualMenuForContainer else { return menu }
         let item = NSMenuItem(title: "Copiar Caminho", action: #selector(copyPath(_:)), keyEquivalent: "")
         item.image = Self.menuIcon("square.and.arrow.up")
@@ -35,6 +58,14 @@ final class FinderSync: FIFinderSync {
             .withSymbolConfiguration(config) else { return nil }
         image.isTemplate = false
         return image
+    }
+
+    /// Sirena lays its address bar over the front Finder window (without coming forward).
+    @objc func editPath(_ sender: AnyObject?) {
+        guard let url = URL(string: "sirena://finder-address") else { return }
+        let configuration = NSWorkspace.OpenConfiguration()
+        configuration.activates = false
+        NSWorkspace.shared.open(url, configuration: configuration)
     }
 
     /// Copies the selected items' paths (one per line), or the open folder's.

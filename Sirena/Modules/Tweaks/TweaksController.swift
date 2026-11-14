@@ -136,6 +136,7 @@ private struct TweaksSnapshot {
     let finderCutAndPaste: Bool
     let finderCutSound: Bool
     let finderDeleteMovesToTrash: Bool
+    let finderAddressBar: Bool
 
     static var current: TweaksSnapshot {
         let defaults = UserDefaults.standard
@@ -154,7 +155,8 @@ private struct TweaksSnapshot {
             dockFoldersOpenInFinder: flag("tweaks.dockFoldersOpenInFinder"),
             finderCutAndPaste: finder && flag("tweaks.finderCutAndPaste"),
             finderCutSound: flag("tweaks.finderCutSound"),
-            finderDeleteMovesToTrash: finder && flag("tweaks.finderDeleteMovesToTrash")
+            finderDeleteMovesToTrash: finder && flag("tweaks.finderDeleteMovesToTrash"),
+            finderAddressBar: finder && flag("tweaks.finderAddressBar")
         )
     }
 
@@ -162,7 +164,7 @@ private struct TweaksSnapshot {
         dockActiveAppClick != .nothing || dockUnminimizeAll || dockFoldersOpenInFinder || minimizeHides
     }
 
-    var anyKeyTweak: Bool { finderCutAndPaste || finderDeleteMovesToTrash || minimizeHides }
+    var anyKeyTweak: Bool { finderCutAndPaste || finderDeleteMovesToTrash || finderAddressBar || minimizeHides }
 }
 
 // MARK: - Engine (runs on its own thread)
@@ -594,7 +596,9 @@ final class TweaksEngine: @unchecked Sendable {
         let isPaste = Int(code) == kVK_ANSI_V && modifiers == [.maskCommand] && settings.finderCutAndPaste
         let isDelete = Int(code) == kVK_Delete && modifiers.isEmpty && settings.finderDeleteMovesToTrash
             && event.getIntegerValueField(.keyboardEventAutorepeat) == 0
-        guard isCut || isPaste || isDelete else { return event }
+        // ⌘L, like Ctrl+L in Windows Explorer (free in the Finder: ⌥⌘L is Downloads).
+        let isAddress = Int(code) == kVK_ANSI_L && modifiers == [.maskCommand] && settings.finderAddressBar
+        guard isCut || isPaste || isDelete || isAddress else { return event }
 
         // Only key presses going to the Finder itself (not Spotlight, Raycast, Sirena's
         // panels or any other floating window while the Finder is in front).
@@ -602,6 +606,12 @@ final class TweaksEngine: @unchecked Sendable {
               event.getIntegerValueField(.eventTargetUnixProcessID) == Int64(finder.processIdentifier),
               finder.isActive, !Self.isEditingText(in: finder) else { return event }
 
+        if isAddress {
+            if event.getIntegerValueField(.keyboardEventAutorepeat) == 0 {
+                Self.onMain { MainActor.assumeIsolated { FinderAddressBar.shared.show() } }
+            }
+            return nil
+        }
         if isCut {
             // The Finder can't cut files: copy them, and remember that the copy was a cut,
             // but only once the copy has really changed the clipboard.

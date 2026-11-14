@@ -70,6 +70,7 @@ in `DockController.start`): **Dock clicks belong to Tweaks**, so one click is ne
 | Melhorias do Finder | `sirena.module.tweaks.enabled` (true) (`TweaksController.finderTweaksOn`) | Tweaks always runs (Dock/window parts); this switch gates only the Finder parts |
 | Recortar e colar arquivos (+ som) | `tweaks.finderCutAndPaste`, `tweaks.finderCutSound` (true) | `TweaksEngine.keyDown` (Finder in front, not editing text) |
 | ⌫ move para o Lixo | `tweaks.finderDeleteMovesToTrash` (true) | `TweaksEngine.keyDown` |
+| Barra de endereço com ⌘L | `tweaks.finderAddressBar` (true) | `TweaksEngine.keyDown` (⌘L to the Finder, not editing text; ⌥⌘L stays Downloads) → `FinderAddressBar.show()`. Also `sirena://finder-address` (`?path=` starts it with that text typed in; it brings the Finder forward first), which the Finder extension's toolbar button ("Editar Caminho…") opens. Sirena's own panel over the window's toolbar; the folder is read and set through Apple Events (`osascript`, off the main thread; Automation › Finder asked once). Paths parsed by `PathOpener` (`Sirena/App/GoToPath.swift`) |
 | Copiar caminho | `tweaks.finderCopyPath` (true) | `FinderCopyPathExtension.setEnabled` (Finder Sync extension `SirenaFinder/`) |
 | Instalar a partir de DMG | `tweaks.installFromDMG` (true) | `DMGInstaller` |
 | Ponteiro nas capturas | system `com.apple.screencapture showsCursor` | `ScreenshotPreferences` |

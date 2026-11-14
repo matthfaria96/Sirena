@@ -55,6 +55,8 @@ final class TweaksSettings {
     var finderCutAndPaste: Bool { didSet { save(finderCutAndPaste, "tweaks.finderCutAndPaste") } }
     var finderCutSound: Bool { didSet { save(finderCutSound, "tweaks.finderCutSound") } }
     var finderDeleteMovesToTrash: Bool { didSet { save(finderDeleteMovesToTrash, "tweaks.finderDeleteMovesToTrash") } }
+    /// ⌘L in a Finder window: an address bar to edit or paste the path (FinderAddressBar).
+    var finderAddressBar: Bool { didSet { save(finderAddressBar, "tweaks.finderAddressBar") } }
     /// "Copiar Caminho" in the Finder's right-click menu (Sirena's Finder extension).
     var finderCopyPath: Bool {
         didSet {
@@ -79,6 +81,7 @@ final class TweaksSettings {
         finderCutAndPaste = defaults.object(forKey: "tweaks.finderCutAndPaste") as? Bool ?? true
         finderCutSound = defaults.object(forKey: "tweaks.finderCutSound") as? Bool ?? true
         finderDeleteMovesToTrash = defaults.object(forKey: "tweaks.finderDeleteMovesToTrash") as? Bool ?? true
+        finderAddressBar = defaults.object(forKey: "tweaks.finderAddressBar") as? Bool ?? true
         finderCopyPath = defaults.object(forKey: "tweaks.finderCopyPath") as? Bool ?? true
         installFromDMG = defaults.object(forKey: "tweaks.installFromDMG") as? Bool ?? true
         screenshotsShowPointer = ScreenshotPreferences.showsCursor

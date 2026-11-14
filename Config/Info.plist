@@ -38,7 +38,7 @@
 	<key>LSUIElement</key>
 	<true/>
 	<key>NSAppleEventsUsageDescription</key>
-	<string>O Sirena usa Apple Events para mostrar a música tocando no Música e no Spotify nas pré-visualizações da Dock.</string>
+	<string>O Sirena usa Apple Events para saber e mudar a pasta de uma janela do Finder (barra de endereço, ⌘L) e para mostrar a música tocando no Música e no Spotify nas pré-visualizações da Dock.</string>
 	<key>NSAudioCaptureUsageDescription</key>
 	<string>O Sirena ajusta o volume de cada app processando o áudio dele. O áudio nunca sai do seu Mac.</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>

@@ -172,6 +172,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             case "hidden-icons-hide": MenuBarModule.shared.collapse()
             case "shelf-toggle": ShelfController.shared.toggle()
             case "shelf-add-clipboard": ShelfActions.addFromClipboard()
+            // The Finder extension's toolbar button (and scripts): the Finder's address bar.
+            case "finder-address":
+                let text = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems?.first { $0.name == "path" }?.value
+                FinderAddressBar.shared.show(text: text)
             default: others.append(url)
             }
         }
