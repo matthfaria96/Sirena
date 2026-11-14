@@ -1,8 +1,11 @@
 /// MenuBarModule.swift
 ///
-/// Hides the menu bar icons of the apps you choose. Its own icon sits at the far left
-/// of the app icons: click it to bring the hidden icons back, click again to hide them.
-/// Which apps are hidden is picked from a list in Sirena's settings — no ⌘-dragging.
+/// Hides the menu bar icons of the apps you choose. It lives in Sirena's own menu: a small
+/// button beside Settings lays out the menu bar's apps (a click hides or shows each one, and
+/// the hidden ones can be brought back for a while), and the right-click menu of Sirena's
+/// icon goes straight to its settings. No icon of its own on macOS 27; an arrow at the far
+/// left of the app icons can be turned back on (`showsArrow`), and before macOS 27 it is
+/// always there: the separator technique hides what sits behind it.
 ///
 /// Hiding uses macOS 27's menu bar visibility restriction through Hidden Bar's native
 /// bridge (MIT, © Dwarves Foundation). Older macOS versions fall back to the classic
@@ -36,6 +39,27 @@ final class MenuBarModule: NSObject {
     static let autosaveName = "sirena.hider"
     private static let hiddenAppsKey = "hiddenBar.hiddenApps"
     private static let styleKey = "hiddenBar.revealStyle"
+    private static let showsArrowKey = "hiddenBar.showsArrow"
+
+    /// Its own arrow in the menu bar, beside Sirena's icon menu (off: everything goes through
+    /// Sirena's icon). Before macOS 27 the arrow is needed anyway (`hasArrow`).
+    var showsArrow: Bool = UserDefaults.standard.bool(forKey: "hiddenBar.showsArrow") {
+        didSet {
+            UserDefaults.standard.set(showsArrow, forKey: Self.showsArrowKey)
+            guard isRunning, oldValue != showsArrow else { return }
+            if hasArrow {
+                arrangeMenuBar { [weak self] _ in
+                    guard let self, self.isRunning else { return }
+                    self.createItem()
+                }
+            } else {
+                removeItem()
+            }
+        }
+    }
+
+    /// Whether the arrow is up: chosen, or needed by the separator technique.
+    var hasArrow: Bool { showsArrow || usesLegacy }
 
     var style: HiddenIconsStyle {
         didSet {
@@ -122,7 +146,7 @@ final class MenuBarModule: NSObject {
         arrangeMenuBar { [weak self] _ in
             // The module may have been switched off while the snapshot ran.
             guard let self, self.isRunning else { return }
-            self.createItem()
+            if self.hasArrow { self.createItem() }
             // Like Hidden Bar, start with the chosen icons tucked away.
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
                 guard let self, self.isRunning else { return }
@@ -133,6 +157,9 @@ final class MenuBarModule: NSObject {
 
         NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(appsChanged),
                                                           name: NSWorkspace.didLaunchApplicationNotification, object: nil)
+        // A hidden app quitting changes the count on Sirena's icon.
+        NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(appQuit),
+                                                          name: NSWorkspace.didTerminateApplicationNotification, object: nil)
     }
 
     func terminate() {
@@ -141,10 +168,9 @@ final class MenuBarModule: NSObject {
         release()
         MASShortcutBinder.shared()?.breakBinding(withDefaultsKey: Self.shortcutKey)
         NSWorkspace.shared.notificationCenter.removeObserver(self)
-        legacy.uninstall()
-        if let statusItem { NSStatusBar.system.removeStatusItem(statusItem) }
-        statusItem = nil
+        removeItem()
         isRunning = false
+        SirenaStatusItem.instance.setHiddenIconCount(0)
     }
 
     // MARK: - Hide / show
@@ -220,7 +246,7 @@ final class MenuBarModule: NSObject {
     /// Brings every icon back.
     func expand() {
         // Hidden icons come back after the arrow, not in between the other apps.
-        arrangeMenuBar { _ in }
+        if hasArrow { arrangeMenuBar { _ in } }
         release()
         setCollapsed(false)
     }
@@ -235,6 +261,8 @@ final class MenuBarModule: NSObject {
         isCollapsed = collapsed
         updateIcon()
     }
+
+    @objc private func appQuit() { updateIcon() }
 
     /// An app launched while hidden is shown, unless it is on the list: re-apply.
     @objc private func appsChanged() {
@@ -251,7 +279,7 @@ final class MenuBarModule: NSObject {
     /// Puts the arrow back at the end (and the hidden icons beyond it) when the layout
     /// changed, re-creating the arrow only if it has to move.
     func keepArrowLast() {
-        guard isRunning else { return }
+        guard isRunning, hasArrow else { return }
         arrangeMenuBar { [weak self] arrowMoved in
             guard let self, arrowMoved else { return }
             self.recreateItem()
@@ -341,6 +369,8 @@ final class MenuBarModule: NSObject {
     }
 
     private func updateIcon() {
+        // Sirena's own icon carries the count of hidden icons while they're hidden.
+        SirenaStatusItem.instance.setHiddenIconCount(isRunning && isCollapsed ? hiddenCount : 0)
         guard let button = statusItem?.button else { return }
         button.image = Self.makeImage(collapsed: isCollapsed || style == .menu, count: hiddenCount,
                                       symbol: style == .menu ? (panel.isShown ? "chevron.up" : "chevron.down") : nil)
@@ -576,10 +606,22 @@ final class MenuBarModule: NSObject {
 
     /// Re-creates the arrow so macOS reads its new place.
     private func recreateItem() {
+        removeItem()
+        createItem()
+    }
+
+    private func removeItem() {
         legacy.uninstall()
         if let statusItem { NSStatusBar.system.removeStatusItem(statusItem) }
         statusItem = nil
-        createItem()
+    }
+
+    /// How many icons are hidden right now (apps on the list that are running), as Sirena's
+    /// icon shows it. Observed: changes with the list and with `isCollapsed`.
+    var hiddenRunningCount: Int {
+        _ = hiddenApps
+        _ = isCollapsed
+        return hiddenCount
     }
 
     private static let seededKey = "hiddenBar.seeded"

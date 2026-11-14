@@ -14491,6 +14491,126 @@
           }
         }
       }
+    },
+    "Menu bar icons": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ícones do menu"
+          }
+        }
+      }
+    },
+    "%lld hidden": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld ocultos"
+          }
+        }
+      }
+    },
+    "%@: hidden — click to show it": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@: oculto — clique para mostrar"
+          }
+        }
+      }
+    },
+    "%@: shown — click to hide it": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@: visível — clique para ocultar"
+          }
+        }
+      }
+    },
+    "Shown": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visível"
+          }
+        }
+      }
+    },
+    "Menu Bar Icons…": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ícones da Barra de Menus…"
+          }
+        }
+      }
+    },
+    "The chosen apps' icons disappear from the menu bar. To change which, or to bring them back for a while, click Sirena's icon and the small button beside Settings; right-clicking Sirena's icon brings you here. Sirena's own icon is never hidden.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Os ícones dos apps escolhidos somem da barra de menus. Para mudar quais, ou trazê-los de volta por um tempo, clique no ícone do Sirena e no botãozinho ao lado de Configurações; o clique direito no ícone do Sirena traz você até aqui. O ícone do próprio Sirena nunca é ocultado."
+          }
+        }
+      }
+    },
+    "Arrow of its own in the menu bar": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seta própria na barra de menus"
+          }
+        }
+      }
+    },
+    "An arrow at the far left of the app icons that shows and hides them with one click. Off, everything goes through Sirena's icon.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uma seta à esquerda dos ícones dos apps que mostra e oculta tudo com um clique. Desligada, tudo passa pelo ícone do Sirena."
+          }
+        }
+      }
+    },
+    "Show the hidden menu bar icons": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar os ícones ocultos da barra de menus"
+          }
+        }
+      }
+    },
+    "Hide the chosen menu bar icons again": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ocultar de novo os ícones escolhidos da barra de menus"
+          }
+        }
+      }
+    },
+    "Sirena — %lld menu bar icons hidden": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sirena — %lld ícones ocultos na barra de menus"
+          }
+        }
+      }
     }
   }
 }

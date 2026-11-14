@@ -168,6 +168,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 let bundle = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems?.first { $0.name == "app" }?.value
                 if let bundle { MenuBarModule.shared.openHiddenIcon(bundleID: bundle) }
             case "sound": SirenaStatusItem.instance.openMenu()
+            case "menubar-icons": SirenaStatusItem.instance.openMenu()
             case "hidden-icons-show": MenuBarModule.shared.expand()
             case "hidden-icons-hide": MenuBarModule.shared.collapse()
             case "shelf-toggle": ShelfController.shared.toggle()
@@ -192,9 +193,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let menu = NSMenu()
         menu.autoenablesItems = false
         menu.addItem(item(L("Open Sirena…"), symbol: "macwindow", #selector(openMainWindow), key: ","))
+        // Straight to the hidden menu bar icons (they have no arrow of their own any more).
+        menu.addItem(item(L("Menu Bar Icons…"), symbol: "menubar.rectangle", #selector(openMenuBarIcons)))
         menu.addItem(.separator())
         menu.addItem(item(L("Quit Sirena"), symbol: nil, #selector(NSApplication.terminate(_:)), key: "q", target: NSApp))
         return menu
+    }
+
+    @objc private func openMenuBarIcons() {
+        ModuleManager.shared.openPage(.module(.menuBar))
     }
 
     private func item(_ title: String, symbol: String?, _ action: Selector?, key: String = "", target: AnyObject? = nil) -> NSMenuItem {

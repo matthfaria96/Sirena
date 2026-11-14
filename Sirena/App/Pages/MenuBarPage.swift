@@ -77,13 +77,15 @@ struct HiddenAppsList: View {
             }
             Section {
                 HStack(alignment: .top, spacing: 12) {
-                    Image(systemName: "chevron.left")
+                    Image(systemName: module.hasArrow ? "chevron.left" : "menubar.rectangle")
                         .font(.system(size: 11, weight: .bold))
                         .foregroundStyle(Color(nsColor: .windowBackgroundColor))
                         .padding(.horizontal, 7)
                         .padding(.vertical, 3)
                         .background(.primary, in: Capsule())
-                    Text(L("The chosen apps' icons disappear from the menu bar. Click Sirena's arrow icon, at the far left, to bring them back and click it again to hide them. Sirena's globe is never hidden."))
+                    Text(module.hasArrow
+                         ? L("The chosen apps' icons disappear from the menu bar. Click Sirena's arrow icon, at the far left, to bring them back and click it again to hide them. Sirena's globe is never hidden.")
+                         : L("The chosen apps' icons disappear from the menu bar. To change which, or to bring them back for a while, click Sirena's icon and the small button beside Settings; right-clicking Sirena's icon brings you here. Sirena's own icon is never hidden."))
                         .font(.callout)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -123,6 +125,16 @@ struct MenuBarBehavior: View {
 
     var body: some View {
         Group {
+            // Before macOS 27 the arrow is how hiding works: no choice to offer.
+            if !LegacyMenuBarHider.isNeeded {
+                Section {
+                    Toggle(isOn: $module.showsArrow) {
+                        Text(L("Arrow of its own in the menu bar"))
+                        Text(L("An arrow at the far left of the app icons that shows and hides them with one click. Off, everything goes through Sirena's icon."))
+                    }
+                }
+            }
+            if module.hasArrow {
             Section {
                 VStack(alignment: .leading, spacing: 10) {
                     Text(L("When clicking the arrow"))
@@ -158,6 +170,7 @@ struct MenuBarBehavior: View {
                 }
             } header: {
                 Text(L("Reveal"))
+            }
             }
 
             Section {

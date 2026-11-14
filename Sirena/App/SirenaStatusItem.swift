@@ -2,8 +2,9 @@
 ///
 /// Sirena's menu bar icon. A click opens the sound panel (outputs, per-app volume,
 /// microphone); a right-click (or ⌃-click) opens a small menu to open or quit Sirena.
-/// Features never add icons of their own. (Hiding other apps' icons has its own separate
-/// icon, see MenuBarModule.)
+/// Features never add icons of their own: hiding other apps' icons lives in this menu too
+/// (a button beside Settings, and an item in the right-click menu); its own arrow only shows
+/// when asked for, or before macOS 27 (see MenuBarModule).
 
 import Cocoa
 
@@ -21,6 +22,8 @@ final class SirenaStatusItem: NSObject {
     private var popover: NSPopover?
     /// Closes the panel on a click in another app (see `watchOutsideClicks`).
     private var outsideClickMonitor: Any?
+    /// Closes the panel when another app comes forward without a click (⌘ Tab, the Dock…).
+    private var activationObserver: NSObjectProtocol?
     /// The app that was in front when the panel opened (the panel itself activates Sirena).
     private(set) var appBeforePanel: NSRunningApplication?
 
@@ -43,15 +46,61 @@ final class SirenaStatusItem: NSObject {
         togglePanel()
     }
 
+    /// How many other apps' menu bar icons are hidden right now (0: no badge).
+    private var hiddenIcons = 0
+
+    /// Shows how many menu bar icons are hidden, as a small badge on the orb.
+    func setHiddenIconCount(_ count: Int) {
+        guard count != hiddenIcons else { return }
+        hiddenIcons = count
+        statusItem?.button?.image = Self.orb(badge: count)
+        statusItem?.button?.toolTip = count > 0 ? L("Sirena — \(count) menu bar icons hidden") : "Sirena"
+    }
+
+    /// The orb, drawn as a template so the menu bar tints it (black or white). With hidden
+    /// icons, their number sits on its lower right corner in a small pill, cut out of the orb
+    /// with a thin gap, its digits cut out of the pill: one colour, like the system's icons.
+    private static func orb(badge: Int) -> NSImage? {
+        guard let source = NSImage(named: "TrayOrb") else { return nil }
+        let side: CGFloat = 18
+        guard badge > 0 else {
+            let image = source.copy() as? NSImage
+            image?.size = NSSize(width: side, height: side)
+            image?.isTemplate = true
+            return image
+        }
+        let text = badge > 99 ? "99+" : "\(badge)" as NSString
+        let font = NSFont.monospacedDigitSystemFont(ofSize: 8, weight: .bold)
+        let textSize = text.size(withAttributes: [.font: font])
+        let pillHeight: CGFloat = 10
+        let pillWidth = max(pillHeight, (textSize.width + 5).rounded())
+        let width = max(side, side - 5 + pillWidth)
+        let image = NSImage(size: NSSize(width: width, height: side), flipped: false) { _ in
+            source.draw(in: NSRect(x: 0, y: 0, width: side, height: side))
+            let pill = NSRect(x: width - pillWidth, y: 0, width: pillWidth, height: pillHeight)
+            let context = NSGraphicsContext.current
+            context?.compositingOperation = .destinationOut
+            let gap = pill.insetBy(dx: -1.5, dy: -1.5)
+            NSBezierPath(roundedRect: gap, xRadius: gap.height / 2, yRadius: gap.height / 2).fill()
+            context?.compositingOperation = .sourceOver
+            NSColor.black.setFill()
+            NSBezierPath(roundedRect: pill, xRadius: pill.height / 2, yRadius: pill.height / 2).fill()
+            context?.compositingOperation = .destinationOut
+            text.draw(at: NSPoint(x: pill.midX - textSize.width / 2, y: pill.midY - textSize.height / 2 + 0.25),
+                      withAttributes: [.font: font, .foregroundColor: NSColor.black])
+            context?.compositingOperation = .sourceOver
+            return true
+        }
+        image.isTemplate = true
+        return image
+    }
+
     private func create() {
-        let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+        // Variable: the orb grows a little when it carries the hidden icons' count.
+        let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         item.autosaveName = Self.autosaveName
         item.behavior = []
-        // The orb, drawn as a template so the menu bar tints it (black or white).
-        let image = NSImage(named: "TrayOrb")
-        image?.size = NSSize(width: 18, height: 18)
-        image?.isTemplate = true
-        item.button?.image = image
+        item.button?.image = Self.orb(badge: hiddenIcons)
         item.button?.toolTip = "Sirena"
         item.button?.target = self
         item.button?.action = #selector(clicked)
@@ -106,6 +155,14 @@ final class SirenaStatusItem: NSObject {
     /// other apps only (no Accessibility needed, no event tap), so Sirena's own windows — the
     /// drawing canvas, the history, a menu opened from the panel — never close it.
     private func watchOutsideClicks() {
+        if activationObserver == nil {
+            activationObserver = NSWorkspace.shared.notificationCenter.addObserver(
+                forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: .main) { [weak self] note in
+                let app = note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
+                guard let self, let app, app != .current, let popover = self.popover, popover.isShown else { return }
+                popover.performClose(nil)
+            }
+        }
         guard outsideClickMonitor == nil else { return }
         outsideClickMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown, .otherMouseDown]) { [weak self] _ in
             guard let self, let popover = self.popover, popover.isShown else { return }
@@ -116,6 +173,8 @@ final class SirenaStatusItem: NSObject {
     private func stopWatchingOutsideClicks() {
         if let outsideClickMonitor { NSEvent.removeMonitor(outsideClickMonitor) }
         outsideClickMonitor = nil
+        if let activationObserver { NSWorkspace.shared.notificationCenter.removeObserver(activationObserver) }
+        activationObserver = nil
     }
 
     private func showMenu() {

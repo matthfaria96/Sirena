@@ -254,12 +254,41 @@ struct BoltMenuView: View {
     @State private var showsHistory = false
     @State private var showsCapture = false
     @State private var showsFocus = false
+    @State private var manager = ModuleManager.shared
+    @State private var menuBar = MenuBarModule.shared
 
     var body: some View {
         let visible = settings.visibleItems
         let controls = visible.filter { $0.kind == .control && $0 != .sound }
         let shortcuts = visible.filter { $0.kind == .shortcut }
         VStack(spacing: 12) {
+            // The name, and on its right the few things that act on Sirena itself (as Aitracker).
+            HStack(spacing: 2) {
+                Text(verbatim: "Sirena")
+                    .font(.system(size: 13, weight: .semibold))
+                Spacer()
+                // The hidden menu bar icons: open eye while they're shown, slashed while hidden.
+                if showsMenuBarIcons, !menuBar.hiddenApps.isEmpty {
+                    HeaderButton(symbol: menuBar.isCollapsed ? "eye.slash" : "eye") {
+                        withAnimation(.snappy(duration: 0.2)) { menuBar.toggle() }
+                    }
+                    .help(menuBar.isCollapsed ? L("Show the hidden menu bar icons") : L("Hide the chosen menu bar icons again"))
+                    .accessibilityLabel(menuBar.isCollapsed ? L("Show the hidden menu bar icons") : L("Hide the chosen menu bar icons again"))
+                }
+                HeaderButton(symbol: "gearshape") {
+                    close()
+                    ModuleManager.shared.openPage(.home)
+                }
+                .help(L("Opens Sirena on Home (⌃⌥S)"))
+                .accessibilityLabel(L("Settings"))
+                HeaderButton(symbol: "power", destructive: true) {
+                    NSApp.terminate(nil)
+                }
+                .help(L("Quits Sirena"))
+                .accessibilityLabel(L("Quit Sirena"))
+            }
+            .padding(.leading, 2)
+            .padding(.bottom, -4)
             if !shortcuts.isEmpty {
                 // Four per row: the shortcuts no longer fit on one line.
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6, alignment: .top), count: 4), spacing: 10) {
@@ -294,7 +323,12 @@ struct BoltMenuView: View {
             ForEach(controls) { item in
                 ControlRow(item: item, close: close)
                     .padding(10)
-                    .background(.quaternary.opacity(0.6), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .menuCard()
+            }
+            if showsMenuBarIcons {
+                MenuBarIconsSection(closeMenu: close)
+                    .padding(10)
+                    .menuCard()
             }
             if visible.contains(.sound) {
                 // Vorssaint's volume mixer; scrolls when many apps are playing.
@@ -305,12 +339,11 @@ struct BoltMenuView: View {
                 .scrollIndicators(.automatic)
                 .frame(maxHeight: 460)
                 .fixedSize(horizontal: false, vertical: true)
-                .background(.quaternary.opacity(0.6), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .menuCard()
             }
-            if !controls.isEmpty || visible.contains(.sound) || settings.showsFeatureSwitches {
-                Divider()
-            }
+            // Optional (Geral): the on/off switches of a few features, under a line.
             if settings.showsFeatureSwitches {
+                Divider()
                 FeatureSwitchRow()
             }
             if visible.isEmpty {
@@ -318,18 +351,6 @@ struct BoltMenuView: View {
                                        description: Text(L("Choose what this menu shows on Sirena's Home.")))
                     .frame(height: 140)
             }
-            HStack(spacing: 10) {
-                FooterButton(title: L("Settings"), symbol: "gearshape", tint: nil) {
-                    close()
-                    ModuleManager.shared.openPage(.home)
-                }
-                .help(L("Opens Sirena on Home (⌃⌥S)"))
-                FooterButton(title: L("Quit"), symbol: "power", tint: .red) {
-                    NSApp.terminate(nil)
-                }
-                .help(L("Quits Sirena"))
-            }
-            .padding(.top, 4)
         }
         .padding(14)
         .frame(width: 344)
@@ -337,7 +358,7 @@ struct BoltMenuView: View {
         .background {
             ZStack {
                 if !BoltMenuSettings.shared.clearGlass {
-                    Color(nsColor: .windowBackgroundColor).opacity(0.9)
+                    MenuVibrancy()
                 }
                 // The color of the app you were using, over the glass.
                 if tintEnabled, let tint = accent.current {
@@ -358,6 +379,9 @@ struct BoltMenuView: View {
             }
         }
     }
+
+    /// Hiding other apps' menu bar icons lives in this menu (no arrow of its own).
+    private var showsMenuBarIcons: Bool { manager.isRunning(.menuBar) }
 
     private func isInlineOpen(_ item: BoltMenuItem) -> Bool {
         switch item {
@@ -473,7 +497,7 @@ private struct InlineFocusPanel: View {
             }
         }
         .padding(12)
-        .background(.quaternary.opacity(0.6), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .menuCard()
     }
 }
 
@@ -488,7 +512,7 @@ private struct InlineCapturePanel: View {
             }
         }
         .padding(8)
-        .background(.quaternary.opacity(0.6), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .menuCard()
     }
 
     private struct CaptureOption: View {
@@ -609,27 +633,225 @@ struct PressableStyle: ButtonStyle {
     }
 }
 
-private struct FooterButton: View {
-    let title: String
+/// A quiet icon button beside the title, like Aitracker's: a soft fill under the pointer.
+private struct HeaderButton: View {
     let symbol: String
-    let tint: Color?
+    var destructive = false
     let action: () -> Void
     @State private var isHovering = false
 
     var body: some View {
         Button(action: action) {
-            Label(title, systemImage: symbol)
-                .font(.system(size: 12, weight: .medium))
-                .frame(maxWidth: .infinity)
-                .frame(height: 34)
-                .background(RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill((tint ?? .primary).opacity(isHovering ? 0.22 : (tint == nil ? 0.07 : 0.14))))
-                .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .strokeBorder((tint ?? .primary).opacity(0.25), lineWidth: 0.8))
+            Image(systemName: symbol)
+                .font(.system(size: 12.5, weight: .medium))
+                .contentTransition(.symbolEffect(.replace))
+                .foregroundStyle(destructive && isHovering ? AnyShapeStyle(Color.red) : AnyShapeStyle(.secondary))
+                .frame(width: 26, height: 24)
+                .background(RoundedRectangle(cornerRadius: 7, style: .continuous)
+                    .fill(Color.primary.opacity(isHovering ? 0.08 : 0)))
                 .contentShape(Rectangle())
         }
         .buttonStyle(PressableStyle())
-        .onHover { hovering in withAnimation(.snappy(duration: 0.15)) { isHovering = hovering } }
+        .onHover { hovering in withAnimation(.snappy(duration: 0.12)) { isHovering = hovering } }
+    }
+}
+
+/// The menu's body: the system's dark HUD vibrancy with a veil for density (light: a white
+/// veil), as in Aitracker. Always active, so it doesn't go flat when Sirena isn't in front.
+private struct MenuVibrancy: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSView {
+        let container = NSView()
+        let effect = NSVisualEffectView()
+        effect.material = .hudWindow
+        effect.blendingMode = .behindWindow
+        effect.state = .active
+        effect.isEmphasized = true
+        effect.autoresizingMask = [.width, .height]
+        container.addSubview(effect)
+        let veil = NSView()
+        veil.wantsLayer = true
+        veil.autoresizingMask = [.width, .height]
+        container.addSubview(veil)
+        tint(veil)
+        return container
+    }
+
+    func updateNSView(_ view: NSView, context: Context) {
+        for sub in view.subviews { sub.frame = view.bounds }
+        if let veil = view.subviews.last { tint(veil) }
+    }
+
+    private func tint(_ veil: NSView) {
+        let dark = NSApp.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+        veil.layer?.backgroundColor = (dark ? NSColor.black.withAlphaComponent(0.25) : NSColor.white.withAlphaComponent(0.4)).cgColor
+    }
+}
+
+extension View {
+    /// A group in the menu: a soft, borderless card.
+    func menuCard() -> some View {
+        background(Color.primary.opacity(0.055), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+    }
+}
+
+/// The menu bar's apps, like Aparelhos conectados: the first row, the rest behind "Show all".
+/// A click hides or shows an app's icon; the gear goes to the full settings.
+private struct MenuBarIconsSection: View {
+    let closeMenu: () -> Void
+    private static let columns = 5
+
+    @State private var module = MenuBarModule.shared
+    @State private var apps: [MenuBarModule.MenuBarApp] = []
+    @State private var isLoading = true
+    @State private var showsAll = false
+
+    var body: some View {
+        let ordered = self.ordered
+        let folds = ordered.count > Self.columns
+        let shown = folds && !showsAll ? Array(ordered.prefix(Self.columns)) : ordered
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 6) {
+                Text(L("Menu bar icons"))
+                    .font(.callout.weight(.medium))
+                    .lineLimit(1)
+                    .layoutPriority(1)
+                if hiddenCount > 0 {
+                    Text(verbatim: "\(hiddenCount)")
+                        .font(.system(size: 10, weight: .bold))
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 1)
+                        .background(.quaternary, in: Capsule())
+                        .help(L("\(hiddenCount) hidden"))
+                }
+                Spacer(minLength: 4)
+                if folds {
+                    // Just an arrow: down shows the rest, up folds them away.
+                    Button {
+                        withAnimation(.snappy(duration: 0.25)) { showsAll.toggle() }
+                    } label: {
+                        Image(systemName: "chevron.down")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(.secondary)
+                            .rotationEffect(.degrees(showsAll ? 180 : 0))
+                            .frame(width: 20, height: 18)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .help(showsAll ? L("Show fewer") : L("Show all"))
+                    .accessibilityLabel(showsAll ? L("Show fewer") : L("Show all"))
+                }
+                Button {
+                    closeMenu()
+                    ModuleManager.shared.openPage(.module(.menuBar))
+                } label: {
+                    Image(systemName: "gearshape")
+                        .font(.system(size: 12))
+                        .foregroundStyle(.secondary)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .help(L("Hidden Icons Settings"))
+                .accessibilityLabel(L("Hidden Icons Settings"))
+            }
+
+            if module.needsAccessibility {
+                Text(L("Allow Accessibility access (Settings → General) so Sirena can list the apps in the menu bar."))
+                    .font(.caption)
+                    .foregroundStyle(.orange)
+                    .fixedSize(horizontal: false, vertical: true)
+            } else if isLoading {
+                ProgressView().controlSize(.small).frame(maxWidth: .infinity, minHeight: 52)
+            } else if apps.isEmpty {
+                Text(L("No other app has icons in the menu bar right now."))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } else {
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 4, alignment: .top), count: Self.columns), spacing: 4) {
+                    ForEach(shown) { app in
+                        MenuBarAppTile(app: app, isHidden: module.hiddenApps.contains(app.bundleIdentifier)) {
+                            withAnimation(.snappy(duration: 0.2)) {
+                                if module.hiddenApps.contains(app.bundleIdentifier) {
+                                    module.hiddenApps.remove(app.bundleIdentifier)
+                                } else {
+                                    module.hiddenApps.insert(app.bundleIdentifier)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        .onAppear {
+            module.menuBarApps { found in
+                apps = found
+                isLoading = false
+            }
+        }
+    }
+
+    /// The icons still in the menu bar first (the ones to hide from here), the hidden ones
+    /// after them; each part by name. Hiding one sends it to the end of the line.
+    private var ordered: [MenuBarModule.MenuBarApp] {
+        let hidden = module.hiddenApps
+        return apps.sorted { a, b in
+            let ha = hidden.contains(a.bundleIdentifier), hb = hidden.contains(b.bundleIdentifier)
+            return ha != hb ? hb : a.name.localizedCaseInsensitiveCompare(b.name) == .orderedAscending
+        }
+    }
+
+    /// The same number as on Sirena's icon: icons hidden right now (apps running).
+    private var hiddenCount: Int { module.hiddenRunningCount }
+}
+
+/// One app of the menu bar: its icon and name; hidden ones fade, with a slashed eye.
+private struct MenuBarAppTile: View {
+    let app: MenuBarModule.MenuBarApp
+    let isHidden: Bool
+    let action: () -> Void
+    @State private var isHovering = false
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 4) {
+                ZStack(alignment: .bottomTrailing) {
+                    Group {
+                        if let icon = app.icon {
+                            Image(nsImage: icon).resizable()
+                        } else {
+                            Image(systemName: "app.dashed").resizable().foregroundStyle(.secondary)
+                        }
+                    }
+                    .frame(width: 28, height: 28)
+                    .saturation(isHidden ? 0 : 1)
+                    .opacity(isHidden ? 0.4 : 1)
+                    if isHidden {
+                        Image(systemName: "eye.slash.circle.fill")
+                            .font(.system(size: 12, weight: .semibold))
+                            .symbolRenderingMode(.palette)
+                            .foregroundStyle(.white, Color(white: 0.4))
+                            .offset(x: 4, y: 3)
+                            .transition(.scale.combined(with: .opacity))
+                    }
+                }
+                Text(app.name)
+                    .font(.system(size: 10))
+                    .foregroundStyle(isHidden ? .tertiary : .secondary)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 6)
+            .background(RoundedRectangle(cornerRadius: 9, style: .continuous)
+                .fill(Color.primary.opacity(isHovering ? 0.08 : 0)))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(PressableStyle())
+        .onHover { hovering in withAnimation(.snappy(duration: 0.12)) { isHovering = hovering } }
+        .help(isHidden ? L("\(app.name): hidden — click to show it") : L("\(app.name): shown — click to hide it"))
+        .accessibilityLabel(app.name)
+        .accessibilityValue(isHidden ? L("Hidden") : L("Shown"))
     }
 }
 
