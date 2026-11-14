@@ -154,6 +154,36 @@ struct TrafficLightStyle {
     }
 }
 
+/// The Dock previews' close button (a red glass orb with its ✕), for Sirena's ⌘ Tab switcher,
+/// so a window is closed with the same button in both places. Follows the Dock previews'
+/// "monochrome buttons" setting.
+public struct PreviewCloseButtonFace: View {
+    @Environment(\.colorScheme) private var colorScheme
+    let size: CGFloat
+    let isHovering: Bool
+
+    public init(size: CGFloat = 16, isHovering: Bool = false) {
+        self.size = size
+        self.isHovering = isHovering
+    }
+
+    public var body: some View {
+        let style = TrafficLightStyle.of(.close)
+        let monochrome = Defaults[.useMonochromeTrafficLights]
+        let fill = monochrome ? (colorScheme == .dark ? Color.gray.opacity(0.85) : Color.white) : style.fill
+        ZStack {
+            TrafficLightOrb(base: fill, diameter: size * 1.0385)
+            Image(systemName: "xmark.circle.fill")
+                .font(.system(size: size, weight: .bold))
+                .foregroundStyle(monochrome ? AnyShapeStyle(.secondary) : AnyShapeStyle(style.glyph), .clear)
+        }
+        .frame(width: size + 2, height: size + 2)
+        .scaleEffect(isHovering ? 1.12 : 1)
+        .shadow(color: .black.opacity(0.25), radius: 1.5, y: 0.5)
+        .animation(.snappy(duration: 0.12), value: isHovering)
+    }
+}
+
 /// A single colored button as it looks on a preview, for settings.
 struct TrafficLightSwatch: View {
     let action: WindowAction

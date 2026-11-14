@@ -58,6 +58,7 @@ reader's default must always match (a mismatch shows an option on that behaves o
 | Pasta do Dock abre no Finder | `tweaks.dockFoldersOpenInFinder` (true) | `TweaksEngine.dockClick` | Holds the click, opens the folder |
 | ⌘ + clique direito fecha o app | DockKit `enableCmdRightClickQuit` | `DockObserver` tap | Only while Dock previews run |
 | Prévias do Dock | `sirena.module.dock.enabled` | `DockModule.start` → `DockController` | DockDoor port. Screen Recording for thumbnails (titles/icons without it) |
+| Ação ao parar o ponteiro na prévia | DockKit `previewHoverAction` (**none**; `tapEquivalentInterval` 1.5 s) | `WindowPreview.handleFullPreviewHover` | "Simular um clique" opens that window after the delay, which closes the previews: it was the default by mistake and looked like previews closing on their own. Keep it none |
 | Quando aparecem / O que mostram / Botões das janelas / Aparência | DockKit `Defaults.Keys` in `DockKit/consts.swift` (the key carries its default) | `DockObserver`, `SharedPreviewWindowCoordinator`, hover views | View: `DockKit/SirenaDockSettings.swift` (`SirenaDockSettingsSections`). Every key there has a reader (`lockAspectRatio` is UI-only by design) |
 
 DockDoor's own Dock-click handling is switched off (`Defaults[.shouldHideOnDockItemClick] = false`

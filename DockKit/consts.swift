@@ -82,7 +82,9 @@ extension Defaults.Keys {
     static let fadeOutDuration = Key<CGFloat>("fadeOutDuration", default: 0.4)
     static let preventPreviewReentryDuringFadeOut = Key<Bool>("preventPreviewReentryDuringFadeOut", default: false)
     static let inactivityTimeout = Key<CGFloat>("inactivityTimeout", default: 0.2)
-    static let previewHoverAction = Key<PreviewHoverAction>("previewHoverAction", default: .tap)
+    /// None by default (as in DockDoor): "simulate a click" opened the window, and so closed
+    /// the previews, just for resting the pointer on one.
+    static let previewHoverAction = Key<PreviewHoverAction>("previewHoverAction", default: .none)
     static let keepPreviewOnHoverActivation = Key<Bool>("keepPreviewOnHoverActivation", default: false)
     static let aeroShakeAction = Key<AeroShakeAction>("aeroShakeAction", default: .none)
 

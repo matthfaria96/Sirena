@@ -981,13 +981,12 @@ private struct SwitcherWindowPreviewTile: View {
                     suppressNextCommit = false
                 }
             } label: {
-                Image(systemName: isCloseHovering ? "xmark.circle.fill" : "xmark.circle")
-                    .font(.system(size: 16, weight: .semibold))
+                // The Dock previews' own close button.
+                PreviewCloseButtonFace(size: 14, isHovering: isCloseHovering)
                     .frame(width: 22, height: 22)
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .foregroundStyle(isCloseHovering ? SwitcherIconStyle.text : SwitcherIconStyle.secondaryText)
             .help(l10n.s.dockPreviewCloseWindow)
             .accessibilityLabel(l10n.s.dockPreviewCloseWindow)
             .onHover { isCloseHovering = $0 }
@@ -1215,11 +1214,8 @@ private struct SwitcherWindowCard: View {
                 suppressNextCommit = false
             }
         } label: {
-            Image(systemName: "xmark.circle.fill")
-                .font(.system(size: 19, weight: .medium))
-                .symbolRenderingMode(.palette)
-                .foregroundStyle(Color.white.opacity(isCloseHovering ? 0.95 : 0.72),
-                                 Color(red: 1.0, green: 0.38, blue: 0.33).opacity(isCloseHovering ? 1 : 0.92))
+            // The Dock previews' own close button.
+            PreviewCloseButtonFace(size: 16, isHovering: isCloseHovering)
                 .frame(width: 26, height: 26)
                 .contentShape(Circle())
         }
