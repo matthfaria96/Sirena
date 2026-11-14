@@ -46,24 +46,25 @@ final class SirenaStatusItem: NSObject {
         togglePanel()
     }
 
-    /// How many other apps' menu bar icons are hidden right now (0: no badge).
-    private var hiddenIcons = 0
+    /// How many other apps' menu bar icons are hidden right now; nil: no badge (Ícones off).
+    private var hiddenIcons: Int?
 
-    /// Shows how many menu bar icons are hidden, as a small badge on the orb.
-    func setHiddenIconCount(_ count: Int) {
+    /// Shows how many menu bar icons are hidden, as a small badge on the orb. Zero shows
+    /// too, so the icon keeps its shape; nil takes the badge away.
+    func setHiddenIconCount(_ count: Int?) {
         guard count != hiddenIcons else { return }
         hiddenIcons = count
         statusItem?.button?.image = Self.orb(badge: count)
-        statusItem?.button?.toolTip = count > 0 ? L("Sirena — \(count) menu bar icons hidden") : "Sirena"
+        statusItem?.button?.toolTip = count.map { L("Sirena — \($0) menu bar icons hidden") } ?? "Sirena"
     }
 
     /// The orb, drawn as a template so the menu bar tints it (black or white). With hidden
     /// icons, their number sits on its lower right corner in a small pill, cut out of the orb
     /// with a thin gap, its digits cut out of the pill: one colour, like the system's icons.
-    private static func orb(badge: Int) -> NSImage? {
+    private static func orb(badge: Int?) -> NSImage? {
         guard let source = NSImage(named: "TrayOrb") else { return nil }
         let side: CGFloat = 18
-        guard badge > 0 else {
+        guard let badge else {
             let image = source.copy() as? NSImage
             image?.size = NSSize(width: side, height: side)
             image?.isTemplate = true

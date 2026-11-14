@@ -170,7 +170,7 @@ final class MenuBarModule: NSObject {
         NSWorkspace.shared.notificationCenter.removeObserver(self)
         removeItem()
         isRunning = false
-        SirenaStatusItem.instance.setHiddenIconCount(0)
+        SirenaStatusItem.instance.setHiddenIconCount(nil)
     }
 
     // MARK: - Hide / show
@@ -370,7 +370,7 @@ final class MenuBarModule: NSObject {
 
     private func updateIcon() {
         // Sirena's own icon carries the count of hidden icons while they're hidden.
-        SirenaStatusItem.instance.setHiddenIconCount(isRunning && isCollapsed ? hiddenCount : 0)
+        SirenaStatusItem.instance.setHiddenIconCount(isRunning ? hiddenNowCount : nil)
         guard let button = statusItem?.button else { return }
         button.image = Self.makeImage(collapsed: isCollapsed || style == .menu, count: hiddenCount,
                                       symbol: style == .menu ? (panel.isShown ? "chevron.up" : "chevron.down") : nil)
@@ -620,9 +620,11 @@ final class MenuBarModule: NSObject {
     /// icon shows it. Observed: changes with the list and with `isCollapsed`.
     var hiddenRunningCount: Int {
         _ = hiddenApps
-        _ = isCollapsed
-        return hiddenCount
+        return isCollapsed ? hiddenCount : 0
     }
+
+    /// Icons out of the menu bar right now: none while they're shown.
+    private var hiddenNowCount: Int { isCollapsed ? hiddenCount : 0 }
 
     private static let seededKey = "hiddenBar.seeded"
 

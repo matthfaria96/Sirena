@@ -18,7 +18,7 @@ struct MainView: View {
                     }
                 }
                 Section(L("Controllers")) {
-                    ForEach([ModuleID.keepAwake, .displayOff, .mixer]) { module in
+                    ForEach([ModuleID.keepAwake, .displayOff, .menuBar, .mixer]) { module in
                         sidebarRow(.module(module), title: module.title, symbol: module.symbol, tint: module.tint)
                     }
                 }

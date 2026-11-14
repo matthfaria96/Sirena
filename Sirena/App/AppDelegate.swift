@@ -193,15 +193,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let menu = NSMenu()
         menu.autoenablesItems = false
         menu.addItem(item(L("Open Sirena…"), symbol: "macwindow", #selector(openMainWindow), key: ","))
-        // Straight to the hidden menu bar icons (they have no arrow of their own any more).
-        menu.addItem(item(L("Menu Bar Icons…"), symbol: "menubar.rectangle", #selector(openMenuBarIcons)))
+        // The hidden menu bar icons, shown or hidden again (they have no arrow of their own).
+        let icons = MenuBarModule.shared
+        if icons.isRunning, !icons.hiddenApps.isEmpty {
+            menu.addItem(item(icons.isCollapsed ? L("Show Hidden Icons") : L("Hide Chosen Icons"),
+                              symbol: icons.isCollapsed ? "eye" : "eye.slash", #selector(toggleMenuBarIcons)))
+        }
         menu.addItem(.separator())
         menu.addItem(item(L("Quit Sirena"), symbol: nil, #selector(NSApplication.terminate(_:)), key: "q", target: NSApp))
         return menu
     }
 
-    @objc private func openMenuBarIcons() {
-        ModuleManager.shared.openPage(.module(.menuBar))
+    @objc private func toggleMenuBarIcons() {
+        MenuBarModule.shared.toggle()
     }
 
     private func item(_ title: String, symbol: String?, _ action: Selector?, key: String = "", target: AnyObject? = nil) -> NSMenuItem {

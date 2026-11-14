@@ -187,7 +187,8 @@ enum ModuleID: String, CaseIterable, Identifiable {
     static var tools: [ModuleID] { allCases.filter(\.isTool) }
 
     /// Background features with a page of their own.
-    static var featurePages: [ModuleID] { allCases.filter { $0.hostPage == $0 && !$0.isTool } }
+    /// (Ícones lives with the controllers: its card is in the menu.)
+    static var featurePages: [ModuleID] { allCases.filter { $0.hostPage == $0 && !$0.isTool && $0 != .menuBar } }
 
     /// The Dynamic Island starts off until the user turns it on.
     private var isOnByDefault: Bool { self != .island }

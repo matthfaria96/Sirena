@@ -14542,16 +14542,6 @@
         }
       }
     },
-    "Menu Bar Icons…": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ícones da Barra de Menus…"
-          }
-        }
-      }
-    },
     "The chosen apps' icons disappear from the menu bar. To change which, or to bring them back for a while, click Sirena's icon and the small button beside Settings; right-clicking Sirena's icon brings you here. Sirena's own icon is never hidden.": {
       "localizations": {
         "pt-BR": {
@@ -14608,6 +14598,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sirena — %lld ícones ocultos na barra de menus"
+          }
+        }
+      }
+    },
+    "Hide other apps' menu bar icons, and bring them back, right from the menu.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oculte os ícones de outros apps na barra de menus, e traga de volta, direto do menu."
+          }
+        }
+      }
+    },
+    "The apps with icons in the menu bar: a click hides or shows each one. The eye beside Sirena's name shows or hides them all; Sirena's icon tells how many are hidden.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Os apps com ícone na barra de menus: um clique oculta ou mostra cada um. O olho ao lado do nome do Sirena mostra ou oculta todos; o ícone do Sirena diz quantos estão ocultos."
           }
         }
       }

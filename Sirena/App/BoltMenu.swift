@@ -16,7 +16,7 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
     // Atalhos
     case clipboard, pinWindow, textCapture, screenCapture, pomodoro, colorPicker, screenBrush, mirror
     // Controladores
-    case keepAwake, dimScreens, displayOff, devices, sound
+    case keepAwake, dimScreens, displayOff, devices, menuBarIcons, sound
 
     var id: String { rawValue }
 
@@ -43,6 +43,7 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
         case .dimScreens: return L("Dim Other Screens")
         case .mirror: return L("Peek Camera")
         case .devices: return L("Connected Devices")
+        case .menuBarIcons: return L("Menu bar icons")
         case .sound: return L("Sound Mixer")
         }
     }
@@ -62,6 +63,7 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
         case .displayOff: return L("Turns the screen off with one click, after a countdown.")
         case .dimScreens: return L("Darkens the screens you are not using, with two or more displays.")
         case .devices: return L("Your Bluetooth accessories and how much battery they have.")
+        case .menuBarIcons: return L("Hide other apps' menu bar icons, and bring them back, right from the menu.")
         case .sound: return L("Each app's volume and where the sound goes.")
         }
     }
@@ -96,6 +98,7 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
         case .dimScreens: return L("With two or more displays, the ones you are not using fade to dark after a moment and light up again when the pointer gets there.")
         case .mirror: return L("Opens the camera below the menu bar for a quick look at yourself, with a countdown. It closes by itself after 10 seconds (changeable on its page).")
         case .devices: return L("Shows the keyboards, mice, headphones and other Bluetooth devices connected to the Mac, with their battery.")
+        case .menuBarIcons: return L("The apps with icons in the menu bar: a click hides or shows each one. The eye beside Sirena's name shows or hides them all; Sirena's icon tells how many are hidden.")
         case .sound: return L("Volume of the Mac and of each app, the sound output and the microphone, all in one place.")
         }
     }
@@ -111,6 +114,7 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
         case .dimScreens: return "display.2"
         case .mirror: return "camera.fill"
         case .devices: return "dot.radiowaves.left.and.right"
+        case .menuBarIcons: return ModuleID.menuBar.symbol
         case .sound: return "slider.vertical.3"
         }
     }
@@ -126,6 +130,7 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
         case .dimScreens: return .indigo
         case .mirror: return ModuleID.mirror.tint
         case .devices: return .blue
+        case .menuBarIcons: return ModuleID.menuBar.tint
         case .sound: return .purple
         }
     }
@@ -144,6 +149,7 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
         case .displayOff, .dimScreens: return .displayOff
         case .mirror: return .mirror
         case .sound: return .mixer
+        case .menuBarIcons: return .menuBar
         default: return nil
         }
     }
@@ -197,6 +203,12 @@ final class BoltMenuSettings {
         if !UserDefaults.standard.bool(forKey: "boltMenu.dimScreensAboveDisplayOff") {
             HomeOrder.shared.place(BoltMenuItem.dimScreens.rawValue, before: BoltMenuItem.displayOff.rawValue, group: "controls")
             UserDefaults.standard.set(true, forKey: "boltMenu.dimScreensAboveDisplayOff")
+        }
+        // Ícones moved from the features to the controllers: in the menu, right above the mixer.
+        if !UserDefaults.standard.bool(forKey: "boltMenu.addedMenuBarIcons") {
+            items.insert(.menuBarIcons)
+            HomeOrder.shared.insert(BoltMenuItem.menuBarIcons.rawValue, before: BoltMenuItem.sound.rawValue, group: "controls")
+            UserDefaults.standard.set(true, forKey: "boltMenu.addedMenuBarIcons")
         }
         if !UserDefaults.standard.bool(forKey: "boltMenu.addedDevices") {
             items.insert(.devices)
@@ -322,11 +334,6 @@ struct BoltMenuView: View {
             }
             ForEach(controls) { item in
                 ControlRow(item: item, close: close)
-                    .padding(10)
-                    .menuCard()
-            }
-            if showsMenuBarIcons {
-                MenuBarIconsSection(closeMenu: close)
                     .padding(10)
                     .menuCard()
             }
@@ -711,37 +718,40 @@ private struct MenuBarIconsSection: View {
         let shown = folds && !showsAll ? Array(ordered.prefix(Self.columns)) : ordered
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 6) {
-                Text(L("Menu bar icons"))
-                    .font(.callout.weight(.medium))
-                    .lineLimit(1)
-                    .layoutPriority(1)
-                if hiddenCount > 0 {
-                    Text(verbatim: "\(hiddenCount)")
-                        .font(.system(size: 10, weight: .bold))
-                        .monospacedDigit()
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 1)
-                        .background(.quaternary, in: Capsule())
-                        .help(L("\(hiddenCount) hidden"))
-                }
-                Spacer(minLength: 4)
-                if folds {
-                    // Just an arrow: down shows the rest, up folds them away.
-                    Button {
-                        withAnimation(.snappy(duration: 0.25)) { showsAll.toggle() }
-                    } label: {
-                        Image(systemName: "chevron.down")
-                            .font(.system(size: 10, weight: .semibold))
+                // Title, count and arrow are one button: a click anywhere on them unfolds the rest.
+                Button {
+                    guard folds else { return }
+                    withAnimation(.snappy(duration: 0.25)) { showsAll.toggle() }
+                } label: {
+                    HStack(spacing: 6) {
+                        Text(L("Menu bar icons"))
+                            .font(.callout.weight(.medium))
+                            .lineLimit(1)
+                        // Always there, 0 included: the header keeps its shape.
+                        Text(verbatim: "\(hiddenCount)")
+                            .font(.system(size: 10, weight: .bold))
+                            .monospacedDigit()
                             .foregroundStyle(.secondary)
-                            .rotationEffect(.degrees(showsAll ? 180 : 0))
-                            .frame(width: 20, height: 18)
-                            .contentShape(Rectangle())
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 1)
+                            .background(.quaternary, in: Capsule())
+                            .contentTransition(.numericText())
+                        if folds {
+                            Image(systemName: "chevron.down")
+                                .font(.system(size: 10, weight: .semibold))
+                                .foregroundStyle(.secondary)
+                                .rotationEffect(.degrees(showsAll ? 180 : 0))
+                        }
                     }
-                    .buttonStyle(.plain)
-                    .help(showsAll ? L("Show fewer") : L("Show all"))
-                    .accessibilityLabel(showsAll ? L("Show fewer") : L("Show all"))
+                    .contentShape(Rectangle())
                 }
+                .buttonStyle(.plain)
+                .layoutPriority(1)
+                .help(folds ? (showsAll ? L("Show fewer") : L("Show all")) : L("\(hiddenCount) hidden"))
+                .accessibilityLabel(L("Menu bar icons"))
+                .accessibilityValue(L("\(hiddenCount) hidden"))
+                .accessibilityHint(folds ? (showsAll ? L("Show fewer") : L("Show all")) : "")
+                Spacer(minLength: 4)
                 Button {
                     closeMenu()
                     ModuleManager.shared.openPage(.module(.menuBar))
@@ -909,6 +919,8 @@ private struct ControlRow: View {
             DimScreensRow(item: item)
         case .devices:
             ConnectedDevicesSection()
+        case .menuBarIcons:
+            MenuBarIconsSection(closeMenu: close)
         default:
             EmptyView()
         }
