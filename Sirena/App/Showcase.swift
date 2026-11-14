@@ -21,11 +21,26 @@ enum Showcase {
     nonisolated static func accessibilityShown() -> Bool { isActive || AXIsProcessTrusted() }
     nonisolated static func screenRecordingShown() -> Bool { isActive || CGPreflightScreenCaptureAccess() }
 
+    /// "Ícones do menu" in screenshots: a few of Apple's own apps, the last four hidden (the
+    /// real list needs Accessibility, which the showcase copy never asks for).
+    static let demoMenuBarApps = ["com.apple.Music", "com.apple.Notes", "com.apple.iCal", "com.apple.MobileSMS",
+                                  "com.apple.weather", "com.apple.reminders", "com.apple.mail", "com.apple.Photos"]
+    static let demoHiddenMenuBarApps: Set<String> = ["com.apple.weather", "com.apple.reminders", "com.apple.mail", "com.apple.Photos"]
+
+    static func demoMenuBarAppList() -> [MenuBarModule.MenuBarApp] {
+        demoMenuBarApps.compactMap { bundle in
+            guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundle) else { return nil }
+            let name = FileManager.default.displayName(atPath: url.path).replacingOccurrences(of: ".app", with: "")
+            return MenuBarModule.MenuBarApp(bundleIdentifier: bundle, name: name, icon: NSWorkspace.shared.icon(forFile: url.path))
+        }
+    }
+
     private static var anchor: NSWindow?
     private static var popover: NSPopover?
 
     static func start(mainWindow: MainWindowController) {
         let environment = ProcessInfo.processInfo.environment
+        MenuBarModule.shared.hiddenApps = demoHiddenMenuBarApps
         Task {
             await ClipboardController.shared.loadShowcaseHistory(demoClipboard, images: [(demoImage(), "com.apple.Preview", 4)])
             if environment["SIRENA_SHOW_PANEL"] == "1" {

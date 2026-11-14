@@ -246,8 +246,9 @@ final class BoltMenuSettings {
         let all = HomeOrder.shared.sorted(BoltMenuItem.shortcuts, group: "shortcuts", id: \.rawValue)
             + HomeOrder.shared.sorted(BoltMenuItem.controls, group: "controls", id: \.rawValue)
         return all.filter { item in
-            // Showcase mode starts nothing: tools show as running, the mixer (real devices) stays out.
-            if Showcase.isActive { return enabled.contains(item) && item != .sound }
+            // Showcase mode starts nothing: tools show as running; the mixer and the connected
+            // devices (this Mac's real ones) stay out.
+            if Showcase.isActive { return enabled.contains(item) && item != .sound && item != .devices }
             return enabled.contains(item) && (item.module.map { ModuleManager.shared.isRunning($0) } ?? true)
         }
     }
@@ -281,7 +282,7 @@ struct BoltMenuView: View {
                 Spacer()
                 // The hidden menu bar icons: open eye while they're shown, slashed while hidden.
                 if showsMenuBarIcons, !menuBar.hiddenApps.isEmpty {
-                    HeaderButton(symbol: menuBar.isCollapsed ? "eye.slash" : "eye") {
+                    HeaderButton(symbol: menuBar.isCollapsed || Showcase.isActive ? "eye.slash" : "eye") {
                         withAnimation(.snappy(duration: 0.2)) { menuBar.toggle() }
                     }
                     .help(menuBar.isCollapsed ? L("Show the hidden menu bar icons") : L("Hide the chosen menu bar icons again"))
@@ -388,7 +389,7 @@ struct BoltMenuView: View {
     }
 
     /// Hiding other apps' menu bar icons lives in this menu (no arrow of its own).
-    private var showsMenuBarIcons: Bool { manager.isRunning(.menuBar) }
+    private var showsMenuBarIcons: Bool { manager.isRunning(.menuBar) || Showcase.isActive }
 
     private func isInlineOpen(_ item: BoltMenuItem) -> Bool {
         switch item {
@@ -766,7 +767,7 @@ private struct MenuBarIconsSection: View {
                 .accessibilityLabel(L("Hidden Icons Settings"))
             }
 
-            if module.needsAccessibility {
+            if module.needsAccessibility && !Showcase.isActive {
                 Text(L("Allow Accessibility access (Settings → General) so Sirena can list the apps in the menu bar."))
                     .font(.caption)
                     .foregroundStyle(.orange)
@@ -794,6 +795,11 @@ private struct MenuBarIconsSection: View {
             }
         }
         .onAppear {
+            if Showcase.isActive {
+                apps = Showcase.demoMenuBarAppList()
+                isLoading = false
+                return
+            }
             module.menuBarApps { found in
                 apps = found
                 isLoading = false
@@ -812,7 +818,7 @@ private struct MenuBarIconsSection: View {
     }
 
     /// The same number as on Sirena's icon: icons hidden right now (apps running).
-    private var hiddenCount: Int { module.hiddenRunningCount }
+    private var hiddenCount: Int { Showcase.isActive ? module.hiddenApps.count : module.hiddenRunningCount }
 }
 
 /// One app of the menu bar: its icon and name; hidden ones fade, with a slashed eye.
