@@ -227,9 +227,10 @@ struct ConnectedDevicesSection: View {
                         NSWorkspace.shared.open(url)
                     }
                 } label: {
-                    Image(systemName: "gearshape")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(.secondary)
+                    // The Bluetooth rune, not a gear: it opens Bluetooth settings, not Sirena's.
+                    BluetoothRune()
+                        .stroke(.secondary, style: StrokeStyle(lineWidth: 1.4, lineCap: .round, lineJoin: .round))
+                        .frame(width: 8, height: 13)
                         .frame(width: 18, height: 18)
                         .contentShape(Rectangle())
                 }
@@ -310,5 +311,23 @@ private struct ConnectedDeviceTile: View {
         .help(device.battery != nil ? device.name
               : CBManager.authorization == .allowedAlways ? L("\(device.name) doesn't report its battery")
               : L("Allow Bluetooth in General to see the battery"))
+    }
+}
+
+/// The Bluetooth mark (SF Symbols has none), drawn as one stroke: the spine, and the two
+/// arrowheads that cross it.
+private struct BluetoothRune: Shape {
+    func path(in rect: CGRect) -> Path {
+        func point(_ x: CGFloat, _ y: CGFloat) -> CGPoint {
+            CGPoint(x: rect.minX + rect.width * x, y: rect.minY + rect.height * y)
+        }
+        var path = Path()
+        path.move(to: point(0, 0.27))
+        path.addLine(to: point(1, 0.73))
+        path.addLine(to: point(0.5, 1))
+        path.addLine(to: point(0.5, 0))
+        path.addLine(to: point(1, 0.27))
+        path.addLine(to: point(0, 0.73))
+        return path
     }
 }
