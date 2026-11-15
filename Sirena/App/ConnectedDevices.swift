@@ -78,8 +78,39 @@ enum ConnectedDeviceReader {
         }
     }
 
-    /// The last level classic devices (headphones, speakers) reported, as IOBluetooth keeps it.
-    private static func classicLevels() -> [String: Int] {
+    /// Makes Sirena print `classicLevelsInProcess()` as JSON and quit, before anything starts
+    /// (main.swift).
+    nonisolated static let printClassicLevelsArgument = "--print-classic-batteries"
+
+    nonisolated static func printClassicLevelsAndExit() -> Never {
+        let data = (try? JSONSerialization.data(withJSONObject: classicLevelsInProcess())) ?? Data("{}".utf8)
+        FileHandle.standardOutput.write(data)
+        exit(0)
+    }
+
+    /// The classic levels, read by a fresh Sirena process. IOBluetooth keeps one object per device
+    /// for the life of a process and clears its battery when the device disconnects; after it
+    /// reconnects that object stays at 0 until the device reports a new level (headsets do in
+    /// 10 % steps, so for an hour or more), while a new process gets the level bluetoothd holds.
+    /// The child inherits Sirena's Bluetooth permission. The in-process read is the fallback.
+    nonisolated private static func classicLevels() -> [String: Int] {
+        guard let path = Bundle.main.executablePath else { return classicLevelsInProcess() }
+        let result = IslandBoundedProcessRunner.run(path, [printClassicLevelsArgument], timeout: 4,
+                                                    maxOutputBytes: 64 * 1024,
+                                                    cancellation: IslandBoundedProcessCancellation())
+        // stdout and stderr share the pipe: the JSON is the outermost braces.
+        if !result.timedOut, result.status == 0,
+           let text = String(data: result.output, encoding: .utf8),
+           let start = text.firstIndex(of: "{"), let end = text.lastIndex(of: "}"), start < end,
+           let levels = try? JSONSerialization.jsonObject(with: Data(text[start...end].utf8)) as? [String: Int] {
+            return levels
+        }
+        return classicLevelsInProcess()
+    }
+
+    /// The last level classic devices (headphones, speakers) reported, as this process's IOBluetooth
+    /// keeps it.
+    nonisolated private static func classicLevelsInProcess() -> [String: Int] {
         let keys = ["batteryPercentSingle", "batteryPercentCombined", "batteryPercentLeft", "batteryPercentRight"]
         var result: [String: Int] = [:]
         for device in IOBluetoothDevice.pairedDevices() as? [IOBluetoothDevice] ?? [] where device.isConnected() {
