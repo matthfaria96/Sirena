@@ -14612,12 +14612,12 @@
         }
       }
     },
-    "The apps with icons in the menu bar: a click hides or shows each one. The eye beside Sirena's name shows or hides them all; Sirena's icon tells how many are hidden.": {
+    "The apps with icons in the menu bar: a click hides or shows each one. The eye beside the section's gear shows or hides them all; Sirena's icon tells how many are hidden.": {
       "localizations": {
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Os apps com ícone na barra de menus: um clique oculta ou mostra cada um. O olho ao lado do nome do Sirena mostra ou oculta todos; o ícone do Sirena diz quantos estão ocultos."
+            "value": "Os apps com ícone na barra de menus: um clique oculta ou mostra cada um. O olho ao lado da engrenagem da seção mostra ou oculta todos; o ícone do Sirena diz quantos estão ocultos."
           }
         }
       }

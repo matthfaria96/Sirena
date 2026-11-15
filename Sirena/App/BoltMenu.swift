@@ -98,7 +98,7 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
         case .dimScreens: return L("With two or more displays, the ones you are not using fade to dark after a moment and light up again when the pointer gets there.")
         case .mirror: return L("Opens the camera below the menu bar for a quick look at yourself, with a countdown. It closes by itself after 10 seconds (changeable on its page).")
         case .devices: return L("Shows the keyboards, mice, headphones and other Bluetooth devices connected to the Mac, with their battery.")
-        case .menuBarIcons: return L("The apps with icons in the menu bar: a click hides or shows each one. The eye beside Sirena's name shows or hides them all; Sirena's icon tells how many are hidden.")
+        case .menuBarIcons: return L("The apps with icons in the menu bar: a click hides or shows each one. The eye beside the section's gear shows or hides them all; Sirena's icon tells how many are hidden.")
         case .sound: return L("Volume of the Mac and of each app, the sound output and the microphone, all in one place.")
         }
     }
@@ -268,7 +268,6 @@ struct BoltMenuView: View {
     @State private var showsCapture = false
     @State private var showsFocus = false
     @State private var manager = ModuleManager.shared
-    @State private var menuBar = MenuBarModule.shared
 
     var body: some View {
         let visible = settings.visibleItems
@@ -280,20 +279,14 @@ struct BoltMenuView: View {
                 Text(verbatim: "Sirena")
                     .font(.system(size: 13, weight: .semibold))
                 Spacer()
-                // The hidden menu bar icons: open eye while they're shown, slashed while hidden.
-                if showsMenuBarIcons, !menuBar.hiddenApps.isEmpty {
-                    HeaderButton(symbol: menuBar.isCollapsed || Showcase.isActive ? "eye.slash" : "eye") {
-                        withAnimation(.snappy(duration: 0.2)) { menuBar.toggle() }
-                    }
-                    .help(menuBar.isCollapsed ? L("Show the hidden menu bar icons") : L("Hide the chosen menu bar icons again"))
-                    .accessibilityLabel(menuBar.isCollapsed ? L("Show the hidden menu bar icons") : L("Hide the chosen menu bar icons again"))
-                }
-                HeaderButton(symbol: "gearshape") {
+                // Opens Sirena's window (Home), not a settings page: a window, not a gear. The
+                // eye that shows or hides the menu bar icons lives in their own section.
+                HeaderButton(symbol: "macwindow") {
                     close()
                     ModuleManager.shared.openPage(.home)
                 }
                 .help(L("Opens Sirena on Home (⌃⌥S)"))
-                .accessibilityLabel(L("Settings"))
+                .accessibilityLabel(L("Open Sirena"))
                 HeaderButton(symbol: "power", destructive: true) {
                     NSApp.terminate(nil)
                 }
@@ -387,9 +380,6 @@ struct BoltMenuView: View {
             }
         }
     }
-
-    /// Hiding other apps' menu bar icons lives in this menu (no arrow of its own).
-    private var showsMenuBarIcons: Bool { manager.isRunning(.menuBar) || Showcase.isActive }
 
     private func isInlineOpen(_ item: BoltMenuItem) -> Bool {
         switch item {
@@ -753,6 +743,23 @@ private struct MenuBarIconsSection: View {
                 .accessibilityValue(L("\(hiddenCount) hidden"))
                 .accessibilityHint(folds ? (showsAll ? L("Show fewer") : L("Show all")) : "")
                 Spacer(minLength: 4)
+                // Shows or hides all the chosen icons at once: open eye while they're shown,
+                // slashed while hidden. Only when some are chosen.
+                if !module.hiddenApps.isEmpty {
+                    let collapsed = module.isCollapsed || Showcase.isActive
+                    Button {
+                        withAnimation(.snappy(duration: 0.2)) { module.toggle() }
+                    } label: {
+                        Image(systemName: collapsed ? "eye.slash" : "eye")
+                            .font(.system(size: 12))
+                            .foregroundStyle(.secondary)
+                            .contentTransition(.symbolEffect(.replace))
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .help(collapsed ? L("Show the hidden menu bar icons") : L("Hide the chosen menu bar icons again"))
+                    .accessibilityLabel(collapsed ? L("Show the hidden menu bar icons") : L("Hide the chosen menu bar icons again"))
+                }
                 Button {
                     closeMenu()
                     ModuleManager.shared.openPage(.module(.menuBar))
