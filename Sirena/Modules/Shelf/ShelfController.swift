@@ -169,8 +169,9 @@ final class ShelfController {
     private func targetFrame() -> CGRect {
         guard let screen = anchorScreen ?? NSScreen.main ?? NSScreen.screens.first else { return panel.frame }
         let visible = screen.visibleFrame
-        let side = settings.itemSize.side(for: store.items.count)
-        let size = ShelfLayout.size(itemCount: store.items.count, side: side, maxHeight: visible.height * 0.85)
+        let count = store.items.count + store.pending.count
+        let side = settings.itemSize.side(for: count)
+        let size = ShelfLayout.size(itemCount: count, side: side, maxHeight: visible.height * 0.85)
 
         if let point = anchorPoint {
             // Next to the pointer, on the side with room, kept on screen.
@@ -210,12 +211,13 @@ final class ShelfController {
     private func trackItems() {
         withObservationTracking {
             _ = store.items.count
+            _ = store.pending.count
         } onChange: { [weak self] in
             DispatchQueue.main.async {
                 guard let self, self.isRunning else { return }
-                if !self.store.items.isEmpty { self.isPeeking = false }
+                if !self.store.items.isEmpty || !self.store.pending.isEmpty { self.isPeeking = false }
                 self.relayout(animated: true)
-                if self.store.items.isEmpty, !self.shownForDrag, !self.isDropTargeted {
+                if self.store.items.isEmpty, self.store.pending.isEmpty, !self.shownForDrag, !self.isDropTargeted {
                     self.hide()
                 }
                 self.trackItems()
@@ -297,7 +299,7 @@ final class ShelfController {
         shownForDrag = false
         // Let a drop on the shelf land before deciding it stayed empty.
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { [weak self] in
-            guard let self, self.store.items.isEmpty, !self.isDropTargeted else { return }
+            guard let self, self.store.items.isEmpty, self.store.pending.isEmpty, !self.isDropTargeted else { return }
             self.hide()
         }
     }

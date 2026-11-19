@@ -100,6 +100,9 @@ final class ShelfSettings {
     var removeAfterDragOut: Bool { didSet { save(removeAfterDragOut, "shelf.removeAfterDragOut") } }
     /// Aliases dropped on the shelf are replaced by their originals.
     var resolveAliases: Bool { didSet { save(resolveAliases, "shelf.resolveAliases") } }
+    /// Images that come in as WebP, AVIF, HEIC, BMP or TIFF are saved as PNG or JPEG, which
+    /// every editor and web upload takes.
+    var convertsImages: Bool { didSet { save(convertsImages, "shelf.convertsImages") } }
 
     private init() {
         position = ShelfPosition(rawValue: defaults.string(forKey: "shelf.position") ?? "") ?? .leftCenter
@@ -111,6 +114,7 @@ final class ShelfSettings {
         showPreviews = defaults.object(forKey: "shelf.showPreviews") as? Bool ?? true
         removeAfterDragOut = defaults.object(forKey: "shelf.removeAfterDragOut") as? Bool ?? true
         resolveAliases = defaults.object(forKey: "shelf.resolveAliases") as? Bool ?? true
+        convertsImages = defaults.object(forKey: "shelf.convertsImages") as? Bool ?? true
     }
 
     private func save(_ value: Any, _ key: String) {

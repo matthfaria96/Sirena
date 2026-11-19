@@ -51,7 +51,8 @@ final class ShelfContentView: NSView {
             hosting.topAnchor.constraint(equalTo: topAnchor),
             hosting.bottomAnchor.constraint(equalTo: bottomAnchor)
         ])
-        registerForDraggedTypes([.fileURL, .URL, .string, .png, .tiff, .color, .rtf])
+        // Files, links, text, colors, image bytes and promised files (browsers, Photos, Mail).
+        registerForDraggedTypes(ShelfIncoming.draggedTypes)
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
@@ -217,7 +218,7 @@ struct ShelfView: View {
     }
 
     private func card(contentOpacity: Double) -> some View {
-        let side = settings.itemSize.side(for: store.items.count)
+        let side = settings.itemSize.side(for: store.items.count + store.pending.count)
         // Docked to an edge: square on the screen side, rounded toward the screen.
         let radius: CGFloat = controller.isPeeking && expansion < 0.3 ? 7 : 20
         let docked = !settings.showAtCursor
@@ -233,7 +234,7 @@ struct ShelfView: View {
         let peekGlow = controller.isPeeking ? 0.35 + 0.4 * proximity : 0
         return VStack(spacing: 6) {
             header
-            if store.items.isEmpty {
+            if store.items.isEmpty && store.pending.isEmpty {
                 emptyState
             } else {
                 ScrollView(.vertical, showsIndicators: false) {
@@ -245,9 +246,16 @@ struct ShelfView: View {
                                     insertion: .scale(scale: 0.4).combined(with: .opacity),
                                     removal: .scale(scale: 0.7).combined(with: .opacity)))
                         }
+                        // Still being written or downloaded: a placeholder in its place.
+                        ForEach(store.pending) { entry in
+                            ShelfPendingCell(title: entry.title, side: side)
+                                .frame(width: side + 20, height: side + ShelfLayout.labelHeight)
+                                .transition(.scale(scale: 0.6).combined(with: .opacity))
+                        }
                     }
                     .padding(.vertical, 4)
                     .animation(reduceMotion ? .default : .spring(response: 0.45, dampingFraction: 0.68), value: store.items.map(\.id))
+                    .animation(reduceMotion ? .default : .spring(response: 0.45, dampingFraction: 0.68), value: store.pending.map(\.id))
                 }
             }
         }
@@ -652,13 +660,19 @@ final class ShelfThumbnails {
     static let shared = ShelfThumbnails()
 
     private var cache: [String: NSImage] = [:]
+    /// File icons, by path: asking the workspace on every render reads the disk each time.
+    @ObservationIgnored private var icons: [String: NSImage] = [:]
     @ObservationIgnored private var pending: Set<String> = []
 
     func image(for url: URL, side: CGFloat) -> NSImage {
-        let icon = NSWorkspace.shared.icon(forFile: url.path)
-        guard ShelfSettings.shared.showPreviews else { return icon }
         let key = "\(url.path)#\(Int(side))"
-        if let cached = cache[key] { return cached }
+        if ShelfSettings.shared.showPreviews, let cached = cache[key] { return cached }
+        let icon = icons[url.path] ?? {
+            let icon = NSWorkspace.shared.icon(forFile: url.path)
+            icons[url.path] = icon
+            return icon
+        }()
+        guard ShelfSettings.shared.showPreviews else { return icon }
         if !pending.contains(key) {
             pending.insert(key)
             let scale = NSScreen.main?.backingScaleFactor ?? 2
@@ -677,6 +691,36 @@ final class ShelfThumbnails {
 
     func clear() {
         cache.removeAll()
+        icons.removeAll()
+    }
+}
+
+/// An item still on its way: a faint card with a spinner, and its name.
+private struct ShelfPendingCell: View {
+    let title: String
+    let side: CGFloat
+
+    var body: some View {
+        VStack(spacing: 3) {
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(.primary.opacity(0.06))
+                .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .strokeBorder(.primary.opacity(0.12), style: StrokeStyle(lineWidth: 1, dash: [4, 3])))
+                .overlay { ProgressView().controlSize(side < 60 ? .mini : .small) }
+                .frame(width: side * 0.86, height: side * 0.86)
+                .frame(width: side, height: side)
+            Text(title)
+                .font(.system(size: 10))
+                .foregroundStyle(.secondary)
+                .lineLimit(2)
+                .truncationMode(.middle)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 3)
+                .frame(height: ShelfLayout.labelHeight - 4, alignment: .top)
+        }
+        .padding(2)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(L("Adding \(title)…"))
     }
 }
 

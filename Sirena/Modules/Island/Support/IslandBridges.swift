@@ -64,12 +64,8 @@ enum IslandShelfBridge {
         add(from: pasteboard)
     }
 
-    /// What Sirena's Shelf takes: files, links, images and text.
-    static let dropTypes: [NSPasteboard.PasteboardType] = [
-        .fileURL, .URL, .string, .tiff, .png,
-        NSPasteboard.PasteboardType("com.compuserve.gif"),
-        NSPasteboard.PasteboardType("NSFilenamesPboardType"),
-    ]
+    /// What Sirena's Shelf takes: files, links, images (bytes or promised by a browser) and text.
+    static let dropTypes: [NSPasteboard.PasteboardType] = ShelfIncoming.draggedTypes
 
     static func canAccept(_ pasteboard: NSPasteboard) -> Bool {
         pasteboard.availableType(from: dropTypes) != nil

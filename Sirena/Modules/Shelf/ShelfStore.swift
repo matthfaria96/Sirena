@@ -1,8 +1,9 @@
 /// ShelfStore.swift
 ///
 /// What sits on the shelf, kept across launches. Files are referenced by bookmarks
-/// (the shelf points at them, it never copies them); text, links, colors and images
-/// dragged from apps are stored by the shelf itself.
+/// (the shelf points at them, it never copies them); text, links and colors are stored in
+/// the list, and images that weren't files yet (from a browser, Photos, the clipboard) are
+/// written into the shelf's folder by ShelfIncoming.
 
 import AppKit
 import UniformTypeIdentifiers
@@ -117,7 +118,7 @@ final class ShelfStore {
     /// Batches of items taken off the shelf, newest last, for "Restore Last Removed Files".
     private(set) var removedBatches: [[ShelfItem]] = []
 
-    static let folder: URL = {
+    nonisolated static let folder: URL = {
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         let folder = base.appendingPathComponent("Sirena/Shelf", isDirectory: true)
         try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
@@ -152,14 +153,18 @@ final class ShelfStore {
         try? data.write(to: backup)
     }
 
-    /// Images the shelf saved for items that are gone (e.g. removed before Sirena quit).
+    /// Files the shelf made for items that are gone (e.g. removed before Sirena quit), and
+    /// promised files that never finished coming in.
     private func removeOrphanedFiles() {
+        try? FileManager.default.removeItem(at: Self.folder.appendingPathComponent("Incoming", isDirectory: true))
         let referenced = Set(items.flatMap { item -> [String] in
             guard case .files(let files) = item.content else { return [] }
             return files.map { $0.storedURL.standardizedFileURL.path }
         })
-        let contents = (try? FileManager.default.contentsOfDirectory(at: Self.folder, includingPropertiesForKeys: nil)) ?? []
-        for url in contents where url.pathExtension == "png" && !referenced.contains(url.standardizedFileURL.path) {
+        let contents = (try? FileManager.default.contentsOfDirectory(at: Self.folder, includingPropertiesForKeys: [.isRegularFileKey])) ?? []
+        for url in contents where url.pathExtension != "json"
+            && (try? url.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile) == true
+            && !referenced.contains(url.standardizedFileURL.path) {
             try? FileManager.default.trashItem(at: url, resultingItemURL: nil)
         }
     }
@@ -179,61 +184,26 @@ final class ShelfStore {
         save()
     }
 
-    /// Reads whatever a pasteboard holds: files become one item (a stack when there are
-    /// several), otherwise images, links, colors or text.
+    /// Takes whatever a pasteboard holds (ShelfIncoming): files become one item (a stack when
+    /// there are several); images, links, colors and text become items of their own.
     @discardableResult
     func add(from pasteboard: NSPasteboard) -> Bool {
-        let newItems = Self.items(from: pasteboard)
-        add(newItems)
-        return !newItems.isEmpty
+        ShelfIncoming.take(pasteboard)
     }
 
-    static func items(from pasteboard: NSPasteboard) -> [ShelfItem] {
-        if let urls = pasteboard.readObjects(forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]) as? [URL],
-           !urls.isEmpty {
-            let resolved = ShelfSettings.shared.resolveAliases ? urls.map(resolveAlias) : urls
-            return [ShelfItem(content: .files(resolved.map(ShelfFile.init)))]
-        }
-        if let color = NSColor(from: pasteboard)?.usingColorSpace(.sRGB) {
-            return [ShelfItem(content: .color(red: color.redComponent, green: color.greenComponent,
-                                              blue: color.blueComponent, alpha: color.alphaComponent))]
-        }
-        if let image = NSImage(pasteboard: pasteboard), pasteboard.availableType(from: [.png, .tiff]) != nil,
-           let url = saveImage(image) {
-            return [ShelfItem(content: .files([ShelfFile(url: url)]), ownsFiles: true)]
-        }
-        if let url = pasteboard.readObjects(forClasses: [NSURL.self], options: nil)?.first as? URL,
-           let scheme = url.scheme, ["http", "https", "mailto", "ftp"].contains(scheme.lowercased()) {
-            return [ShelfItem(content: .link(url))]
-        }
-        if let text = pasteboard.string(forType: .string), !text.isEmpty {
-            if let url = URL(string: text.trimmingCharacters(in: .whitespacesAndNewlines)),
-               let scheme = url.scheme, ["http", "https"].contains(scheme.lowercased()), url.host() != nil {
-                return [ShelfItem(content: .link(url))]
-            }
-            return [ShelfItem(content: .text(text))]
-        }
-        return []
+    // MARK: - On its way
+
+    /// Things still being written or downloaded (shown as placeholders, never saved).
+    private(set) var pending: [ShelfPending] = []
+
+    func beginPending(_ title: String) -> UUID {
+        let entry = ShelfPending(title: title)
+        pending.append(entry)
+        return entry.id
     }
 
-    private static func resolveAlias(_ url: URL) -> URL {
-        guard (try? url.resourceValues(forKeys: [.isAliasFileKey]).isAliasFile) == true else { return url }
-        return (try? URL(resolvingAliasFileAt: url)) ?? url
-    }
-
-    static func saveImage(_ image: NSImage) -> URL? {
-        guard let tiff = image.tiffRepresentation, let bitmap = NSBitmapImageRep(data: tiff),
-              let png = bitmap.representation(using: .png, properties: [:]) else { return nil }
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd 'at' HH.mm.ss"
-        let base = "\(L("Image")) \(formatter.string(from: Date()))"
-        var url = folder.appendingPathComponent("\(base).png")
-        var number = 2
-        while FileManager.default.fileExists(atPath: url.path) {
-            url = folder.appendingPathComponent("\(base) \(number).png")
-            number += 1
-        }
-        return (try? png.write(to: url, options: .withoutOverwriting)) != nil ? url : nil
+    func endPending(_ id: UUID) {
+        pending.removeAll { $0.id == id }
     }
 
     // MARK: - Removing

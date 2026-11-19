@@ -7,6 +7,11 @@ Sirena is a local macOS menu bar app. It has no backend, no accounts, no databas
 ## APIs & External Services
 
 **Public HTTP services (the only outbound network calls found in source):**
+- Shelf - downloads the image the user dragged from a web page, only on that drop
+  - Endpoint: whatever address the drop carries (Google's `imgurl`, the `<img>` source, a link to an image file)
+  - Client: `URLSession.shared` in `Sirena/Modules/Shelf/ShelfIncoming.swift` (`ShelfFiles.download`: 20 s, image types only, ≤ 200 MB)
+  - Data sent: a GET of that address, nothing else
+  - Auth: none
 - lrclib.net - Synced lyrics lookup
   - Endpoints: `https://lrclib.net/api/get`, `https://lrclib.net/api/search`
   - Client: `URLSession` in `Sirena/Modules/Island/Services/NotchLyricsSupport.swift` (lines ~134, ~206, ~328, ~602) and `DockKit/Models/MediaInfo.swift` (lines ~438-479)
@@ -45,7 +50,7 @@ Sirena is a local macOS menu bar app. It has no backend, no accounts, no databas
 **File Storage:**
 - Local filesystem only
   - Color picker palettes and history: JSON in `~/Library/Application Support/Sirena/Colors/` (`Sirena/Modules/ColorPicker/ColorStore.swift`)
-  - Shelf items: `Sirena/Modules/Shelf/ShelfStore.swift` (Application Support)
+  - Shelf items: `Sirena/Modules/Shelf/ShelfStore.swift` (Application Support; images that weren't files yet are written there by `ShelfIncoming.swift`, promised files land in `Incoming/` first)
   - Browser artwork cache: `Sirena/Modules/Island/Services/NotchBrowserArtwork.swift` (Application Support)
   - Folder widgets: security-scoped bookmarks from `NSOpenPanel` (`DockKit/Views/Hover Window/Special Hover Windows/Folder/FolderWidgetModel.swift`, `FolderWidgetView.swift`)
   - Mirror and Shelf file pickers: `Sirena/App/Pages/MirrorPage.swift`, `Sirena/App/Pages/ShelfPage.swift`, `Sirena/Modules/Switcher/WindowSwitcherSettingsView.swift`

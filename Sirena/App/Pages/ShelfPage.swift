@@ -160,6 +160,17 @@ private struct ShelfItemsView: View {
             } footer: {
                 Text(L("The shelf keeps references to the files you add, it doesn't copy them. Several files dropped together become a Stack: drag them out together, or split it up from its menu."))
             }
+
+            Section {
+                Toggle(isOn: $settings.convertsImages) {
+                    Text(L("Save images in formats every app opens"))
+                    Text(L("WebP, AVIF, HEIC, BMP and TIFF images become PNG (with transparency) or JPEG, so editors and uploads take them."))
+                }
+            } header: {
+                Text(L("Images from the Web and Apps"))
+            } footer: {
+                Text(L("An image dragged from a browser, Photos or Mail becomes a real file on the shelf, at its full size when the page links to the original. It can then be dragged into any app, editor or chat."))
+            }
         }
         .formStyle(.grouped)
     }
