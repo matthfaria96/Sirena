@@ -31,8 +31,19 @@ struct ZonePopupGeometry {
     let zones: [[CGRect]]
     let groupZones: [CGRect]
 
-    /// `visible`: the display's visible frame (AppKit coordinates).
-    init(visible: CGRect, templates: [Int], roots: [ZoneNode], lastGroup: ZoneNode?) {
+    /// The menu bar's strip (Accessibility coordinates) when the card and the pill may sit in
+    /// it, so they cover the windows as little as they can. Not on a display with a notch (it
+    /// would cover them), nor with the menu bar hidden.
+    static func menuBar(of screen: NSScreen) -> CGRect? {
+        guard screen.safeAreaInsets.top == 0 else { return nil }
+        let frame = screen.frame.screenFlipped
+        let height = screen.visibleFrame.screenFlipped.minY - frame.minY
+        guard height >= 16 else { return nil }
+        return CGRect(x: frame.minX, y: frame.minY, width: frame.width, height: height)
+    }
+
+    /// `visible`: the display's visible frame (AppKit coordinates). `menuBar`: `menuBar(of:)`.
+    init(visible: CGRect, menuBar: CGRect?, templates: [Int], roots: [ZoneNode], lastGroup: ZoneNode?) {
         let aspect = min(max(visible.height > 0 ? visible.width / visible.height : 1.6, 0.6), 2.2)
         let count = CGFloat(roots.count + (lastGroup == nil ? 0 : 1))
         // Big enough to aim at with a window in hand, small enough to fit the display, and
@@ -55,8 +66,10 @@ struct ZonePopupGeometry {
         let bottomPadding = (padding * 0.7).rounded()
         let height = padding + bottomPadding + thumbHeight + Self.hintHeight
         let top = visible.screenFlipped
-        // Just under the menu bar (2 pt), as if it dropped from it.
-        let card = CGRect(x: (top.midX - width / 2).rounded(), y: top.minY + 2, width: width, height: height)
+        // Over the menu bar, 3 pt from the top of the display, as if it dropped from it (just
+        // under the menu bar where it can't cover it).
+        let cardTop = menuBar.map { $0.minY + 3 } ?? top.minY + 2
+        let card = CGRect(x: (top.midX - width / 2).rounded(), y: cardTop, width: width, height: height)
         var x = card.minX + padding
         var groupThumb: CGRect?
         if lastGroup != nil {
@@ -429,8 +442,9 @@ private struct LayoutDrawing: View {
 /// panel drops from (Windows 11 shows the same), so the layouts can be found.
 @MainActor
 final class ZoneHint {
-    /// The pill is 128 × 26; the rest is room for its shadow.
-    private static let size = CGSize(width: 136, height: 34)
+    /// The pill is 128 × 22, short enough to sit inside the menu bar; the rest is room for its
+    /// shadow.
+    private static let size = CGSize(width: 136, height: 30)
     private var panel: NSPanel?
     private let model = ZoneHintModel()
     private var screenFrame: CGRect?
@@ -441,7 +455,9 @@ final class ZoneHint {
         if panel.isVisible, panel.alphaValue > 0, screenFrame == screen.frame { return }
         screenFrame = screen.frame
         let top = screen.visibleFrame.screenFlipped
-        let frame = CGRect(x: (top.midX - Self.size.width / 2).rounded(), y: top.minY + 4,
+        // In the middle of the menu bar, off the windows; under it where it can't go there.
+        let y = ZonePopupGeometry.menuBar(of: screen).map { ($0.midY - Self.size.height / 2).rounded() } ?? top.minY + 4
+        let frame = CGRect(x: (top.midX - Self.size.width / 2).rounded(), y: y,
                            width: Self.size.width, height: Self.size.height)
         panel.setFrame(frame.screenFlipped, display: true)
         if !panel.isVisible { panel.alphaValue = 0 }

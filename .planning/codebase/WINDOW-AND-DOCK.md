@@ -158,7 +158,10 @@ Geometry tests: `scripts/test-zone-layout.sh` (`scripts/tests/zone-layout/main.s
 Flow:
 1. `SnappingManager` `.leftMouseDragged` (window moving) → `ZoneController.dragMoved()`. While a
    window is dragged, `ZoneHint` shows a small pill at the top middle of the display under the
-   pointer (where the panel drops from). The panel opens when the pointer is in the top band of
+   pointer (where the panel drops from). The pill sits inside the menu bar and the card hangs
+   from the top of the display over it (`ZonePopupGeometry.menuBar`), so they cover the windows
+   as little as they can; on a display with a notch, or with the menu bar hidden, both sit just
+   under the menu bar. The panel opens when the pointer is in the top band of
    a display (menu bar bottom + 36 pt, middle 60%) **and** rose ≥ 24 pt during this drag (a
    window already at the top doesn't pop it at once). While open it returns true, so Rectangle's
    snap areas stand aside. Only the row of drawings picks a zone (`ZonePopupGeometry.hit`): the

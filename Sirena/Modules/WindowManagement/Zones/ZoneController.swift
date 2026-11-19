@@ -492,7 +492,7 @@ final class ZoneController {
             let alive = Set(WindowUtil.getWindowList(ids: Array(group.zones.keys), all: true, forceRefresh: true).map(\.id))
             return group.zones.keys.filter(alive.contains).count >= 2 ? group : nil
         }
-        let geometry = ZonePopupGeometry(visible: screen.visibleFrame, templates: templates, roots: roots, lastGroup: saved?.root)
+        let geometry = ZonePopupGeometry(visible: screen.visibleFrame, menuBar: ZonePopupGeometry.menuBar(of: screen), templates: templates, roots: roots, lastGroup: saved?.root)
         session = Session(display: display, screen: screen, geometry: geometry, target: target, relayout: relayout)
         hover = nil
         hint.hide()
