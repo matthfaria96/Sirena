@@ -45,16 +45,14 @@ enum WindowDragSettings {
     static let modifierKey = "windowDrag.modifier"
     static let resizeKey = "windowDrag.resize"
     static let maximizeKey = "windowDrag.doubleClickMaximize"
-    static let bottomRightKey = "windowDrag.bottomRightOnly"
     static let excludedKey = "windowDrag.excludedApps"
 
     static let enabledDefault = false
-    /// ⌃⌘: ⌥-drag already means something in many apps (column selection in editors,
-    /// duplicating in the Finder and design apps); ⌃⌘-drag means nothing almost anywhere.
-    static let modifierDefault = WindowDragModifier.controlCommand
+    /// ⌥: one key, easy to hold. ⌥-drag also means something in some apps (column selection
+    /// in editors, duplicating in the Finder): those go in the excluded apps, or ⌃⌘ is picked.
+    static let modifierDefault = WindowDragModifier.option
     static let resizeDefault = true
     static let maximizeDefault = true
-    static let bottomRightDefault = false
 }
 
 /// What the tap needs, copied on the main thread.
@@ -63,7 +61,6 @@ struct WindowDragSnapshot {
     var modifier = WindowDragSettings.modifierDefault
     var resize = WindowDragSettings.resizeDefault
     var maximize = WindowDragSettings.maximizeDefault
-    var bottomRightOnly = WindowDragSettings.bottomRightDefault
     var excluded: Set<String> = []
 
     private static let lock = NSLock()
@@ -83,7 +80,6 @@ struct WindowDragSnapshot {
             .flatMap(WindowDragModifier.init(rawValue:)) ?? WindowDragSettings.modifierDefault
         snapshot.resize = defaults.object(forKey: WindowDragSettings.resizeKey) as? Bool ?? WindowDragSettings.resizeDefault
         snapshot.maximize = defaults.object(forKey: WindowDragSettings.maximizeKey) as? Bool ?? WindowDragSettings.maximizeDefault
-        snapshot.bottomRightOnly = defaults.object(forKey: WindowDragSettings.bottomRightKey) as? Bool ?? WindowDragSettings.bottomRightDefault
         snapshot.excluded = Set(defaults.stringArray(forKey: WindowDragSettings.excludedKey) ?? [])
         lock.lock()
         stored = snapshot

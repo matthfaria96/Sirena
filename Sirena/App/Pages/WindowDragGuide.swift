@@ -12,7 +12,6 @@ import SwiftUI
 
 struct WindowDragGuide: View {
     let modifier: WindowDragModifier
-    let bottomRightOnly: Bool
     @Environment(\.dismiss) private var dismiss
     @State private var page: GuidePage = .move
 
@@ -24,7 +23,7 @@ struct WindowDragGuide: View {
                 sidebar
                 Divider()
                 ScrollView {
-                    GuidePageView(page: page, modifier: modifier, bottomRightOnly: bottomRightOnly)
+                    GuidePageView(page: page, modifier: modifier)
                         .id(page)
                         .padding(22)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -165,7 +164,6 @@ enum GuidePage: Int, CaseIterable, Identifiable {
 private struct GuidePageView: View {
     let page: GuidePage
     let modifier: WindowDragModifier
-    let bottomRightOnly: Bool
 
     private var key: String { modifier.symbol }
 
@@ -189,9 +187,7 @@ private struct GuidePageView: View {
                 GuideSteps([L("Hold \(key)."),
                        L("Press the right button in the quarter of the window whose corner you want to pull."),
                        L("Drag outward to make it bigger, inward to make it smaller, then let go.")])
-                GuideNote(bottomRightOnly
-                     ? L("“Always from the bottom-right corner” is on: it's always that corner, wherever you press.")
-                     : L("Prefer always pulling the bottom-right corner? Turn on “Always from the bottom-right corner”."))
+                GuideNote(L("Where you press picks the corner: near the bottom right pulls the bottom-right corner, near the top left the top-left one."))
             case .maximize:
                 GuideParagraph(L("Hold the key and double-click anywhere on the window: it fills the screen, leaving the menu bar and the Dock in view. Double-click again to give it its size back."))
                 GuideSteps([L("Hold \(key)."),
@@ -311,7 +307,7 @@ private struct GuideKeysPage: View {
             let mac = held.map(\.mac).joined(separator: " + ")
             let windows = held.map(\.windows).joined(separator: " + ")
             GuideParagraph(L("With \(modifier.symbol) chosen, hold \(mac) on a Mac keyboard, or \(windows) on a Logitech keyboard."))
-            GuideNote(L("The key is chosen in Key, in this section. ⌥ alone also selects columns of text in editors and duplicates files in the Finder while dragging; ⌃⌘ means nothing almost anywhere, so it's the safest."))
+            GuideNote(L("The key is chosen in Key, in this section; ⌥ is the default. ⌥-drag also selects columns of text in editors and duplicates files in the Finder: add those apps to Apps left alone, or pick ⌃⌘, which means nothing almost anywhere."))
             GuideNote(L("A Logitech keyboard set to its Mac layout (the Mac keys printed on it) uses the Mac names."))
         }
     }

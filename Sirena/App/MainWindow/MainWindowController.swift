@@ -6,7 +6,6 @@ import SwiftUI
 enum SidebarItem: Hashable {
     case home
     case module(ModuleID)
-    case macSettings
     case general
     case about
 }

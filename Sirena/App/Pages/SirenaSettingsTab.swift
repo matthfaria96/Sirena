@@ -1,0 +1,324 @@
+/// SirenaSettingsTab.swift
+///
+/// Geral › Sirena: Sirena's own permissions first, then its settings — one quiet column of
+/// grouped rows, in the manner of System Settings. About has its own page (AboutView.swift).
+/// Also the building blocks of these columns (SettingsColumn, SettingsGroup, SettingsRow).
+
+import AVFoundation
+import CoreBluetooth
+import DockKit
+import SwiftUI
+
+struct SirenaSettingsTab: View {
+    @State private var launchOnLogin = Defaults.launchOnLogin.enabled
+    @State private var recordingObserver = ShortcutRecordingObserver()
+    @State private var permissions = PermissionsState()
+    @AppStorage(AppAccentColor.enabledKey) private var appTint = false
+    @AppStorage(AppAccentColor.strengthKey) private var appTintStrength = AppAccentColor.defaultStrength
+
+    var body: some View {
+        SettingsColumn {
+            SettingsGroup(L("Permissions"),
+                          footer: L("Each status is read from macOS right now and updates as soon as you change it in System Settings. Everything stays on this Mac.")) {
+                Text(L("\(permissions.grantedCount) of \(permissions.items.count) allowed"))
+                    .font(.caption)
+                    .monospacedDigit()
+                    .foregroundStyle(.secondary)
+            } content: {
+                ForEach(Array(permissions.items.enumerated()), id: \.element.id) { index, item in
+                    if index > 0 { SettingsSeparator(indented: true) }
+                    PermissionLine(item: item)
+                }
+            }
+
+            SettingsGroup("Sirena") {
+                SettingsRow(L("Open Sirena at login"), symbol: "power") {
+                    Toggle("", isOn: $launchOnLogin).settingsSwitch()
+                        .onChange(of: launchOnLogin) {
+                            LaunchOnLogin.isEnabled = launchOnLogin
+                            Defaults.launchOnLogin.enabled = launchOnLogin
+                        }
+                }
+                SettingsSeparator(indented: true)
+                SettingsRow(L("Transparent menu"), detail: supportsLiquidGlass ? L("Liquid Glass you can see through. Off, the menu keeps a solid backing that reads over white windows.") : L("A translucent menu you can see through. Off, the menu keeps a solid backing that reads over white windows."), symbol: "circle.dotted.circle") {
+                    Toggle("", isOn: Binding(get: { BoltMenuSettings.shared.clearGlass },
+                                             set: { BoltMenuSettings.shared.clearGlass = $0 })).settingsSwitch()
+                }
+                SettingsSeparator(indented: true)
+                SettingsRow(L("On/off switches in the menu"), detail: L("Window, Icons, Shelf and Island at the bottom of the menu, each turned on or off with one click. Off, each one is switched on its own page."), symbol: "switch.2") {
+                    Toggle("", isOn: Binding(get: { BoltMenuSettings.shared.showsFeatureSwitches },
+                                             set: { BoltMenuSettings.shared.showsFeatureSwitches = $0 })).settingsSwitch()
+                }
+                SettingsSeparator(indented: true)
+                SettingsRow(L("Color of the app in use"), detail: L("The menu, ⌘ Tab and the Dock previews take on a touch of the color of the app you are using, taken from its icon."), symbol: "paintpalette") {
+                    Toggle("", isOn: $appTint).settingsSwitch()
+                }
+                if appTint {
+                    SettingsSeparator(indented: true)
+                    SettingsRow(L("Color strength"), symbol: "circle.lefthalf.filled") {
+                        Slider(value: $appTintStrength, in: 0.2...1)
+                            .frame(width: 150)
+                    }
+                }
+                SettingsSeparator(indented: true)
+                SettingsRow(L("Open Sirena on Home"), detail: L("From any app."), symbol: "keyboard") {
+                    MASShortcutViewRepresentable(defaultsKey: AppDelegate.openHomeShortcutKey, validator: SirenaShortcutValidator(ownKey: AppDelegate.openHomeShortcutKey),
+                                                 recordingObserver: recordingObserver)
+                        .frame(width: 150, height: 22)
+                }
+                SettingsSeparator(indented: true)
+                SettingsRow(L("Emergency quit"), detail: L("Quits Sirena right away from any app, if something ever stops responding. Always this shortcut."), symbol: "exclamationmark.octagon") {
+                    Text(EmergencyExit.symbols)
+                        .font(.body.weight(.medium))
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 3)
+                        .background(.quaternary.opacity(0.6), in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+                }
+            }
+        }
+        .onReceive(Timer.publish(every: 2, on: .main, in: .common).autoconnect()) { _ in
+            permissions.refresh()
+        }
+    }
+}
+
+// MARK: - Permissions
+
+@MainActor
+@Observable
+final class PermissionsState {
+    struct Item: Identifiable, Equatable {
+        let id: String
+        let title: String
+        let purpose: String
+        let symbol: String
+        var granted: Bool
+    }
+
+    private(set) var items: [Item] = []
+    var grantedCount: Int { items.filter(\.granted).count }
+
+    init() { refresh() }
+
+    func refresh() {
+        let next = [
+            Item(id: "accessibility", title: L("Accessibility"),
+                 purpose: L("Moves and resizes windows, pastes from the clipboard history and powers the switcher."),
+                 symbol: "accessibility", granted: Showcase.accessibilityShown()),
+            Item(id: "screen", title: L("Screen Recording"),
+                 purpose: L("Window previews in the Dock and the switcher, and capturing text from the screen."),
+                 symbol: "rectangle.dashed.badge.record", granted: Showcase.screenRecordingShown()),
+            Item(id: "camera", title: L("Camera"),
+                 purpose: L("The mirror and “Peek” from the menu."),
+                 symbol: "camera", granted: Showcase.isActive || AVCaptureDevice.authorizationStatus(for: .video) == .authorized),
+            Item(id: "microphone", title: L("Microphone"),
+                 purpose: L("The microphone level in the mirror and the microphone controls."),
+                 symbol: "mic", granted: Showcase.isActive || AVCaptureDevice.authorizationStatus(for: .audio) == .authorized),
+            Item(id: "bluetooth", title: L("Bluetooth"),
+                 purpose: L("The battery of connected devices in the menu."),
+                 symbol: "dot.radiowaves.left.and.right", granted: Showcase.isActive || CBManager.authorization == .allowedAlways)
+        ]
+        if next != items { items = next }
+    }
+
+    static func request(_ id: String) {
+        switch id {
+        case "accessibility":
+            AppDelegate.instance.windowManagement.requestAuthorization()
+        case "screen":
+            DockController.requestScreenRecordingPermission()
+        case "camera":
+            ask(.video, pane: "Privacy_Camera")
+        case "microphone":
+            ask(.audio, pane: "Privacy_Microphone")
+        case "bluetooth":
+            askBluetooth()
+        default:
+            break
+        }
+    }
+
+    /// Kept alive while macOS asks: creating a manager is what brings up the prompt.
+    private static var bluetoothAsker: CBCentralManager?
+
+    /// Same as `ask`, for Bluetooth.
+    private static func askBluetooth() {
+        let settings = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Bluetooth")
+        guard CBManager.authorization == .notDetermined else {
+            if let settings { NSWorkspace.shared.open(settings) }
+            return
+        }
+        NSApp.activate(ignoringOtherApps: true)
+        bluetoothAsker = CBCentralManager(delegate: nil, queue: nil, options: [CBCentralManagerOptionShowPowerAlertKey: false])
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+            if CBManager.authorization == .notDetermined, let settings {
+                NSWorkspace.shared.open(settings)
+            }
+        }
+    }
+
+    /// Asks the first time; once answered, macOS only changes it in System Settings.
+    private static func ask(_ media: AVMediaType, pane: String) {
+        let settings = URL(string: "x-apple.systempreferences:com.apple.preference.security?\(pane)")
+        guard AVCaptureDevice.authorizationStatus(for: media) == .notDetermined else {
+            if let settings { NSWorkspace.shared.open(settings) }
+            return
+        }
+        // The system prompt can come up hidden behind (or under) Sirena's windows and hold
+        // the focus, which feels like a freeze: come forward first, and if it isn't answered
+        // shortly, open the Privacy pane where Sirena is now listed.
+        NSApp.activate(ignoringOtherApps: true)
+        AVCaptureDevice.requestAccess(for: media) { _ in }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+            if AVCaptureDevice.authorizationStatus(for: media) == .notDetermined, let settings {
+                NSWorkspace.shared.open(settings)
+            }
+        }
+    }
+}
+
+private struct PermissionLine: View {
+    let item: PermissionsState.Item
+
+    var body: some View {
+        SettingsRow(item.title, detail: item.purpose, symbol: item.symbol) {
+            if item.granted {
+                Label(L("Allowed"), systemImage: "checkmark.circle.fill")
+                    .labelStyle(.titleAndIcon)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .symbolRenderingMode(.multicolor)
+            } else {
+                Button(L("Allow…")) { PermissionsState.request(item.id) }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+            }
+        }
+    }
+}
+
+// MARK: - Building blocks (System Settings style)
+
+/// A centered scrolling column of groups.
+struct SettingsColumn<Content: View>: View {
+    @ViewBuilder var content: Content
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 26) {
+                content
+            }
+            .frame(maxWidth: 620)
+            .frame(maxWidth: .infinity)
+            .padding(.horizontal, 24)
+            .padding(.top, 20)
+            .padding(.bottom, 32)
+        }
+        .scrollIndicators(.never)
+    }
+}
+
+/// A titled group of rows with an optional footer.
+struct SettingsGroup<Content: View, Accessory: View>: View {
+    let title: String
+    var footer: String?
+    @ViewBuilder var accessory: Accessory
+    @ViewBuilder var content: Content
+
+    init(_ title: String, footer: String? = nil, @ViewBuilder accessory: () -> Accessory,
+         @ViewBuilder content: () -> Content) {
+        self.title = title
+        self.footer = footer
+        self.accessory = accessory()
+        self.content = content()
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .firstTextBaseline) {
+                Text(title).font(.headline)
+                Spacer(minLength: 8)
+                accessory
+            }
+            .padding(.horizontal, 4)
+
+            VStack(spacing: 0) { content }
+                .background(.background.secondary, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(.separator, lineWidth: 0.5))
+
+            if let footer {
+                Text(footer)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.horizontal, 4)
+            }
+        }
+    }
+}
+
+extension SettingsGroup where Accessory == EmptyView {
+    init(_ title: String, footer: String? = nil, @ViewBuilder content: () -> Content) {
+        self.init(title, footer: footer, accessory: { EmptyView() }, content: content)
+    }
+}
+
+/// One line: a monochrome symbol, what it is, and the control on the right.
+struct SettingsRow<Control: View>: View {
+    let title: String
+    var detail: String?
+    var symbol: String?
+    @ViewBuilder var control: Control
+
+    init(_ title: String, detail: String? = nil, symbol: String? = nil, @ViewBuilder control: () -> Control) {
+        self.title = title
+        self.detail = detail
+        self.symbol = symbol
+        self.control = control()
+    }
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 12) {
+            if let symbol {
+                Image(systemName: symbol)
+                    .font(.system(size: 14))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 20)
+            }
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .fixedSize(horizontal: false, vertical: true)
+                if let detail {
+                    Text(detail)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            Spacer(minLength: 16)
+            control
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .frame(minHeight: 40)
+    }
+}
+
+/// A hairline between rows, starting where the text starts.
+struct SettingsSeparator: View {
+    var indented = false
+
+    var body: some View {
+        Rectangle()
+            .fill(.separator)
+            .frame(height: 0.5)
+            .padding(.leading, indented ? 46 : 14)
+    }
+}
+
+extension View {
+    func settingsSwitch() -> some View {
+        labelsHidden().toggleStyle(.switch).controlSize(.small)
+    }
+}

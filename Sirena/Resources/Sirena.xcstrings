@@ -14532,26 +14532,6 @@
         }
       }
     },
-    "%@ + double-click fills the screen; again gives the window its size back.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ + clique duplo ocupa a tela; outro devolve o tamanho da janela."
-          }
-        }
-      }
-    },
-    "%@ + right drag pulls the corner nearest the pointer.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ + arrastar com o botão direito puxa o canto mais perto do ponteiro."
-          }
-        }
-      }
-    },
     "%@ · only at launch": {
       "localizations": {
         "pt-BR": {
@@ -14668,16 +14648,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "AirDrop e Handoff"
-          }
-        }
-      }
-    },
-    "Always from the bottom-right corner": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sempre pelo canto inferior direito"
           }
         }
       }
@@ -15822,16 +15792,6 @@
         }
       }
     },
-    "Prefer always pulling the bottom-right corner? Turn on “Always from the bottom-right corner”.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Prefere puxar sempre o canto inferior direito? Ligue “Sempre pelo canto inferior direito”."
-          }
-        }
-      }
-    },
     "Press the left button anywhere on the window and drag.": {
       "localizations": {
         "pt-BR": {
@@ -16282,32 +16242,12 @@
         }
       }
     },
-    "The key is chosen in Key, in this section. ⌥ alone also selects columns of text in editors and duplicates files in the Finder while dragging; ⌃⌘ means nothing almost anywhere, so it's the safest.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "A tecla é escolhida em Tecla, nesta seção. ⌥ sozinho também seleciona colunas de texto em editores e duplica arquivos no Finder ao arrastar; ⌃⌘ não faz nada em quase nenhum lugar, por isso é o mais seguro."
-          }
-        }
-      }
-    },
     "The main display has the menu bar's first copy, the Dock by default and new windows.": {
       "localizations": {
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
             "value": "O monitor principal recebe o Dock por padrão e as janelas novas."
-          }
-        }
-      }
-    },
-    "The top-left corner stays where it is.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "O canto superior esquerdo fica onde está."
           }
         }
       }
@@ -16482,32 +16422,12 @@
         }
       }
     },
-    "“Always from the bottom-right corner” is on: it's always that corner, wherever you press.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "“Sempre pelo canto inferior direito” está ligado: é sempre esse canto, onde quer que você aperte."
-          }
-        }
-      }
-    },
     "“Main display” follows the one set as main in macOS (the one with the menu bar).": {
       "localizations": {
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
             "value": "“Monitor principal” segue o que está como principal no macOS (o da barra de menus)."
-          }
-        }
-      }
-    },
-    "⌥ alone also selects columns of text in editors and duplicates in the Finder while dragging.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "⌥ sozinha também seleciona colunas de texto em editores e duplica no Finder ao arrastar."
           }
         }
       }
@@ -16568,16 +16488,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Este"
-          }
-        }
-      }
-    },
-    "Mac Settings": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ajustes do Mac"
           }
         }
       }
@@ -16668,6 +16578,106 @@
           "stringUnit": {
             "state": "translated",
             "value": "Uma imagem arrastada de um navegador, do Fotos ou do Mail vira um arquivo de verdade na prateleira, no tamanho original quando a página aponta para ele. Depois dá para arrastá-la para qualquer app, editor ou chat."
+          }
+        }
+      }
+    },
+    "Moves": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move"
+          }
+        }
+      }
+    },
+    "Resizes": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redimensiona"
+          }
+        }
+      }
+    },
+    "%@ + drag with the left button": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ + arrastar com o botão esquerdo"
+          }
+        }
+      }
+    },
+    "%@ + drag with the right button": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ + arrastar com o botão direito"
+          }
+        }
+      }
+    },
+    "%@ + double-click": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ + clique duplo"
+          }
+        }
+      }
+    },
+    "An app that uses ⌥-drag itself (columns of text in editors, duplicating in the Finder) can go in Apps left alone, below. ⌃⌘ means nothing almost anywhere.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Um app que usa ⌥ + arrastar para outra coisa (colunas de texto em editores, duplicar no Finder) pode ir em Apps que ficam de fora, abaixo. ⌃⌘ não faz nada em quase nenhum app."
+          }
+        }
+      }
+    },
+    "The corner nearest the pointer follows it; the opposite one stays put.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O canto mais perto do ponteiro acompanha o ponteiro; o canto oposto fica parado."
+          }
+        }
+      }
+    },
+    "Another double-click gives the window its size back.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outro clique duplo devolve o tamanho da janela."
+          }
+        }
+      }
+    },
+    "Where you press picks the corner: near the bottom right pulls the bottom-right corner, near the top left the top-left one.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Onde você aperta escolhe o canto: perto do canto inferior direito puxa esse canto, perto do superior esquerdo puxa o superior esquerdo."
+          }
+        }
+      }
+    },
+    "The key is chosen in Key, in this section; ⌥ is the default. ⌥-drag also selects columns of text in editors and duplicates files in the Finder: add those apps to Apps left alone, or pick ⌃⌘, which means nothing almost anywhere.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A tecla é escolhida em Tecla, nesta seção; ⌥ é a padrão. ⌥ + arrastar também seleciona colunas de texto em editores e duplica arquivos no Finder: coloque esses apps em Apps que ficam de fora ou escolha ⌃⌘, que não faz nada em quase nenhum app."
           }
         }
       }

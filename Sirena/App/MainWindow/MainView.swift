@@ -28,7 +28,6 @@ struct MainView: View {
                     }
                 }
                 Section("Sirena") {
-                    sidebarRow(.macSettings, title: L("Mac Settings"), symbol: "gearshape.2.fill", tint: .gray)
                     sidebarRow(.general, title: L("General"), symbol: "gearshape.fill", tint: .gray)
                     sidebarRow(.about, title: L("About"), symbol: "info.circle", tint: .gray)
                 }
@@ -68,7 +67,6 @@ struct MainView: View {
         case .home: return "Sirena"
         case .module(let module): return module.title
         case .general: return L("General")
-        case .macSettings: return L("Mac Settings")
         case .about: return L("About")
         }
     }
@@ -110,8 +108,6 @@ struct MainView: View {
             ScreenBrushPage()
         case .general:
             GeneralPage()
-        case .macSettings:
-            MacSettingsPage()
         case .about:
             AboutPage()
         }

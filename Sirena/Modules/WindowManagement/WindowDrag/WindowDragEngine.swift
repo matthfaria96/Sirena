@@ -180,7 +180,7 @@ final class WindowDragEngine: @unchecked Sendable {
               !target.fillsDisplay
         else { return Unmanaged.passUnretained(event) }
         resize.begin(pid: target.pid, windowID: target.windowID, windowFrame: target.frame,
-                     cursor: event.location, bottomRightOnly: settings.bottomRightOnly)
+                     cursor: event.location)
         pendingClick = (event.location, event.flags, true)
         Self.axQueue.async { Self.bringForward(target) }
         return nil

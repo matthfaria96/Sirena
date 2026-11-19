@@ -8,7 +8,7 @@ Each part lives where people look for it:
 |---|---|---|
 | Dock on one display, spaces, Dock options (the backup is its last row) | Janela e Dock › Dock: Minimizar, Cliques no Dock, Dock em um monitor, Espaços, Opções do Dock, then the previews | `Sirena/App/Pages/DockSetupSections.swift` (`DockLockSection`, `DockLayoutSections`) |
 | Displays, apps on their display | Janela e Dock › Monitores (`displays`): one group per connected display (main, resolution, refresh rate), Todos os monitores (mirroring, Displays settings), then Apps no monitor certo | `Sirena/App/Pages/DisplaysTab.swift` |
-| Permission lists, System Settings panes | Ajustes do Mac: its own sidebar row (Sirena section, first, above Geral; `SidebarItem.macSettings`, `SIRENA_OPEN_PAGE=mac-settings`, `SIRENA_OPEN_TAB=permissions|system`). Two tabs: Permissões dos apps (cards in two columns) and Ajustes do Sistema (panes by group). It was a tab of Geral first and went unnoticed there | `Sirena/App/Pages/MacSettingsPage.swift` |
+| Permission lists, System Settings panes | Geral, tabs Permissões dos apps (cards in two columns) and Ajustes do Sistema (panes by group), after the Sirena tab (Sirena's own permissions and settings, `SirenaSettingsTab.swift`). `SIRENA_OPEN_PAGE=general` (`mac-settings` still works), `SIRENA_OPEN_TAB=sirena|permissions|system`. History: a tab of Geral, then its own "Ajustes do Mac" sidebar row (0.7.0), back in Geral as tabs next to a Sirena tab (0.7.1) | `Sirena/App/Pages/GeneralPage.swift` |
 
 Code: `Sirena/Modules/Adjustments/`. `DockAndDisplaysController` starts with the modules
 (`ModuleManager.startEnabledModules`) and runs only what is switched on: the Dock lock while its
@@ -40,7 +40,7 @@ Not offered on purpose: `scroll-to-open` (DockKit has its own Dock scroll gestur
 | Resolução / Taxa de atualização | system | `DisplayConfigurator.apply` | One entry per "looks like" size (HiDPI first). **Undone after 15 s unless "Manter"** (`pending`, `revertPending`) |
 | Espelhar os monitores | system | `DisplayConfigurator.setMirroring` | Every other display mirrors the main one |
 
-### Ajustes do Mac (sidebar)
+### Geral › Permissões dos apps / Ajustes do Sistema
 
 Shortcuts only (`SettingsShortcuts.swift`): privacy lists by `Privacy_…` anchor, panes by their
 extension bundle id (`ls /System/Library/ExtensionKit/Extensions` on the Mac at hand), Passwords

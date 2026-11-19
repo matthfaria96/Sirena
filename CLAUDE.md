@@ -98,8 +98,8 @@ read it before touching the page and update it in the same commit. The rules tha
 
 There is no Ajustes card: Janela e Dock › Dock holds the Dock lock, Dock spacers and options
 (`com.apple.dock`, with a backup) (`DockSetupSections.swift`); Janela e Dock › Monitores holds apps
-that open on a chosen display and display settings (`DisplaysTab.swift`); Ajustes do Mac (sidebar, above Geral; tabs Permissões dos apps / Ajustes do Sistema)
-holds the shortcuts to permission lists and settings panes (`MacSettingsPage.swift`).
+that open on a chosen display and display settings (`DisplaysTab.swift`); Geral (tabs Sirena / Permissões dos apps / Ajustes do Sistema)
+holds Sirena's own settings and the shortcuts to permission lists and settings panes (`GeneralPage.swift`).
 Map: `.planning/codebase/ADJUSTMENTS.md` (read it before touching them; update it in the same
 commit). `DockAndDisplaysController` starts with the modules and runs only what is switched on.
 The Dock lock (`DockLocker`) is started only through `DockLockService`, never by `DockController`.
@@ -112,7 +112,7 @@ App-to-display rules use AX observers on their own thread, no tap; their geometr
 starts: no modules, event taps (`AccessibilityGuard.mayCreateTap` refuses), mixer, updater, menu
 bar icon or onboarding, and no permission is asked. Pages show permissions as granted and the
 clipboard history gets fictional entries (`ClipboardKit/ShowcaseHistory.swift`, only into an
-empty store). `SIRENA_OPEN_PAGE=<module id|general|mac-settings|about|home>` (+ `SIRENA_OPEN_TAB`) picks the
+empty store). `SIRENA_OPEN_PAGE=<module id|general|about|home>` (+ `SIRENA_OPEN_TAB`) picks the
 page; `SIRENA_SHOW_PANEL=1` shows the menu bar panel in a popover instead, with
 `SIRENA_PANEL_INLINE=clipboard|pomodoro|screenCapture` for an inline panel;
 `SIRENA_SHOWCASE_SCREEN=left` uses the leftmost display. Run a renamed copy (bundle id

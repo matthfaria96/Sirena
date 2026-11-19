@@ -34,9 +34,10 @@ final class TitleBarDragStrategy {
     static let titleBarOffset: CGFloat = {
         ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 27 ? 4 : 3
     }()
-    /// ⌃ turns a press into a secondary click and ⌘ on a title bar opens the path menu:
-    /// neither may reach the synthesized press.
-    static let flagsToStrip: CGEventFlags = [.maskControl, .maskCommand]
+    /// ⌃ turns a press into a secondary click, ⌘ on a title bar opens the path menu and ⌥-click
+    /// is an app's own gesture (hiding the app in front, in some): none may reach the
+    /// synthesized press.
+    static let flagsToStrip: CGEventFlags = [.maskControl, .maskCommand, .maskAlternate]
 
     func begin(pid: pid_t, windowID: CGWindowID, windowFrame: CGRect, cursor: CGPoint) {
         dragPoint = CGPoint(x: cursor.x.rounded(), y: (windowFrame.minY + Self.titleBarOffset).rounded())
@@ -156,8 +157,8 @@ final class CornerResizeStrategy {
     /// nothing useful here: all three go.
     static let flagsToStrip: CGEventFlags = [.maskControl, .maskCommand, .maskAlternate]
 
-    func begin(pid: pid_t, windowID: CGWindowID, windowFrame: CGRect, cursor: CGPoint, bottomRightOnly: Bool) {
-        let corner = bottomRightOnly ? .bottomRight : WindowDragCorner.nearest(to: cursor, in: windowFrame)
+    func begin(pid: pid_t, windowID: CGWindowID, windowFrame: CGRect, cursor: CGPoint) {
+        let corner = WindowDragCorner.nearest(to: cursor, in: windowFrame)
         dragPoint = corner.anchor(in: windowFrame, inset: Self.cornerInset)
         offset = CGPoint(x: dragPoint.x - cursor.x, y: dragPoint.y - cursor.y)
         cursorAtBegin = cursor

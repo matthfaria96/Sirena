@@ -13,7 +13,6 @@ struct WindowDragSection: View {
     @AppStorage(WindowDragSettings.modifierKey) private var modifier = WindowDragSettings.modifierDefault.rawValue
     @AppStorage(WindowDragSettings.resizeKey) private var resize = WindowDragSettings.resizeDefault
     @AppStorage(WindowDragSettings.maximizeKey) private var maximize = WindowDragSettings.maximizeDefault
-    @AppStorage(WindowDragSettings.bottomRightKey) private var bottomRightOnly = WindowDragSettings.bottomRightDefault
     @State private var excluded = UserDefaults.standard.stringArray(forKey: WindowDragSettings.excludedKey) ?? []
     @State private var showsGuide = false
 
@@ -30,27 +29,24 @@ struct WindowDragSection: View {
                 }
             }
             if enabled {
+                WindowDragGestures(key: key, resize: resize, maximize: maximize)
                 Picker(selection: $modifier) {
                     ForEach(WindowDragModifier.allCases) { option in
                         Text(option.symbol).tag(option.rawValue)
                     }
                 } label: {
                     Text(L("Key"))
-                    Text(L("⌥ alone also selects columns of text in editors and duplicates in the Finder while dragging."))
+                    if modifier == WindowDragModifier.option.rawValue {
+                        Text(L("An app that uses ⌥-drag itself (columns of text in editors, duplicating in the Finder) can go in Apps left alone, below. ⌃⌘ means nothing almost anywhere."))
+                    }
                 }
                 Toggle(isOn: $resize) {
                     Text(L("Drag with the right button to resize"))
-                    Text(L("\(key) + right drag pulls the corner nearest the pointer."))
-                }
-                if resize {
-                    Toggle(isOn: $bottomRightOnly) {
-                        Text(L("Always from the bottom-right corner"))
-                        Text(L("The top-left corner stays where it is."))
-                    }
+                    Text(L("The corner nearest the pointer follows it; the opposite one stays put."))
                 }
                 Toggle(isOn: $maximize) {
                     Text(L("Double-click to maximize"))
-                    Text(L("\(key) + double-click fills the screen; again gives the window its size back."))
+                    Text(L("Another double-click gives the window its size back."))
                 }
                 ExcludedAppsRow(apps: $excluded)
             }
@@ -69,8 +65,7 @@ struct WindowDragSection: View {
                 .help(L("How to use it, with animations"))
             }
             .sheet(isPresented: $showsGuide) {
-                WindowDragGuide(modifier: WindowDragModifier(rawValue: modifier) ?? WindowDragSettings.modifierDefault,
-                                bottomRightOnly: bottomRightOnly)
+                WindowDragGuide(modifier: WindowDragModifier(rawValue: modifier) ?? WindowDragSettings.modifierDefault)
             }
         } footer: {
             if enabled {
@@ -82,6 +77,84 @@ struct WindowDragSection: View {
         .onChange(of: excluded) { _, apps in
             UserDefaults.standard.set(apps, forKey: WindowDragSettings.excludedKey)
         }
+    }
+}
+
+/// The gestures at a glance: which button does what, with the key held.
+private struct WindowDragGestures: View {
+    let key: String
+    let resize: Bool
+    let maximize: Bool
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 8) {
+            cell(.left, double: false, L("Moves"), L("\(key) + drag with the left button"))
+            if resize {
+                cell(.right, double: false, L("Resizes"), L("\(key) + drag with the right button"))
+            }
+            if maximize {
+                cell(.left, double: true, L("Fills the screen"), L("\(key) + double-click"))
+            }
+        }
+        .padding(.vertical, 2)
+        .accessibilityElement(children: .combine)
+    }
+
+    private func cell(_ button: MouseGlyph.Button, double: Bool, _ title: String, _ gesture: String) -> some View {
+        HStack(alignment: .top, spacing: 9) {
+            MouseGlyph(button: button, double: double)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(title)
+                    .font(.callout.weight(.medium))
+                Text(gesture)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .background(.quaternary.opacity(0.45), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+    }
+}
+
+/// A small mouse with the button in use filled in (twice over, for a double-click).
+private struct MouseGlyph: View {
+    enum Button { case left, right }
+    let button: Button
+    let double: Bool
+
+    var body: some View {
+        VStack(spacing: 2) {
+            ZStack(alignment: .top) {
+                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                    .strokeBorder(Color.secondary.opacity(0.7), lineWidth: 1.2)
+                HStack(spacing: 1.5) {
+                    half(.left)
+                    half(.right)
+                }
+                .padding(.horizontal, 2.5)
+                .padding(.top, 2.5)
+            }
+            .frame(width: 15, height: 22)
+            if double {
+                Text("2×")
+                    .font(.system(size: 8, weight: .bold))
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .frame(width: 18)
+        .padding(.top, 1)
+        .accessibilityHidden(true)
+    }
+
+    private func half(_ side: Button) -> some View {
+        UnevenRoundedRectangle(topLeadingRadius: side == .left ? 5 : 1.5, bottomLeadingRadius: 1,
+                               bottomTrailingRadius: 1, topTrailingRadius: side == .right ? 5 : 1.5, style: .continuous)
+            .fill(side == button ? Color.primary.opacity(0.75) : Color.secondary.opacity(0.18))
+            .frame(height: 8)
     }
 }
 
