@@ -110,7 +110,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let environment = ProcessInfo.processInfo.environment
         if let page = environment["SIRENA_OPEN_PAGE"] {
             let item: SidebarItem = ModuleID(rawValue: page).map { .module($0) }
-                ?? (page == "general" ? .general : page == "about" ? .about : .home)
+                ?? (page == "general" ? .general : page == "mac-settings" ? .macSettings : page == "about" ? .about : .home)
             mainWindowController.present(item)
         } else if environment["SIRENA_OPEN_SETTINGS"] == "1" {
             openMainWindow(self)

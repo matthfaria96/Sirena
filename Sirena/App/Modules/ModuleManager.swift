@@ -24,6 +24,12 @@ final class ModuleManager {
         }
         // The Dock and window tweaks don't depend on Melhorias (which is only the Finder now).
         start(.tweaks, windowManagement: windowManagement, windowsMenu: windowsMenu)
+        // "Arrastar de qualquer lugar" has its own switch on the Janelas tab (off by default):
+        // the controller only holds a tap while that switch is on.
+        WindowDragController.shared.start()
+        // Janela e Dock's Dock lock and Monitores' app rules: each has its own switch or list
+        // there; the controller runs only what is switched on.
+        DockAndDisplaysController.shared.start()
     }
 
     /// SIRENA_TAP_CHECK: only the modules that hold event taps. Tweaks runs its tap alone,
@@ -34,6 +40,11 @@ final class ModuleManager {
         }
         TweaksController.shared.startTapOnly()
         running.insert(.tweaks)
+        // The Dock lock and the held-key window drag are taps too (whatever their
+        // switches say, so the check covers them).
+        DockLockService.shared.start()
+        UserDefaults.standard.set(true, forKey: WindowDragSettings.enabledKey)
+        WindowDragController.shared.start()
     }
 
     func isRunning(_ module: ModuleID) -> Bool {
@@ -135,6 +146,8 @@ final class ModuleManager {
         if running.contains(.textCapture) { TextCaptureController.shared.terminate() }
         if running.contains(.tweaks) { TweaksController.shared.terminate() }
         if running.contains(.shelf) { ShelfController.shared.terminate() }
+        DockAndDisplaysController.shared.terminate()
+        WindowDragController.shared.terminate()
         if running.contains(.menuBar) { MenuBarModule.shared.terminate() }
         if running.contains(.screenCapture) { ScreenCaptureController.shared.terminate() }
         if running.contains(.pomodoro) { PomodoroController.shared.terminate() }

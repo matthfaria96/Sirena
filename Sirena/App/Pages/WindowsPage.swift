@@ -1,9 +1,11 @@
 /// WindowsPage.swift
 ///
-/// "Janela e Dock": everything about windows, the Dock and switching between them, on
-/// one page. Janelas holds Rectangle (window actions, snapping), Sirena's ⌘ Tab switcher
-/// (from Vorssaint) and the green button; Dock holds DockDoor's previews and the Dock
-/// click tweaks. Each feature keeps its own switch inside the page.
+/// "Janela e Dock": everything about windows, the Dock, the displays and switching between them,
+/// on one page. Janelas holds Rectangle (window actions, snapping), the held-key drag, Sirena's
+/// ⌘ Tab switcher (from Vorssaint) and the green button; Dock holds the minimize mode, the Dock
+/// kept on one display, Dock clicks, spaces and options (DockSetupSections.swift) and DockDoor's
+/// previews; Monitores holds apps per display and the displays (DisplaysTab.swift). Each feature
+/// keeps its own switch inside the page.
 
 import DockKit
 import MASShortcut
@@ -14,6 +16,7 @@ struct WindowsPage: View {
         ModulePage(module: .windows, tabs: [
             PageTab("windows", L("Windows")) { WindowsTab() },
             PageTab("dock", L("Dock")) { DockTab() },
+            PageTab("displays", L("Monitors")) { DisplaysTab() },
             PageTab("finder", L("Finder")) { FinderTab() },
             PageTab("shortcuts", L("Shortcuts")) { ShortcutsTab() }
         ], switchable: false)
@@ -152,7 +155,10 @@ private struct WindowsTab: View {
                 }
             }
 
-            // 2. Sirena's ⌘ Tab switcher (from Vorssaint).
+            // 2. Moving and resizing with a held key, anywhere on a window (from AnyDrag).
+            WindowDragSection()
+
+            // 3. Sirena's ⌘ Tab switcher (from Vorssaint).
             Section {
                 FeatureDrawingRow {
                     SwitcherDrawing()
@@ -214,15 +220,8 @@ private struct DockTab: View {
                     .foregroundStyle(.secondary)
             }
 
-            // 2. What clicking things in the Dock does.
+            // 2. Other Dock clicks (a click on the app in front follows the minimize mode, above).
             Section {
-                LabeledContent {
-                    Text(hidesApp || dockTogether ? L("Hides all of its windows") : L("What macOS does"))
-                        .foregroundStyle(.secondary)
-                } label: {
-                    Text(L("Clicking the app in front"))
-                    Text(L("Follows the minimize mode above."))
-                }
                 Toggle(L("Clicking a Dock folder reveals it in Finder instead of showing its contents"), isOn: $tweaks.dockFoldersOpenInFinder)
                 if manager.isOn(.dock) {
                     DockQuitClickToggle()
@@ -231,7 +230,13 @@ private struct DockTab: View {
                 SettingsSubheader(L("Dock Clicks"), symbol: "cursorarrow.click.2")
             }
 
-            // 3. The previews: a switch, then their own sub-topics.
+            // 3. The Dock kept on one display.
+            DockLockSection()
+
+            // 4. Spaces between apps, macOS's Dock options and the copy of the Dock.
+            DockLayoutSections()
+
+            // 5. The previews: a switch, then their own sub-topics.
             Section {
                 HStack(alignment: .center, spacing: 14) {
                     DockPreviewDrawing()

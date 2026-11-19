@@ -15,8 +15,9 @@ The page has no global switch; each feature keeps its own inside the page.
 
 | Tab | View | Features in it |
 |---|---|---|
-| Janelas (`windows`) | `WindowsTab` (same file) | Arrange windows (Rectangle), green button, dragging to the edges, snap layouts, ⌘ Tab switcher |
-| Dock (`dock`) | `DockTab` (same file) | Minimize mode, Dock clicks, Dock previews (DockDoor) |
+| Janelas (`windows`) | `WindowsTab` (same file) | Arrange windows (Rectangle), green button, dragging to the edges, snap layouts, Arrastar de qualquer lugar (`WindowDragSection.swift`), ⌘ Tab switcher |
+| Dock (`dock`) | `DockTab` (same file) | Minimize mode, Dock clicks (they follow it), Dock on one display, spaces and Dock options with the backup as last row (`DockSetupSections.swift`), Dock previews (DockDoor) |
+| Monitores (`displays`) | `Sirena/App/Pages/DisplaysTab.swift` | One group per display (main, resolution, refresh rate), Todos os monitores (mirroring), apps on their display. Map: `ADJUSTMENTS.md` |
 | Finder (`finder`) | `Sirena/App/Pages/FinderTab.swift` | Finder improvements (Tweaks) |
 | Atalhos (`shortcuts`) | `Sirena/App/Pages/ShortcutsTab.swift` | Every window-action and switcher shortcut |
 
@@ -47,6 +48,13 @@ reader's default must always match (a mismatch shows an option on that behaves o
 | Áreas de encaixe (paisagem/retrato) | `SnapAreaModel` (landscape/portrait configs) | `SnappingManager.snapAreaContainingCursor` | Portrait grid only with a portrait display |
 | Layouts para a janela da frente (atalho) | MASShortcut `snapLayoutsShortcut` (⌃⌥0, `ZoneController.defaultShortcut`) | `ZoneController.bindShortcut` (bound only while the switch below is on; steps aside while any shortcut is recorded) | Opens the panel for the focused window (Win+Z). Listed by `SirenaShortcutValidator`. Recorder in the Layouts section |
 | Layouts no topo da tela | `snapLayouts.enabled` (true) | `ZoneController.isEnabled` | §5. Drawn right after "Arrastar até as bordas" (passed into `SnapAreaSettingsView(showsDetails:afterMain:)`), before its details, because it needs drag-to-snap on |
+| Arrastar de qualquer lugar | `windowDrag.enabled` (**false**) | `WindowDragController` (started by `ModuleManager.startEnabledModules`, whatever module is on) → `WindowDragEngine` | Port of AnyDrag (Xueshi Qiao, GPL-3.0). Hold the key and drag anywhere on a normal window (layer 0, not Sirena's, not an excluded app; the Dock's whole-screen window and other whole-display overlays are skipped, anything else in front lets the press through). A window covering a whole display (full screen) is never moved or resized: its top edge is the app's content, a browser's tabs. The press is swallowed and, on the first drag, sent again on the title bar (top + 3 pt, 4 on macOS 27) once the window shows there (`coveringPID`, ≤ 250 ms); later drags are shifted by the same offset, so the window server moves it natively (snap areas and Layouts no topo work during it). A click without dragging is replayed whole to the app. Needs Accessibility; the tap exists only while on and trusted |
+| Tecla | `windowDrag.modifier` (0 = ⌃⌘; 1 ⌥, 2 ⌃⌥, 3 ⌥⌘, 4 ⌃⌥⌘) | `WindowDragSnapshot` (copied on main when a default changes) | Exact match of ⌃⌥⇧⌘. ⌃ and ⌘ are stripped from the synthesized press (secondary click, title-bar path menu) |
+| Arrastar com o botão direito redimensiona | `windowDrag.resize` (true) | `CornerResizeStrategy` | Right press → left press 5 pt inside the nearest corner; ⌃⌘⌥ stripped. The first drag after the press goes 1 pt from it toward the motion: AppKit's live resize measures from the first drag that moves, not from the press |
+| Sempre pelo canto inferior direito | `windowDrag.bottomRightOnly` (false) | `CornerResizeStrategy.begin` | |
+| Duplo clique maximiza | `windowDrag.doubleClickMaximize` (true) | `WindowDragEngine.toggleMaximize` (AX, own queue) | Fills the display's usable area; again restores if it still fills it (24 pt margin). On a full-screen window it does nothing unless Sirena filled it (menu bar and Dock hidden) |
+| Apps deixados em paz | `windowDrag.excludedApps` ([]) | `WindowDragEngine.windowUnderCursor` | Bundle ids |
+| (i) Como usar | — | `WindowDragGuide.swift` (sheet from the section header) | Seven pages: five drawn, looping scenes (move, resize, fill the screen, plain click, snap; TimelineView, still with Reduce Motion) with the held keys and mouse button under each, the keys by Mac and Logitech/Windows name (⌃ ctrl, ⌥ start, ⌘ alt), tips. Reads the chosen key and “Sempre pelo canto inferior direito”. Gesture logs: category `WindowDrag`, debug level (`log stream --level debug`) |
 | Alternador de janelas (⌘ Tab) | `sirena.module.switcher.enabled` + `SwitcherDefaultsKey.*` (defaults registered once in `SwitcherSupportShims.swift`) | `SwitcherAppSwitcher`, `SwitcherWindowEnumerator`, `SwitcherView` | Settings view: `Sirena/Modules/Switcher/WindowSwitcherSettingsView.swift`. All 22 keys have readers with the registered defaults |
 
 ### Dock
@@ -54,9 +62,10 @@ reader's default must always match (a mismatch shows an option on that behaves o
 | Option | Stored as (default) | Read by | Behavior / needs |
 |---|---|---|---|
 | Minimizar janelas (3 cards) | `minimizeHidesAllWindows` (false) + `minimizeRestoresAllWindows` (true) → `SirenaMinimize.mode` | `TweaksSnapshot` (Tweaks tap), `MinimizeHidesApp` (hide mode only) | §4. Picker: `Sirena/App/Pages/MinimizeModePicker.swift` |
-| Clicar no app em uso | follows the mode | `TweaksEngine.dockClick` | "Esconde todas as janelas" in Tudo junto / Ocultar tudo; macOS otherwise |
+| Clicar no app em uso | follows the mode (no row of its own: the minimize footer says what it does) | `TweaksEngine.dockClick` | Hides all of its windows in Tudo junto / Ocultar tudo; macOS otherwise |
 | Pasta do Dock abre no Finder | `tweaks.dockFoldersOpenInFinder` (true) | `TweaksEngine.dockClick` | Holds the click, opens the folder |
 | ⌘ + clique direito fecha o app | DockKit `enableCmdRightClickQuit` | `DockObserver` tap | Only while Dock previews run |
+| Dock em um monitor / Espaços entre os apps / Opções do Dock / Cópia de segurança | see `ADJUSTMENTS.md` | `DockAndDisplaysController` → `DockLockService`; `DockPreferences` | Sections 3 and 4 of the tab, independent of the previews' switch |
 | Prévias do Dock | `sirena.module.dock.enabled` | `DockModule.start` → `DockController` | DockDoor port. Screen Recording for thumbnails (titles/icons without it) |
 | Ação ao parar o ponteiro na prévia | DockKit `previewHoverAction` (**none**; `tapEquivalentInterval` 1.5 s) | `WindowPreview.handleFullPreviewHover` | "Simular um clique" opens that window after the delay, which closes the previews: it was the default by mistake and looked like previews closing on their own. Keep it none |
 | Quando aparecem / O que mostram / Botões das janelas / Aparência | DockKit `Defaults.Keys` in `DockKit/consts.swift` (the key carries its default) | `DockObserver`, `SharedPreviewWindowCoordinator`, hover views | View: `DockKit/SirenaDockSettings.swift` (`SirenaDockSettingsSections`). Every key there has a reader (`lockAspectRatio` is UI-only by design) |
@@ -74,7 +83,16 @@ in `DockController.start`): **Dock clicks belong to Tweaks**, so one click is ne
 | Barra de endereço com ⌘L | `tweaks.finderAddressBar` (true) | `TweaksEngine.keyDown` (⌘L to the Finder, not editing text; ⌥⌘L stays Downloads) → `FinderAddressBar.show()`. Also `sirena://finder-address` (`?path=` starts it with that text typed in; it brings the Finder forward first), which the Finder extension's toolbar button ("Editar Caminho…") opens. Sirena's own panel over the window's toolbar; the folder is read and set through Apple Events (`osascript`, off the main thread; Automation › Finder asked once). Paths parsed by `PathOpener` (`Sirena/App/GoToPath.swift`) |
 | Copiar caminho | `tweaks.finderCopyPath` (true) | `FinderCopyPathExtension.setEnabled` (Finder Sync extension `SirenaFinder/`) |
 | Instalar a partir de DMG | `tweaks.installFromDMG` (true) | `DMGInstaller` |
-| Ponteiro nas capturas | system `com.apple.screencapture showsCursor` | `ScreenshotPreferences` |
+
+The screenshot pointer switch moved to Captura de Tela › Geral: one switch writes Sirena's
+`screenCapture.showsCursor` (`-C` on its full-screen captures) and macOS's
+`com.apple.screencapture showsCursor` (`ScreenshotPreferences`, ⇧⌘3/4/5). The Finder tab's
+Accessibility row shows only while Melhorias do Finder is on.
+
+Accessibility is asked once per tab: at the top of Janelas (it covers arranging, the held-key
+drag and ⌘ Tab, so `WindowDragSection` and `WindowSwitcherSettingsView` don't repeat it; the
+switcher still asks for Screen Recording), in Dock › Dock em um monitor, in Monitores › Apps no
+monitor delas and in Finder.
 
 ### Atalhos
 
@@ -95,7 +113,9 @@ see CLAUDE.md). Names as they appear in the `AccessibilityGuard` log:
 | (passive) | same file, `PassiveEventMonitor` | NSEvent global monitor, main | per user | `SnappingManager` (default), `TitleBarManager` |
 | `DockObserver` | `DockKit/Utilities/DockObserver.swift` | tap | mouse | Dock hover previews, ⌘ + right click quit (not Dock left clicks) |
 | `Switcher` | `Sirena/Modules/Switcher/SwitcherAppSwitcher.swift` | tap | keys | ⌘ Tab |
-| `KeybindHelper`, `WindowGestureController`, `TrackpadSwipeTrigger`, `DockLocker` | `DockKit/Utilities/…` | taps | | DockDoor switcher keys, window gestures, swipes, Dock locking |
+| `KeybindHelper`, `WindowGestureController`, `TrackpadSwipeTrigger` | `DockKit/Utilities/…` | taps | | DockDoor switcher keys, window gestures, swipes |
+| `WindowDrag` | `Sirena/Modules/WindowManagement/WindowDrag/WindowDragEngine.swift` (+ `WindowDragStrategies.swift`) | tap, own thread, head insert, session | left/right down, dragged, up | Arrastar de qualquer lugar. Touches only presses with its key held over a normal window; no AX on the tap thread (bring-forward and maximize on its own queue). Replayed clicks carry user data `0x53494452` and pass straight through |
+| `DockLocker` | `DockKit/Utilities/DockLocker.swift` via `DockLockService` | tap | mouse moved | Keeps the Dock on one display. Owned by **Ajustes** (`.planning/codebase/ADJUSTMENTS.md`), not by the Dock previews |
 
 The drag of a window (any snapping, snap layouts) is seen only through `SnappingManager.handle`
 (mouse down/dragged/up and Esc). Snap layouts hook into it; they add no monitor of their own.
@@ -250,6 +270,10 @@ window is in use when it owns a group window, and in the background (0.25 s AX t
   appear; drag the grip past a window's minimum size (the line stops, nothing overlaps), click
   it (menu; "Juntar de novo" for 5 s after Desvincular); drag up again → "Último grupo" card;
   Esc while the panel is open.
+- Arrastar de qualquer lugar (on): ⌃⌘-drag from the middle of a window behind another (comes
+  forward, moves, snap areas show at the edges); ⌃⌘-click without moving (the app gets the click);
+  ⌃⌘-right-drag near each corner (that corner follows the pointer exactly); ⌃⌘-double-click
+  (fills, again restores); a plain drag (untouched); an app on the excluded list (untouched).
 - ⌘ Tab: open, cycle, release; with "Substituir ⌘Tab e ⌘` do macOS" on and off.
 - Dock, each minimize mode: yellow button, ⌘M, click the app in front in the Dock twice, with an
   app that has a minimized window (VS Code covers Electron).

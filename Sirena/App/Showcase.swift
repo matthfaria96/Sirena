@@ -4,7 +4,7 @@
 /// Nothing is started: no module, event tap, mixer, updater, menu bar icon or onboarding, and no
 /// permission is ever asked. Pages show the permissions as granted, so they read like a Mac that
 /// went through onboarding, and the clipboard history gets fictional entries.
-/// - SIRENA_OPEN_PAGE=<module id|general|about|home> (and SIRENA_OPEN_TAB) picks the page.
+/// - SIRENA_OPEN_PAGE=<module id|general|mac-settings|about|home> (and SIRENA_OPEN_TAB) picks the page.
 /// - SIRENA_SHOW_PANEL=1 shows the menu bar panel in a popover instead of the window;
 ///   SIRENA_PANEL_INLINE=clipboard|pomodoro|screenCapture opens one of its inline panels.
 /// - SIRENA_SHOWCASE_SCREEN=left puts everything on the leftmost display.
@@ -48,7 +48,7 @@ enum Showcase {
             } else {
                 let page = environment["SIRENA_OPEN_PAGE"] ?? "home"
                 let item: SidebarItem = ModuleID(rawValue: page).map { .module($0) }
-                    ?? (page == "general" ? .general : page == "about" ? .about : .home)
+                    ?? (page == "general" ? .general : page == "mac-settings" ? .macSettings : page == "about" ? .about : .home)
                 mainWindow.present(item)
                 if let window = mainWindow.window, let screen { center(window, on: screen) }
             }

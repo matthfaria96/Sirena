@@ -51,7 +51,7 @@ enum ModuleID: String, CaseIterable, Identifiable {
 
     var summary: String {
         switch self {
-        case .windows: return L("Arrange windows, switch between them with ⌘ Tab and see window previews on the Dock.")
+        case .windows: return L("Arrange windows, switch between them with ⌘ Tab, and set up the Dock and your displays.")
         case .dock: return L("See window previews when hovering the Dock and switch between windows with ⌥ Tab.")
         case .switcher: return L("⌘ Tab with live window previews: search, close and quit right from the switcher.")
         case .island: return L("The notch comes alive: music, calendar, timer, notifications and quick controls around the camera.")
@@ -98,7 +98,7 @@ enum ModuleID: String, CaseIterable, Identifiable {
     /// One short, direct line about what it does, for its card on Home.
     var tagline: String {
         switch self {
-        case .windows, .dock, .switcher, .tweaks: return L("Arrange windows, ⌘ Tab with previews, the Dock and the Finder.")
+        case .windows, .dock, .switcher, .tweaks: return L("Arrange windows, ⌘ Tab with previews, the Dock, the displays and the Finder.")
         case .menuBar: return L("Hides the menu bar icons you don't need.")
         case .shelf: return L("A shelf at the screen edge to park files while dragging.")
         case .island: return L("The notch becomes a panel with music, calendar and controls.")

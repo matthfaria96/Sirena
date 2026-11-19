@@ -1,5 +1,6 @@
 /// FinderTab.swift
 
+import DockKit
 import SwiftUI
 
 /// The Finder tab of Janela e Dock (what used to be the Melhorias page).
@@ -15,7 +16,7 @@ struct FinderTab: View {
                               caption: L("Cut and paste files, delete with ⌫, “Copy Path”, installing apps from disk images and more."))
             }
 
-            if !hasAccessibility {
+            if manager.isEnabled(.tweaks) && !hasAccessibility {
                 Section {
                     LabeledContent {
                         Button(L("Allow…")) { TweaksController.shared.requestAccessibility() }
@@ -28,7 +29,7 @@ struct FinderTab: View {
                         }
                     }
                 } header: {
-                    Text(L("App Permissions"))
+                    SettingsSubheader(L("App Permissions"), symbol: "exclamationmark.triangle.fill")
                 }
             }
 
@@ -53,19 +54,14 @@ struct FinderTab: View {
                     Text(L("Install apps from disk images"))
                     Text(L("Opening a .dmg with an app offers to install it: it goes to Applications, the disk image is ejected and the .dmg goes to the Trash."))
                 }
-                Toggle(isOn: $settings.screenshotsShowPointer) {
-                    Text(L("Show mouse pointer in screenshots"))
-                    Text(L("Applies to ⇧⌘3, ⇧⌘4 and ⇧⌘5."))
-                }
             } header: {
-                Text(L("Finder"))
+                SettingsSubheader(L("Finder"), symbol: "folder")
             }
             }
         }
         .formStyle(.grouped)
         .onReceive(NotificationCenter.default.publisher(for: NSWindow.didBecomeKeyNotification)) { _ in
             hasAccessibility = Showcase.accessibilityShown()
-            settings.refresh()
         }
     }
 }

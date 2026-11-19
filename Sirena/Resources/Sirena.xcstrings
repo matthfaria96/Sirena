@@ -2962,26 +2962,6 @@
         }
       }
     },
-    "Show mouse pointer in screenshots": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mostrar o ponteiro do mouse nas capturas de tela"
-          }
-        }
-      }
-    },
-    "Applies to ⇧⌘3, ⇧⌘4 and ⇧⌘5.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vale para ⇧⌘3, ⇧⌘4 e ⇧⌘5."
-          }
-        }
-      }
-    },
     "Dock": {
       "localizations": {
         "pt-BR": {
@@ -4708,16 +4688,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Permissão necessária"
-          }
-        }
-      }
-    },
-    "Needed to read keys while the switcher is open and to focus, close and quit windows.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Necessária para ler as teclas com o alternador aberto e para focar, fechar e encerrar janelas."
           }
         }
       }
@@ -9332,16 +9302,6 @@
         }
       }
     },
-    "Arrange windows, switch between them with ⌘ Tab and see window previews on the Dock.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Organize janelas, alterne entre elas com ⌘ Tab e veja prévias das janelas no Dock."
-          }
-        }
-      }
-    },
     "Small improvements for the Finder.": {
       "localizations": {
         "pt-BR": {
@@ -10158,16 +10118,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "O volume de cada app e para onde vai o som."
-          }
-        }
-      }
-    },
-    "Arrange windows, ⌘ Tab with previews, the Dock and the Finder.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Organize janelas, ⌘ Tab com prévias, o Dock e o Finder."
           }
         }
       }
@@ -12432,16 +12382,6 @@
         }
       }
     },
-    "Include the pointer in full-screen screenshots": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Incluir o ponteiro nas capturas da tela inteira"
-          }
-        }
-      }
-    },
     "Open in Preview or QuickTime afterwards": {
       "localizations": {
         "pt-BR": {
@@ -13832,46 +13772,6 @@
         }
       }
     },
-    "Hides all of its windows": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Esconde todas as janelas dele"
-          }
-        }
-      }
-    },
-    "What macOS does": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "O que o macOS faz"
-          }
-        }
-      }
-    },
-    "Clicking the app in front": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Clicar no app da frente"
-          }
-        }
-      }
-    },
-    "Follows the minimize mode above.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Segue o modo de minimizar acima."
-          }
-        }
-      }
-    },
     "Their settings are below, by topic.": {
       "localizations": {
         "pt-BR": {
@@ -14618,6 +14518,2156 @@
           "stringUnit": {
             "state": "translated",
             "value": "Os apps com ícone na barra de menus: um clique oculta ou mostra cada um. O olho ao lado da engrenagem da seção mostra ou oculta todos; o ícone do Sirena diz quantos estão ocultos."
+          }
+        }
+      }
+    },
+    "%@ (not connected)": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ (não conectado)"
+          }
+        }
+      }
+    },
+    "%@ + double-click fills the screen; again gives the window its size back.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ + clique duplo ocupa a tela; outro devolve o tamanho da janela."
+          }
+        }
+      }
+    },
+    "%@ + right drag pulls the corner nearest the pointer.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ + arrastar com o botão direito puxa o canto mais perto do ponteiro."
+          }
+        }
+      }
+    },
+    "%@ · only at launch": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · só ao abrir"
+          }
+        }
+      }
+    },
+    "%lld of %lld": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld de %lld"
+          }
+        }
+      }
+    },
+    "%lld spaces in the Dock": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld espaços no Dock"
+          }
+        }
+      }
+    },
+    "1 space in the Dock": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 espaço no Dock"
+          }
+        }
+      }
+    },
+    "A Logitech keyboard set to its Mac layout (the Mac keys printed on it) uses the Mac names.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Um teclado Logitech no layout Mac (com as teclas do Mac impressas) usa os nomes do Mac."
+          }
+        }
+      }
+    },
+    "A click is still a click": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Um clique continua sendo um clique"
+          }
+        }
+      }
+    },
+    "A click with the key held, without dragging, reaches the app as always.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Um clique com a tecla segurada, sem arrastar, chega ao app como sempre."
+          }
+        }
+      }
+    },
+    "A new resolution goes back to the previous one after 15 seconds unless you keep it, in case the display can't show it.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uma resolução nova volta à anterior depois de 15 segundos se você não a mantiver, para o caso de o monitor não conseguir mostrá-la."
+          }
+        }
+      }
+    },
+    "A window behind others comes to the front as soon as you start dragging it.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uma janela atrás de outras vem para a frente assim que você começa a arrastá-la."
+          }
+        }
+      }
+    },
+    "A window moved with the key behaves as if held by its title bar: take it to an edge or a corner of the screen to snap it there, or to the top middle for the layouts.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uma janela movida com a tecla se comporta como se fosse segurada pela barra de título: leve-a a uma borda ou a um canto da tela para encaixá-la ali, ou ao meio do topo para os layouts."
+          }
+        }
+      }
+    },
+    "Add a space at the end": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pôr um espaço no fim"
+          }
+        }
+      }
+    },
+    "AirDrop & Handoff": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AirDrop e Handoff"
+          }
+        }
+      }
+    },
+    "Always from the bottom-right corner": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sempre pelo canto inferior direito"
+          }
+        }
+      }
+    },
+    "An app hidden with ⌘H shows a translucent icon.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Um app oculto com ⌘H mostra o ícone translúcido."
+          }
+        }
+      }
+    },
+    "Animation": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Animação"
+          }
+        }
+      }
+    },
+    "App Management": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gerenciamento de Apps"
+          }
+        }
+      }
+    },
+    "Apps kept in the Dock show only while they run.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Os apps fixos no Dock só aparecem enquanto estão abertos."
+          }
+        }
+      }
+    },
+    "Apps left alone": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apps que ficam de fora"
+          }
+        }
+      }
+    },
+    "Apps on Their Display": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apps no monitor certo"
+          }
+        }
+      }
+    },
+    "Arrangement, brightness, Night Shift and more": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disposição, brilho, Night Shift e mais"
+          }
+        }
+      }
+    },
+    "Automation": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automação"
+          }
+        }
+      }
+    },
+    "Back to its size": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Volta ao tamanho"
+          }
+        }
+      }
+    },
+    "Battery & Energy": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bateria e Energia"
+          }
+        }
+      }
+    },
+    "Bigger": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maior"
+          }
+        }
+      }
+    },
+    "Bounce apps while they open": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Animar os apps enquanto abrem"
+          }
+        }
+      }
+    },
+    "Built-in Display": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tela integrada"
+          }
+        }
+      }
+    },
+    "Calendars": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Calendários"
+          }
+        }
+      }
+    },
+    "Centered": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Centralizada"
+          }
+        }
+      }
+    },
+    "Click between two icons to put a space there, or on a space to take it out. A space at the end can be dragged in the Dock like any icon. The Dock restarts for a moment after each change.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clique entre dois ícones para pôr um espaço ali, ou num espaço para tirá-lo. Um espaço no fim pode ser arrastado no Dock como qualquer ícone. O Dock reinicia por um instante a cada mudança."
+          }
+        }
+      }
+    },
+    "Connections": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conexões"
+          }
+        }
+      }
+    },
+    "Contacts": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contatos"
+          }
+        }
+      }
+    },
+    "Control other apps, like Finder, Music or Safari.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Controlar outros apps, como Finder, Música ou Safari."
+          }
+        }
+      }
+    },
+    "Control the Mac: move windows, read the screen's buttons, press keys.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Controlar o Mac: mover janelas, ler os botões da tela, apertar teclas."
+          }
+        }
+      }
+    },
+    "Copy of the Dock": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cópia do Dock"
+          }
+        }
+      }
+    },
+    "Date & Time": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Data e Hora"
+          }
+        }
+      }
+    },
+    "Desktop & Dock": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mesa e Dock"
+          }
+        }
+      }
+    },
+    "Desktop, Documents, Downloads and external drives.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mesa, Documentos, Transferências e discos externos."
+          }
+        }
+      }
+    },
+    "Developer Tools": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ferramentas de Desenvolvedor"
+          }
+        }
+      }
+    },
+    "Dim hidden apps": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esmaecer apps ocultos"
+          }
+        }
+      }
+    },
+    "Display for the Dock": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Monitor do Dock"
+          }
+        }
+      }
+    },
+    "Dock Options": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opções do Dock"
+          }
+        }
+      }
+    },
+    "Dock on One Display": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dock em um monitor"
+          }
+        }
+      }
+    },
+    "Double-click": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clique duplo"
+          }
+        }
+      }
+    },
+    "Double-click again: it goes back to its size and place.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dê outro clique duplo: ela volta ao tamanho e ao lugar de antes."
+          }
+        }
+      }
+    },
+    "Double-click inside the window: it fills the screen.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dê um clique duplo dentro da janela: ela ocupa a tela."
+          }
+        }
+      }
+    },
+    "Double-click to maximize": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clique duplo maximiza"
+          }
+        }
+      }
+    },
+    "Drag From Anywhere": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arrastar de qualquer lugar"
+          }
+        }
+      }
+    },
+    "Drag outward to make it bigger, inward to make it smaller, then let go.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arraste para fora para aumentar, para dentro para diminuir, e solte."
+          }
+        }
+      }
+    },
+    "Drag with the right button to resize": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arrastar com o botão direito redimensiona"
+          }
+        }
+      }
+    },
+    "Every display shows the same picture as the main one.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todos os monitores mostram a mesma imagem do principal."
+          }
+        }
+      }
+    },
+    "Every list, plus “Open Anyway” for an app macOS blocked.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todas as listas, e o “Abrir Mesmo Assim” para um app que o macOS bloqueou."
+          }
+        }
+      }
+    },
+    "Fast": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rápida"
+          }
+        }
+      }
+    },
+    "Files & Folders": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arquivos e Pastas"
+          }
+        }
+      }
+    },
+    "Fill the display": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preencher o monitor"
+          }
+        }
+      }
+    },
+    "Fills the screen": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ocupa a tela"
+          }
+        }
+      }
+    },
+    "Find and connect to Bluetooth devices.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encontrar e conectar aparelhos Bluetooth."
+          }
+        }
+      }
+    },
+    "Freeze the icons in the Dock": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Congelar os ícones do Dock"
+          }
+        }
+      }
+    },
+    "Full Disk Access": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acesso Total ao Disco"
+          }
+        }
+      }
+    },
+    "Full-screen windows, the Dock, the menu bar and Sirena's own windows are never touched.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Janelas em tela cheia, o Dock, a barra de menus e as janelas do próprio Sirena nunca são mexidas."
+          }
+        }
+      }
+    },
+    "Good to know": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bom saber"
+          }
+        }
+      }
+    },
+    "Hide the Dock automatically": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ocultar o Dock automaticamente"
+          }
+        }
+      }
+    },
+    "Hold %@ and click without moving the mouse.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Segure %@ e clique sem mexer o mouse."
+          }
+        }
+      }
+    },
+    "Hold %@ and drag the window.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Segure %@ e arraste a janela."
+          }
+        }
+      }
+    },
+    "Hold %@.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Segure %@."
+          }
+        }
+      }
+    },
+    "Hold the key and double-click anywhere on the window: it fills the screen, leaving the menu bar and the Dock in view. Double-click again to give it its size back.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Segure a tecla e dê um clique duplo em qualquer lugar da janela: ela ocupa a tela, deixando a barra de menus e o Dock à vista. Outro clique duplo devolve o tamanho dela."
+          }
+        }
+      }
+    },
+    "Hold the key and drag anywhere on a window, not only by its title bar. As smooth as the title bar itself: snap areas and the layouts at the top work while you drag.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Segure a tecla e arraste em qualquer ponto da janela, não só pela barra de título. Tão fluido quanto a própria barra: as áreas de encaixe e os layouts no topo funcionam enquanto você arrasta."
+          }
+        }
+      }
+    },
+    "Hold the key and drag from anywhere on the window: the middle, a picture, some text. The window follows the pointer as smoothly as by its title bar.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Segure a tecla e arraste de qualquer lugar da janela: o meio, uma imagem, um texto. A janela acompanha o ponteiro tão suave quanto pela barra de título."
+          }
+        }
+      }
+    },
+    "Hold the key and drag with the right button. The corner nearest the pointer follows it and the opposite corner stays put: drag outward to make the window bigger, inward to make it smaller.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Segure a tecla e arraste com o botão direito. O canto mais perto do ponteiro vai junto com ele e o canto oposto fica parado: arraste para fora para aumentar a janela, para dentro para diminuir."
+          }
+        }
+      }
+    },
+    "Hold to move the Dock": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Segurar para mudar o Dock"
+          }
+        }
+      }
+    },
+    "How to Use Drag From Anywhere": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Como usar Arrastar de qualquer lugar"
+          }
+        }
+      }
+    },
+    "How to use it, with animations": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Como usar, com animações"
+          }
+        }
+      }
+    },
+    "In an app where the key and the drag mean something else (a game, a drawing app), add it to Apps left alone: there everything behaves as before.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Num app em que a tecla e o arrasto fazem outra coisa (um jogo, um app de desenho), adicione-o em Apps que ficam de fora: ali tudo funciona como antes."
+          }
+        }
+      }
+    },
+    "In these apps the key and the click do what the app does.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nestes apps a tecla e o clique fazem o que o app faz."
+          }
+        }
+      }
+    },
+    "Input": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teclado e mouse"
+          }
+        }
+      }
+    },
+    "Input Monitoring": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Monitoramento de Entrada"
+          }
+        }
+      }
+    },
+    "Instant": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instantânea"
+          }
+        }
+      }
+    },
+    "It goes back by itself in %lld s.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ela volta sozinha em %lld s."
+          }
+        }
+      }
+    },
+    "It shows when the pointer reaches the edge.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ele aparece quando o ponteiro chega à borda."
+          }
+        }
+      }
+    },
+    "Its icons, spaces and options go back to how they were when the copy was saved.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Os ícones, espaços e opções voltam a ser como eram quando a cópia foi salva."
+          }
+        }
+      }
+    },
+    "Keep It": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manter"
+          }
+        }
+      }
+    },
+    "Keep the Dock on one display": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manter o Dock em um monitor"
+          }
+        }
+      }
+    },
+    "Keep this resolution?": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manter esta resolução?"
+          }
+        }
+      }
+    },
+    "Key": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tecla"
+          }
+        }
+      }
+    },
+    "Know where the Mac is.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saber onde o Mac está."
+          }
+        }
+      }
+    },
+    "Language & Region": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Idioma e Região"
+          }
+        }
+      }
+    },
+    "Large Space": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Espaço grande"
+          }
+        }
+      }
+    },
+    "Large space — click to remove": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Espaço grande — clique para remover"
+          }
+        }
+      }
+    },
+    "Left button": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Botão esquerdo"
+          }
+        }
+      }
+    },
+    "Let go of the button where you want the window.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solte o botão onde quer a janela."
+          }
+        }
+      }
+    },
+    "Let go to snap": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solte para encaixar"
+          }
+        }
+      }
+    },
+    "Let go to snap it.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solte para encaixar."
+          }
+        }
+      }
+    },
+    "Location Services": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Serviços de Localização"
+          }
+        }
+      }
+    },
+    "Lock the Dock's icons": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Travar os ícones do Dock"
+          }
+        }
+      }
+    },
+    "Lock the Dock's size": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Travar o tamanho do Dock"
+          }
+        }
+      }
+    },
+    "Login Items": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Itens de Início"
+          }
+        }
+      }
+    },
+    "Logitech or Windows keyboard": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teclado Logitech ou Windows"
+          }
+        }
+      }
+    },
+    "Logitech: %@": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Logitech: %@"
+          }
+        }
+      }
+    },
+    "Mac keyboard": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teclado Mac"
+          }
+        }
+      }
+    },
+    "Main display (%@)": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Monitor principal (%@)"
+          }
+        }
+      }
+    },
+    "Make Main": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tornar principal"
+          }
+        }
+      }
+    },
+    "Make it bigger or smaller": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aumentar ou diminuir"
+          }
+        }
+      }
+    },
+    "Mirror displays": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Espelhar os monitores"
+          }
+        }
+      }
+    },
+    "Monitors": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Monitores"
+          }
+        }
+      }
+    },
+    "Move Its Windows Now": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mover as janelas agora"
+          }
+        }
+      }
+    },
+    "Move a window": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mover uma janela"
+          }
+        }
+      }
+    },
+    "Move windows by holding a key": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mover janelas segurando uma tecla"
+          }
+        }
+      }
+    },
+    "Move, resize and arrange windows without aiming for the title bar.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mova, redimensione e organize janelas sem mirar na barra de título."
+          }
+        }
+      }
+    },
+    "Moving": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Movendo"
+          }
+        }
+      }
+    },
+    "Needed to keep the Dock in place.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Necessária para manter o Dock no lugar."
+          }
+        }
+      }
+    },
+    "Needed to move the windows to their display.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Necessária para mover as janelas para o monitor delas."
+          }
+        }
+      }
+    },
+    "Needs the Accessibility permission, the same one used to arrange windows.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Precisa da permissão de Acessibilidade, a mesma usada para organizar janelas."
+          }
+        }
+      }
+    },
+    "Needs “Snap windows by dragging” on, under Arrange Windows.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Precisa de “Encaixar janelas ao arrastar” ligado, em Organizar Janelas."
+          }
+        }
+      }
+    },
+    "Network": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rede"
+          }
+        }
+      }
+    },
+    "New windows of these apps open on the chosen display, wherever the pointer or the focus is. Windows you move yourself afterwards stay where you put them.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "As janelas novas destes apps abrem no monitor escolhido, esteja o ponteiro ou o foco onde estiver. Janelas que você mover depois ficam onde você as deixar."
+          }
+        }
+      }
+    },
+    "Next": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Próximo"
+          }
+        }
+      }
+    },
+    "No app yet. Add one and choose its display.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nenhum app ainda. Adicione um e escolha o monitor dele."
+          }
+        }
+      }
+    },
+    "No half-second pause before the hidden Dock comes up.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sem a pausa de meio segundo antes de o Dock oculto aparecer."
+          }
+        }
+      }
+    },
+    "No icon can be added, removed or dragged to another place. This doesn't keep the Dock on a display: for that, see Dock on One Display, above.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nenhum ícone pode ser adicionado, removido ou arrastado para outro lugar. Isto não prende o Dock num monitor: para isso, veja Dock em um monitor, acima."
+          }
+        }
+      }
+    },
+    "No icon can be added, removed or moved until this is off.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nenhum ícone pode ser adicionado, removido ou movido enquanto isto estiver ligado."
+          }
+        }
+      }
+    },
+    "Not connected": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não conectado"
+          }
+        }
+      }
+    },
+    "Only macOS can give a permission: each button opens the list where you switch the app on. An app missing from a list can be added with + or dragged into it from the Finder.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Só o macOS pode dar uma permissão: cada botão abre a lista onde você liga o app. Um app que não está na lista pode ser adicionado com + ou arrastado do Finder para ela."
+          }
+        }
+      }
+    },
+    "Only windows opened at launch": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Só as janelas ao abrir o app"
+          }
+        }
+      }
+    },
+    "Open Displays Settings": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir Ajustes de Telas"
+          }
+        }
+      }
+    },
+    "Passwords": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Senhas"
+          }
+        }
+      }
+    },
+    "Passwords & Security": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Senhas e segurança"
+          }
+        }
+      }
+    },
+    "Permissions for Apps": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permissões dos apps"
+          }
+        }
+      }
+    },
+    "Photos": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fotos"
+          }
+        }
+      }
+    },
+    "Prefer always pulling the bottom-right corner? Turn on “Always from the bottom-right corner”.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prefere puxar sempre o canto inferior direito? Ligue “Sempre pelo canto inferior direito”."
+          }
+        }
+      }
+    },
+    "Press the left button anywhere on the window and drag.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aperte o botão esquerdo em qualquer lugar da janela e arraste."
+          }
+        }
+      }
+    },
+    "Press the right button in the quarter of the window whose corner you want to pull.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aperte o botão direito no quarto da janela cujo canto você quer puxar."
+          }
+        }
+      }
+    },
+    "Pressing and letting go without moving the mouse moves nothing: the click reaches the app as always. Only a drag becomes a move.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apertar e soltar sem mexer o mouse não move nada: o clique chega ao app como sempre. Só um arrasto vira movimento."
+          }
+        }
+      }
+    },
+    "Printers & Scanners": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impressoras e Scanners"
+          }
+        }
+      }
+    },
+    "Privacy & Security": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacidade e Segurança"
+          }
+        }
+      }
+    },
+    "Put a space here": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pôr um espaço aqui"
+          }
+        }
+      }
+    },
+    "Read and change your contacts.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ler e alterar seus contatos."
+          }
+        }
+      }
+    },
+    "Read and change your events.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ler e alterar seus eventos."
+          }
+        }
+      }
+    },
+    "Read and change your reminders.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ler e alterar seus lembretes."
+          }
+        }
+      }
+    },
+    "Read every file, including Mail, Messages and other apps' data.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ler todos os arquivos, inclusive os dados do Mail, Mensagens e outros apps."
+          }
+        }
+      }
+    },
+    "Refresh rate": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Taxa de atualização"
+          }
+        }
+      }
+    },
+    "Reminders": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lembretes"
+          }
+        }
+      }
+    },
+    "Remove All": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remover todos"
+          }
+        }
+      }
+    },
+    "Resolution": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resolução"
+          }
+        }
+      }
+    },
+    "Restore": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restaurar"
+          }
+        }
+      }
+    },
+    "Restore the Dock from the copy?": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restaurar o Dock pela cópia?"
+          }
+        }
+      }
+    },
+    "Restore…": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restaurar…"
+          }
+        }
+      }
+    },
+    "Right button": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Botão direito"
+          }
+        }
+      }
+    },
+    "Rules for displays not connected now wait for them.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Regras de monitores desconectados esperam até eles voltarem."
+          }
+        }
+      }
+    },
+    "Run software that doesn't meet the system's security policy (Terminal, editors).": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rodar software fora da política de segurança do sistema (Terminal, editores)."
+          }
+        }
+      }
+    },
+    "Same size and place": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mesmo tamanho e lugar"
+          }
+        }
+      }
+    },
+    "Save Now": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salvar agora"
+          }
+        }
+      }
+    },
+    "Saved %@. Restoring brings back its icons, spaces and options.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salva em %@. Restaurar traz de volta os ícones, espaços e opções."
+          }
+        }
+      }
+    },
+    "Saved by itself before Sirena changes the Dock for the first time.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salva sozinha antes de o Sirena mudar o Dock pela primeira vez."
+          }
+        }
+      }
+    },
+    "Screen & Sound": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tela e som"
+          }
+        }
+      }
+    },
+    "Screen & System Audio Recording": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gravação de Tela e Áudio do Sistema"
+          }
+        }
+      }
+    },
+    "See and record what is on the screen: screenshots, sharing in calls, previews.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ver e gravar o que está na tela: capturas, compartilhar em chamadas, prévias."
+          }
+        }
+      }
+    },
+    "See your photo library.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ver sua fototeca."
+          }
+        }
+      }
+    },
+    "Sharing": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compartilhamento"
+          }
+        }
+      }
+    },
+    "Show it without waiting": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar sem esperar"
+          }
+        }
+      }
+    },
+    "Show only open apps": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar só os apps abertos"
+          }
+        }
+      }
+    },
+    "Show recent apps": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar apps recentes"
+          }
+        }
+      }
+    },
+    "Sirena goes by where the keys are, not by what's printed on them. On a Logitech keyboard, or any keyboard made for Windows, the same places have other names:": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Sirena se guia pelo lugar das teclas, não pelo que está escrito nelas. Num teclado Logitech, ou em qualquer teclado feito para Windows, os mesmos lugares têm outros nomes:"
+          }
+        }
+      }
+    },
+    "Small Space": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Espaço pequeno"
+          }
+        }
+      }
+    },
+    "Small space — click to remove": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Espaço pequeno — clique para remover"
+          }
+        }
+      }
+    },
+    "Smaller": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menor"
+          }
+        }
+      }
+    },
+    "Snap while moving": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encaixar enquanto move"
+          }
+        }
+      }
+    },
+    "Software Update": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atualização de Software"
+          }
+        }
+      }
+    },
+    "Spaces Between Apps": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Espaços entre os apps"
+          }
+        }
+      }
+    },
+    "Storage": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Armazenamento"
+          }
+        }
+      }
+    },
+    "Take the pointer to the left or right edge: a preview shows where the window will go.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leve o ponteiro à borda esquerda ou direita: uma prévia mostra onde a janela vai ficar."
+          }
+        }
+      }
+    },
+    "The Dock itself stays on the display below and never jumps to another one when the pointer reaches its bottom edge. The icons stay as they are: you can still add, remove and move them.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O próprio Dock fica no monitor escolhido abaixo e nunca pula para outro quando o ponteiro chega à borda de baixo dele. Os ícones continuam como estão: dá para adicionar, tirar e mover normalmente."
+          }
+        }
+      }
+    },
+    "The Dock stays put when the pointer reaches the bottom of another display. Hold the key below to move it anyway.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Dock não muda de monitor quando o ponteiro chega à borda de baixo de outro. Segure a tecla abaixo para mudá-lo mesmo assim."
+          }
+        }
+      }
+    },
+    "The app gets the click, as if Sirena weren't there.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O app recebe o clique, como se o Sirena não estivesse ali."
+          }
+        }
+      }
+    },
+    "The app got the click": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O app recebeu o clique"
+          }
+        }
+      }
+    },
+    "The key is chosen in Key, in this section. ⌥ alone also selects columns of text in editors and duplicates files in the Finder while dragging; ⌃⌘ means nothing almost anywhere, so it's the safest.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A tecla é escolhida em Tecla, nesta seção. ⌥ sozinho também seleciona colunas de texto em editores e duplica arquivos no Finder ao arrastar; ⌃⌘ não faz nada em quase nenhum lugar, por isso é o mais seguro."
+          }
+        }
+      }
+    },
+    "The main display has the menu bar's first copy, the Dock by default and new windows.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O monitor principal recebe o Dock por padrão e as janelas novas."
+          }
+        }
+      }
+    },
+    "The top-left corner stays where it is.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O canto superior esquerdo fica onde está."
+          }
+        }
+      }
+    },
+    "This Mac": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este Mac"
+          }
+        }
+      }
+    },
+    "Time Machine": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Time Machine"
+          }
+        }
+      }
+    },
+    "Touch ID & Password": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Touch ID e Senha"
+          }
+        }
+      }
+    },
+    "Turn the switch off and the keys and the mouse go back to exactly what they did before.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desligue a chave e as teclas e o mouse voltam a fazer exatamente o que faziam antes."
+          }
+        }
+      }
+    },
+    "Up to three apps used lately, in their own section.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Até três apps usados há pouco, numa seção própria."
+          }
+        }
+      }
+    },
+    "Update or delete other apps (installers and updaters).": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atualizar ou apagar outros apps (instaladores e atualizadores)."
+          }
+        }
+      }
+    },
+    "Use the camera.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usar a câmera."
+          }
+        }
+      }
+    },
+    "Use the microphone.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usar o microfone."
+          }
+        }
+      }
+    },
+    "Users & Groups": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usuários e Grupos"
+          }
+        }
+      }
+    },
+    "Wallpaper": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Papel de Parede"
+          }
+        }
+      }
+    },
+    "Watch the keyboard and mouse even when the app is in the background.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ver o teclado e o mouse mesmo com o app em segundo plano."
+          }
+        }
+      }
+    },
+    "Which keys to hold": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quais teclas segurar"
+          }
+        }
+      }
+    },
+    "Wi-Fi": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wi-Fi"
+          }
+        }
+      }
+    },
+    "With %@ chosen, hold %@ on a Mac keyboard, or %@ on a Logitech keyboard.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Com %@ escolhido, segure %@ num teclado Mac, ou %@ num teclado Logitech."
+          }
+        }
+      }
+    },
+    "With a single display there is nothing to lock: it works as soon as another one is connected.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Com um monitor só não há o que travar: funciona assim que outro for conectado."
+          }
+        }
+      }
+    },
+    "Works on every display and with any app's windows, even those without a title bar.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Funciona em todos os monitores e com as janelas de qualquer app, até as sem barra de título."
+          }
+        }
+      }
+    },
+    "drag": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "arrastar"
+          }
+        }
+      }
+    },
+    "“Always from the bottom-right corner” is on: it's always that corner, wherever you press.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“Sempre pelo canto inferior direito” está ligado: é sempre esse canto, onde quer que você aperte."
+          }
+        }
+      }
+    },
+    "“Main display” follows the one set as main in macOS (the one with the menu bar).": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“Monitor principal” segue o que está como principal no macOS (o da barra de menus)."
+          }
+        }
+      }
+    },
+    "⌥ alone also selects columns of text in editors and duplicates in the Finder while dragging.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌥ sozinha também seleciona colunas de texto em editores e duplica no Finder ao arrastar."
+          }
+        }
+      }
+    },
+    "Connected Displays": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Monitores conectados"
+          }
+        }
+      }
+    },
+    "The main one": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Monitor principal"
+          }
+        }
+      }
+    },
+    "Arrange windows, switch between them with ⌘ Tab, and set up the Dock and your displays.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Organize janelas, alterne entre elas com ⌘ Tab e ajuste o Dock e os monitores."
+          }
+        }
+      }
+    },
+    "Arrange windows, ⌘ Tab with previews, the Dock, the displays and the Finder.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Organize janelas, ⌘ Tab com prévias, o Dock, os monitores e o Finder."
+          }
+        }
+      }
+    },
+    "All Displays": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todos os monitores"
+          }
+        }
+      }
+    },
+    "This one": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este"
+          }
+        }
+      }
+    },
+    "Mac Settings": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajustes do Mac"
+          }
+        }
+      }
+    },
+    "System Settings": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajustes do Sistema"
+          }
+        }
+      }
+    },
+    "Each one opens its pane in System Settings; nothing changes here.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cada um abre o painel dele nos Ajustes do Sistema; nada muda aqui."
+          }
+        }
+      }
+    },
+    "Include the pointer in screenshots": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Incluir o ponteiro nas capturas"
+          }
+        }
+      }
+    },
+    "Full-screen ones, from here, the ⚡ menu and macOS's ⇧⌘3, ⇧⌘4 and ⇧⌘5.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "As de tela inteira: daqui, do menu ⚡ e do ⇧⌘3, ⇧⌘4 e ⇧⌘5 do macOS."
+          }
+        }
+      }
+    },
+    "Adding %@…": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adicionando %@…"
+          }
+        }
+      }
+    },
+    "Save images in formats every app opens": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salvar imagens em formatos que todo app abre"
+          }
+        }
+      }
+    },
+    "WebP, AVIF, HEIC, BMP and TIFF images become PNG (with transparency) or JPEG, so editors and uploads take them.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Imagens WebP, AVIF, HEIC, BMP e TIFF viram PNG (com transparência) ou JPEG, que editores e envios aceitam."
+          }
+        }
+      }
+    },
+    "Images from the Web and Apps": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Imagens da web e de apps"
+          }
+        }
+      }
+    },
+    "An image dragged from a browser, Photos or Mail becomes a real file on the shelf, at its full size when the page links to the original. It can then be dragged into any app, editor or chat.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uma imagem arrastada de um navegador, do Fotos ou do Mail vira um arquivo de verdade na prateleira, no tamanho original quando a página aponta para ele. Depois dá para arrastá-la para qualquer app, editor ou chat."
           }
         }
       }

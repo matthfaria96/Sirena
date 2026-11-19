@@ -51,7 +51,13 @@ private struct ScreenCaptureSettingsView: View {
                     Text(L("Copy screenshots to the clipboard"))
                     Text(L("Besides saving the file."))
                 }
-                Toggle(L("Include the pointer in full-screen screenshots"), isOn: $controller.showsCursor)
+                Toggle(isOn: Binding(get: { controller.showsCursor }, set: { on in
+                    controller.showsCursor = on
+                    ScreenshotPreferences.showsCursor = on
+                })) {
+                    Text(L("Include the pointer in screenshots"))
+                    Text(L("Full-screen ones, from here, the ⚡ menu and macOS's ⇧⌘3, ⇧⌘4 and ⇧⌘5."))
+                }
                 Toggle(L("Open in Preview or QuickTime afterwards"), isOn: $controller.opensAfterCapture)
                 LabeledContent(L("Saved to")) {
                     HStack(spacing: 8) {

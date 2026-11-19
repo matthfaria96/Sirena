@@ -17,7 +17,7 @@ struct ZonePopupGeometry {
         case lastGroup
     }
 
-    static let hintHeight: CGFloat = 24
+    static let hintHeight: CGFloat = 20
     /// Room around the card for its shadow.
     static let margin: CGFloat = 34
 
@@ -35,8 +35,9 @@ struct ZonePopupGeometry {
     init(visible: CGRect, templates: [Int], roots: [ZoneNode], lastGroup: ZoneNode?) {
         let aspect = min(max(visible.height > 0 ? visible.width / visible.height : 1.6, 0.6), 2.2)
         let count = CGFloat(roots.count + (lastGroup == nil ? 0 : 1))
-        // Big enough to aim at with a window in hand, small enough to fit the display.
-        var thumbHeight: CGFloat = 84
+        // Big enough to aim at with a window in hand, small enough to fit the display, and
+        // short, so the card hangs down over the display as little as it can.
+        var thumbHeight: CGFloat = 76
         var spacing: CGFloat = 16
         var padding: CGFloat = 18
         let separator: CGFloat = lastGroup == nil ? 0 : 14
@@ -50,9 +51,12 @@ struct ZonePopupGeometry {
         }
         let thumbWidth = (thumbHeight * aspect).rounded()
         let width = padding * 2 + count * thumbWidth + max(0, count - 1) * spacing + separator
-        let height = padding * 2 + thumbHeight + Self.hintHeight
+        // Less room under the drawings than above them: the hint line sits there.
+        let bottomPadding = (padding * 0.7).rounded()
+        let height = padding + bottomPadding + thumbHeight + Self.hintHeight
         let top = visible.screenFlipped
-        let card = CGRect(x: (top.midX - width / 2).rounded(), y: top.minY + 8, width: width, height: height)
+        // Just under the menu bar (2 pt), as if it dropped from it.
+        let card = CGRect(x: (top.midX - width / 2).rounded(), y: top.minY + 2, width: width, height: height)
         var x = card.minX + padding
         var groupThumb: CGRect?
         if lastGroup != nil {

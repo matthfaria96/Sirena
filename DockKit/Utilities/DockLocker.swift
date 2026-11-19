@@ -272,13 +272,34 @@ enum DockLockerGeometry {
 final class DockLocker {
     private var eventTap: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
-    private var cachedTriggerZones: [TriggerZone] = []
     private var screenObserver: Any?
     private var settingsObserver: Defaults.Observation?
+    private var modifierObserver: Defaults.Observation?
+
+    // Written on the main thread, read by the tap callback on `EventTapThread`: behind a lock,
+    // and never read from UserDefaults per mouse move.
+    private let tapStateLock = NSLock()
+    private var storedTriggerZones: [TriggerZone] = []
+    private var storedOverrideFlag: CGEventFlags = DockLockModifier.option.cgEventFlag
+
+    private var cachedTriggerZones: [TriggerZone] {
+        get { tapStateLock.lock(); defer { tapStateLock.unlock() }; return storedTriggerZones }
+        set { tapStateLock.lock(); storedTriggerZones = newValue; tapStateLock.unlock() }
+    }
+
+    private var overrideFlag: CGEventFlags {
+        get { tapStateLock.lock(); defer { tapStateLock.unlock() }; return storedOverrideFlag }
+        set { tapStateLock.lock(); storedOverrideFlag = newValue; tapStateLock.unlock() }
+    }
+
+    private static func currentOverrideFlag() -> CGEventFlags {
+        (DockLockModifier(rawValue: Defaults[.dockLockOverrideModifier]) ?? .option).cgEventFlag
+    }
     private var relocationInProgress = false
     private var relocationWorkItem: DispatchWorkItem?
 
     init() {
+        overrideFlag = Self.currentOverrideFlag()
         refreshTriggerZones()
         if !cachedTriggerZones.isEmpty {
             setupEventTap()
@@ -287,6 +308,9 @@ final class DockLocker {
         settingsObserver = Defaults.observe(.lockedDockScreenIdentifier, options: []) { [weak self] _ in
             DispatchQueue.main.async { self?.reset() }
         }
+        modifierObserver = Defaults.observe(.dockLockOverrideModifier, options: []) { [weak self] _ in
+            DispatchQueue.main.async { self?.overrideFlag = Self.currentOverrideFlag() }
+        }
         DebugLogger.log("DockLocker", details: "init: \(NSScreen.screens.count) screens, \(cachedTriggerZones.count) zones")
         scheduleRelocation(after: 2)
     }
@@ -294,6 +318,7 @@ final class DockLocker {
     deinit {
         removeEventTap()
         settingsObserver?.invalidate()
+        modifierObserver?.invalidate()
         relocationWorkItem?.cancel()
         if let screenObserver {
             NotificationCenter.default.removeObserver(screenObserver)
@@ -450,10 +475,9 @@ final class DockLocker {
             return passthrough
         }
 
-        let modifier = DockLockModifier(rawValue: Defaults[.dockLockOverrideModifier]) ?? .option
         // mouseMoved events don't reliably carry held modifier flags, so also query live keyboard state.
         let activeFlags = event.flags.union(CGEventSource.flagsState(.combinedSessionState))
-        if activeFlags.contains(modifier.cgEventFlag) {
+        if activeFlags.contains(overrideFlag) {
             return Unmanaged.passUnretained(event)
         }
 

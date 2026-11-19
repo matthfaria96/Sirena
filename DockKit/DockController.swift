@@ -20,7 +20,6 @@ public final class DockController: NSObject {
     private var keybindHelper: KeybindHelper?
     private var windowGestureController: WindowGestureController?
     private var activeAppIndicator: ActiveAppIndicatorCoordinator?
-    private var dockLocker: DockLocker?
     private var wakeRecoveryTask: Task<Void, Never>?
     private var screenParametersDebounce: DispatchWorkItem?
     private var accessibilityObservation: AccessibilityGuard.Observation?
@@ -84,11 +83,8 @@ public final class DockController: NSObject {
             activeAppIndicator = ActiveAppIndicatorCoordinator()
         }
 
-        NSScreen.migrateScreenIdentifier(.lockedDockScreenIdentifier)
+        // Dock locking (DockLocker) belongs to Ajustes › Dock: DockLockService, not the previews.
         NSScreen.migrateScreenIdentifier(.pinnedScreenIdentifier)
-        if Defaults[.enableDockLocking] {
-            dockLocker = DockLocker()
-        }
 
         Task(priority: .high) {
             await WindowUtil.updateAllWindowsInCurrentSpace()
@@ -168,7 +164,6 @@ public final class DockController: NSObject {
         wakeRecoveryTask?.cancel()
         dockObserver?.suspendEventTap()
         keybindHelper?.suspendEventTaps()
-        dockLocker?.suspendEventTap()
         windowGestureController?.suspend()
     }
 
@@ -176,7 +171,6 @@ public final class DockController: NSObject {
         dockObserver?.reset()
         keybindHelper?.recover()
         appClosureObserver?.reset()
-        dockLocker?.reset()
         windowGestureController?.reset()
     }
 

@@ -68,11 +68,6 @@ final class TweaksSettings {
     /// Opening a .dmg with an app offers to install it, eject it and trash it (Supercharge).
     var installFromDMG: Bool { didSet { save(installFromDMG, "tweaks.installFromDMG") } }
 
-    /// Shown in screenshots: lives in macOS's own screenshot preferences, not Sirena's.
-    var screenshotsShowPointer: Bool {
-        didSet { ScreenshotPreferences.showsCursor = screenshotsShowPointer }
-    }
-
     private init() {
         greenButtonFills = defaults.object(forKey: "tweaks.greenButtonFills") as? Bool ?? true
         dockActiveAppClick = DockActiveAppClick(rawValue: defaults.string(forKey: "tweaks.dockActiveAppClick") ?? "") ?? .minimizeWindows
@@ -84,13 +79,6 @@ final class TweaksSettings {
         finderAddressBar = defaults.object(forKey: "tweaks.finderAddressBar") as? Bool ?? true
         finderCopyPath = defaults.object(forKey: "tweaks.finderCopyPath") as? Bool ?? true
         installFromDMG = defaults.object(forKey: "tweaks.installFromDMG") as? Bool ?? true
-        screenshotsShowPointer = ScreenshotPreferences.showsCursor
-    }
-
-    /// Re-reads values other apps can change.
-    func refresh() {
-        let showsCursor = ScreenshotPreferences.showsCursor
-        if showsCursor != screenshotsShowPointer { screenshotsShowPointer = showsCursor }
     }
 
     private func save(_ value: Any, _ key: String) {

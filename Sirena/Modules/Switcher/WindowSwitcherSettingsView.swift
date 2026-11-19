@@ -36,7 +36,6 @@ struct WindowSwitcherSettingsView: View {
     @AppStorage(SwitcherDefaultsKey.minimalWindowPreviews) private var minimalPreviews = false
     @AppStorage(SwitcherDefaultsKey.switcherLiquidGlass) private var liquidGlass = true
 
-    @State private var accessibilityGranted = AXIsProcessTrusted()
     @State private var screenRecordingGranted = CGPreflightScreenCaptureAccess()
 
     private enum Layout: String, Hashable { case windows, icons, simple }
@@ -62,22 +61,13 @@ struct WindowSwitcherSettingsView: View {
 
     var body: some View {
         Group {
-            if !accessibilityGranted || (!screenRecordingGranted && SwitcherSupport.capturesPreviews(simpleMode: simpleMode)) {
+            // Accessibility is asked once, at the top of the Windows tab (it covers the switcher).
+            if !screenRecordingGranted && SwitcherSupport.capturesPreviews(simpleMode: simpleMode) {
                 Section {
-                    if !accessibilityGranted {
-                        permissionRow(L("Accessibility"),
-                                      caption: L("Needed to read keys while the switcher is open and to focus, close and quit windows."),
-                                      url: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
-                            let options = ["AXTrustedCheckOptionPrompt": true] as CFDictionary
-                            _ = AXIsProcessTrustedWithOptions(options)
-                        }
-                    }
-                    if !screenRecordingGranted && SwitcherSupport.capturesPreviews(simpleMode: simpleMode) {
-                        permissionRow(L("Screen Recording"),
-                                      caption: L("Needed for live window previews. The simple list works without it."),
-                                      url: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture") {
-                            _ = CGRequestScreenCaptureAccess()
-                        }
+                    permissionRow(L("Screen Recording"),
+                                  caption: L("Needed for live window previews. The simple list works without it."),
+                                  url: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture") {
+                        _ = CGRequestScreenCaptureAccess()
                     }
                 } header: {
                     SettingsSubheader(L("Permission required"), parent: parent, symbol: "exclamationmark.triangle.fill")
@@ -232,7 +222,6 @@ struct WindowSwitcherSettingsView: View {
             if !enabled { enabled = true; sync() }
         }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
-            accessibilityGranted = AXIsProcessTrusted()
             screenRecordingGranted = CGPreflightScreenCaptureAccess()
         }
     }
