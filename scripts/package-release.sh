@@ -7,7 +7,7 @@
 # distribuir sem conta paga de desenvolvedor, este script assina ad hoc
 # (CODE_SIGN_IDENTITY=-) e desliga o Hardened Runtime, que só é necessário para
 # notarizar e passa a exigir que os frameworks embutidos tenham o mesmo Team ID.
-# Depois, se existir ~/Documents/VSCode/witchmymac-release/sign-app.sh, reassina com o
+# Depois, se existir ~/Documents/Projetos/witchmymac/witchmymac-release/sign-app.sh, reassina com o
 # certificado witchmymac (ver abaixo), ainda sem Hardened Runtime.
 set -eu
 
@@ -35,7 +35,7 @@ VERSION=$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" "$APP/Co
 # permissões (Acessibilidade, Gravação de Tela…) a cada atualização. O Sparkle
 # aceita a atualização pela assinatura EdDSA do DMG e confere que a assinatura de
 # código do app novo é válida. Sem o script (outro Mac), fica a assinatura ad hoc.
-SIGN_APP="$HOME/Documents/VSCode/witchmymac-release/sign-app.sh"
+SIGN_APP="$HOME/Documents/Projetos/witchmymac/witchmymac-release/sign-app.sh"
 if [ -f "$SIGN_APP" ]; then
   sh "$SIGN_APP" "$APP"
 else
