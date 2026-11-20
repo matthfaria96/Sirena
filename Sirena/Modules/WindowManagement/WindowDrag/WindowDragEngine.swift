@@ -233,6 +233,10 @@ final class WindowDragEngine: @unchecked Sendable {
             // Invisible overlays don't count.
             guard (window[kCGWindowAlpha] as? Double ?? 1) > 0.01 else { continue }
             let layer = window[kCGWindowLayer] as? Int ?? 0
+            // While the screen is recorded or shared (QuickTime, Meet, Zoom…) the window server
+            // draws the pointer as a window ("Cursor") right under it, at cursor level, with
+            // the camera/screen indicators: nothing up there ever takes a click.
+            if layer >= cursorLevel { continue }
             if layer != 0 {
                 // The Dock keeps a whole-screen window above everything, and other tools park
                 // whole-display overlays there too: those never take the press. Anything else
@@ -253,6 +257,8 @@ final class WindowDragEngine: @unchecked Sendable {
         }
         return nil
     }
+
+    private static let cursorLevel = Int(CGWindowLevelForKey(.cursorWindow))
 
     private static func same(_ a: CGRect, _ b: CGRect) -> Bool {
         abs(a.minX - b.minX) < 2 && abs(a.minY - b.minY) < 2 && abs(a.width - b.width) < 2 && abs(a.height - b.height) < 2

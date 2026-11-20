@@ -432,6 +432,9 @@ final class TweaksEngine: @unchecked Sendable {
                   let frame = CGRect(dictionaryRepresentation: bounds), frame.contains(point),
                   let layer = window[kCGWindowLayer as String] as? Int,
                   let pid = window[kCGWindowOwnerPID as String] as? pid_t else { continue }
+            // The pointer's own window while the screen is recorded or shared (and the
+            // camera/screen indicators) sit at cursor level and never take the click.
+            guard layer < Int(CGWindowLevelForKey(.cursorWindow)) else { continue }
             let owner = window[kCGWindowOwnerName as String] as? String
             // Front-most window under the pointer decides. Sirena's own windows are looked
             // through: the Dock preview panel overlaps the top of the icon it belongs to (its
