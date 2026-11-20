@@ -217,7 +217,11 @@ final class ScreenCaptureController {
             self.stopPanel.close()
             if FileManager.default.fileExists(atPath: url.path) {
                 self.lastFile = url
-                CaptureToast.shared.show(title: L("Recording saved"), detail: url.lastPathComponent, symbol: "record.circle")
+                CaptureToast.shared.show(title: L("Recording saved"), detail: url.lastPathComponent, symbol: "record.circle",
+                                         note: String(format: L("In %@ · click to show in Finder"), Self.folderName(of: url)),
+                                         duration: 6) {
+                    NSWorkspace.shared.activateFileViewerSelecting([url])
+                }
             }
         }
         guard let process else { return }
@@ -267,6 +271,15 @@ final class ScreenCaptureController {
         let time = date.formatted(.dateTime.hour(.twoDigits(amPM: .omitted)).minute(.twoDigits).second(.twoDigits))
             .replacingOccurrences(of: ":", with: ".")
         return saveFolder.appending(path: "\(prefix) \(day) \(L("at")) \(time).\(ext)")
+    }
+
+    /// "Pictures › Screenshots" / "Desktop" for the folders on the page, else the path (~/…).
+    private static func folderName(of file: URL) -> String {
+        let folder = file.deletingLastPathComponent().standardizedFileURL.path
+        if let known = ScreenCaptureDestination.allCases.first(where: { $0.folder.standardizedFileURL.path == folder }) {
+            return known.title
+        }
+        return (folder as NSString).abbreviatingWithTildeInPath
     }
 
     private static var screenUnderMouse: NSScreen? {

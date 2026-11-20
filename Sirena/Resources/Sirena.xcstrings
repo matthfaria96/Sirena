@@ -16681,6 +16681,16 @@
           }
         }
       }
+    },
+    "In %@ · click to show in Finder": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Em %@ · clique para mostrar no Finder"
+          }
+        }
+      }
     }
   }
 }

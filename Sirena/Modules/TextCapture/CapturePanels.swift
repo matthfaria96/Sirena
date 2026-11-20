@@ -15,14 +15,30 @@ final class CaptureToast {
 
     private var panel: NSPanel?
     private var hideWork: DispatchWorkItem?
+    private var clickAction: (() -> Void)?
 
-    func show(title: String, detail: String?, symbol: String, near rect: CGRect? = nil) {
+    /// - `note`: a quieter last line (where a file went, what a click does).
+    /// - `duration`: seconds on screen before it fades.
+    /// - `onClick`: makes the toast clickable (it lets clicks through otherwise); it fades at once after.
+    func show(title: String, detail: String?, symbol: String, near rect: CGRect? = nil,
+              note: String? = nil, duration: TimeInterval = 1.8, onClick: (() -> Void)? = nil) {
         hideWork?.cancel()
         let panel = self.panel ?? makePanel()
         self.panel = panel
-        let hosting = NSHostingView(rootView: ToastView(title: title, detail: detail, symbol: symbol))
-        panel.contentView = hosting
+        clickAction = onClick
+        panel.ignoresMouseEvents = onClick == nil
+        let hosting = NSHostingView(rootView: ToastView(title: title, detail: detail, note: note, symbol: symbol))
         let size = hosting.fittingSize
+        let container = ClickView { [weak self] in
+            guard let self, let action = self.clickAction else { return }
+            self.clickAction = nil
+            action()
+            self.fadeOut()
+        }
+        hosting.frame = CGRect(origin: .zero, size: size)
+        hosting.autoresizingMask = [.width, .height]
+        container.addSubview(hosting)
+        panel.contentView = container
         let screen = rect.flatMap { rect in NSScreen.screens.first { $0.frame.intersects(PinGeometry.cocoaRect(fromCG: rect)) } }
             ?? NSScreen.main ?? NSScreen.screens.first
         guard let visible = screen?.visibleFrame else { return }
@@ -31,19 +47,33 @@ final class CaptureToast {
         panel.orderFrontRegardless()
         // VoiceOver users get the same feedback.
         NSAccessibility.post(element: NSApp as Any, notification: .announcementRequested,
-                             userInfo: [.announcement: [title, detail].compactMap { $0 }.joined(separator: ". "),
+                             userInfo: [.announcement: [title, detail, note].compactMap { $0 }.joined(separator: ". "),
                                         .priority: NSAccessibilityPriorityLevel.high.rawValue])
 
-        let work = DispatchWorkItem { [weak panel] in
-            NSAnimationContext.runAnimationGroup { context in
-                context.duration = 0.3
-                panel?.animator().alphaValue = 0
-            } completionHandler: {
-                MainActor.assumeIsolated { panel?.orderOut(nil) }
-            }
+        let work = DispatchWorkItem { [weak self] in
+            MainActor.assumeIsolated { self?.fadeOut() }
         }
         hideWork = work
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.8, execute: work)
+        DispatchQueue.main.asyncAfter(deadline: .now() + duration, execute: work)
+    }
+
+    private func fadeOut() {
+        hideWork?.cancel()
+        hideWork = nil
+        guard let panel else { return }
+        // Shown again meanwhile: the new toast keeps the panel.
+        let shown = panel.contentView
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = 0.3
+            panel.animator().alphaValue = 0
+        } completionHandler: {
+            MainActor.assumeIsolated {
+                guard panel.contentView === shown else { return }
+                panel.orderOut(nil)
+                panel.ignoresMouseEvents = true
+                self.clickAction = nil
+            }
+        }
     }
 
     private func makePanel() -> NSPanel {
@@ -59,9 +89,25 @@ final class CaptureToast {
     }
 }
 
+/// Takes the toast's click itself, even while its panel isn't key (first click counts).
+private final class ClickView: NSView {
+    private let action: () -> Void
+    init(_ action: @escaping () -> Void) {
+        self.action = action
+        super.init(frame: .zero)
+    }
+    required init?(coder: NSCoder) { fatalError() }
+    override func hitTest(_ point: NSPoint) -> NSView? { frame.contains(point) ? self : nil }
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
+    override func mouseDown(with event: NSEvent) {}
+    override func mouseUp(with event: NSEvent) { action() }
+    override func resetCursorRects() { addCursorRect(bounds, cursor: .pointingHand) }
+}
+
 private struct ToastView: View {
     let title: String
     let detail: String?
+    let note: String?
     let symbol: String
 
     var body: some View {
@@ -76,6 +122,14 @@ private struct ToastView: View {
                         .font(.callout)
                         .foregroundStyle(.secondary)
                         .lineLimit(2)
+                        .truncationMode(.middle)
+                }
+                if let note, !note.isEmpty {
+                    Text(note)
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                        .lineLimit(2)
+                        .truncationMode(.middle)
                 }
             }
         }
