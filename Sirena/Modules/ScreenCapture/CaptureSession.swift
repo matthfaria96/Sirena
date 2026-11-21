@@ -408,6 +408,10 @@ final class CaptureSession {
         case .counter:
             let number = document.strokes.filter { $0.tool == .counter }.count + 1
             document.commit(BrushStroke(tool: .counter, color: color, width: width, points: [p], text: "\(number)"))
+        case .ruler:
+            let start = CaptureRuler.pixelCenter(p, scale: scale(at: p))
+            document.current = BrushStroke(tool: .ruler, color: color, width: width, points: [start])
+            drag = .drawing
         default:
             document.current = BrushStroke(tool: tool, color: color, width: width, points: [p])
             drag = .drawing
@@ -417,7 +421,9 @@ final class CaptureSession {
     private func drawMark(to raw: CGPoint, shift: Bool) {
         guard var stroke = document.current, let start = stroke.points.first else { return }
         var p = raw
-        if stroke.tool.isShape {
+        if stroke.tool == .ruler {
+            stroke.points = [start, CaptureRuler.end(from: start, toward: p, scale: scale(at: start))]
+        } else if stroke.tool.isShape {
             if shift { p = constrained(start, p, tool: stroke.tool) }
             stroke.points = [start, p]
         } else {
@@ -446,6 +452,9 @@ final class CaptureSession {
         let length = hypot(dx, dy)
         return CGPoint(x: a.x + length * cos(angle), y: a.y + length * sin(angle))
     }
+
+    /// Pixels per point of the display under a point.
+    private func scale(at p: CGPoint) -> CGFloat { frame(containing: p)?.scale ?? 2 }
 
     func commitText(_ text: String, at origin: CGPoint, color: NSColor, width: CGFloat) {
         document.commit(BrushStroke(tool: .text, color: color, width: width, points: [origin], text: text))
@@ -483,6 +492,8 @@ final class CaptureSession {
                 context.interpolationQuality = .none
                 context.draw(image, in: rect.offsetBy(dx: -offset.x, dy: -offset.y))
                 context.restoreGState()
+            } else if stroke.tool == .ruler {
+                CaptureRuler.draw(stroke, offset: offset, selection: selection ?? .infinite)
             } else {
                 BrushRenderer.draw(stroke, offset: offset, laserDelay: .infinity)
             }
@@ -580,8 +591,11 @@ final class CaptureSession {
             }
         }
         guard flags.isEmpty, selection != nil, let c = event.charactersIgnoringModifiers?.lowercased().first else { return false }
-        if let digit = c.wholeNumberValue, digit >= 1, digit <= BrushTool.capture.count {
-            selectTool(BrushTool.capture[digit - 1])
+        // 1–9, then 0 for the tenth.
+        if let digit = c.wholeNumberValue {
+            let index = digit == 0 ? 9 : digit - 1
+            guard BrushTool.capture.indices.contains(index) else { return false }
+            selectTool(BrushTool.capture[index])
             return true
         }
         if let match = BrushTool.capture.first(where: { $0.key == c }) {

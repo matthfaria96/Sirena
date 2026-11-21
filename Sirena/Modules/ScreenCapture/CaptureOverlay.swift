@@ -110,8 +110,12 @@ final class CaptureOverlayView: NSView, NSTextFieldDelegate {
             let size = "\(Int(hover.width)) × \(Int(hover.height))"
             label = session.hoverWindow.map { "\($0.owner)  ·  \(size)" } ?? "\(L("Whole screen"))  ·  \(size)"
         }
-        let dim: CGFloat = selection != nil ? 0.42 : hover != nil ? 0.3 : (session.selection == nil ? 0.2 : 0.42)
-        decor.update(hole: selection ?? hover, dim: dim, line: selection ?? hover,
+        // The whole screen darkens as soon as the capture opens (the desktop under the pointer
+        // included); a window under the pointer and the selection stay clear.
+        let pickingDisplay = hover != nil && session.hoverWindow == nil
+        let hole = selection ?? (pickingDisplay ? nil : hover)
+        let dim: CGFloat = session.selection != nil ? 0.5 : 0.4
+        decor.update(hole: hole, dim: dim, line: selection ?? hover,
                      lineAlpha: selection != nil ? 1 : 0.7,
                      handles: selection != nil && session.drag != .drawing,
                      label: label, labelInside: selection == nil, scale: scale)

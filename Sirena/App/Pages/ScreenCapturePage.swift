@@ -133,7 +133,7 @@ private struct ScreenCaptureSettingsView: View {
             Section {
                 keyRow(L("Copy · Save · Record"), "⌘C  ⌘S  ⌘R")
                 keyRow(L("Return or double click"), controller.primaryAction.title)
-                keyRow(L("Tools"), "1–9 · P L A R O H T B N")
+                keyRow(L("Tools"), "1–9, 0 · P L A R O H T B N M")
                 keyRow(L("Color · Thickness"), "C · [  ]")
                 keyRow(L("Undo · Redo"), "⌘Z  ⇧⌘Z")
                 keyRow(L("Move the selection"), "← ↑ → ↓ · ⇧ 10 pt")
@@ -173,7 +173,7 @@ private struct HowItWorks: View {
         HStack(alignment: .top, spacing: 10) {
             step(symbol: "keyboard", title: shortcut, detail: L("Freezes the screen, menus and all"))
             step(symbol: "rectangle.dashed", title: L("Select"), detail: L("Drag an area, or click a window or the desktop"))
-            step(symbol: "pencil.tip.crop.circle", title: L("Mark up"), detail: L("Arrows, text, steps, pixelate…"))
+            step(symbol: "pencil.tip.crop.circle", title: L("Mark up"), detail: L("Arrows, text, steps, ruler, pixelate…"))
             step(symbol: "doc.on.doc", title: L("Copy, save or record"), detail: L("From the bar under the selection"))
         }
     }

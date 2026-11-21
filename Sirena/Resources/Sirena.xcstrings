@@ -16692,16 +16692,6 @@
         }
       }
     },
-    "Arrows, text, steps, pixelate…": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Setas, texto, passos, pixelar…"
-          }
-        }
-      }
-    },
     "Click to open the setting, then capture again.": {
       "localizations": {
         "pt-BR": {
@@ -17348,6 +17338,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "⇧⌘5 — no lugar da barra de Captura de Tela do macOS"
+          }
+        }
+      }
+    },
+    "Arrows, text, steps, ruler, pixelate…": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setas, texto, passos, régua, pixelar…"
+          }
+        }
+      }
+    },
+    "Ruler": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Régua"
           }
         }
       }

@@ -7,8 +7,9 @@ import AppKit
 
 enum BrushTool: String, CaseIterable, Identifiable {
     case pen, highlighter, laser, line, arrow, rectangle, ellipse, text, eraser
-    /// Screen capture only: hides what is under a rectangle, and numbered steps.
-    case pixelate, counter
+    /// Screen capture only: hides what is under a rectangle, numbered steps and a straight
+    /// ruler with a guide across the selection (`CaptureRuler`).
+    case pixelate, counter, ruler
 
     var id: String { rawValue }
 
@@ -25,6 +26,7 @@ enum BrushTool: String, CaseIterable, Identifiable {
         case .eraser: return L("Eraser")
         case .pixelate: return L("Pixelate")
         case .counter: return L("Numbered Steps")
+        case .ruler: return L("Ruler")
         }
     }
 
@@ -41,10 +43,11 @@ enum BrushTool: String, CaseIterable, Identifiable {
         case .eraser: return "eraser"
         case .pixelate: return "checkerboard.rectangle"
         case .counter: return "1.circle"
+        case .ruler: return "ruler"
         }
     }
 
-    /// Letter that selects the tool while drawing (numbers 1–9 follow the list order).
+    /// Letter that selects the tool while drawing (numbers 1–9, then 0, follow the list order).
     var key: Character {
         switch self {
         case .pen: return "p"
@@ -58,6 +61,7 @@ enum BrushTool: String, CaseIterable, Identifiable {
         case .eraser: return "e"
         case .pixelate: return "b"
         case .counter: return "n"
+        case .ruler: return "m"
         }
     }
 
@@ -65,9 +69,9 @@ enum BrushTool: String, CaseIterable, Identifiable {
     static let available: [BrushTool] = [.pen, .highlighter, .arrow, .rectangle, .ellipse, .text, .eraser]
 
     /// The marks of a screen capture, in the order of its toolbar.
-    static let capture: [BrushTool] = [.pen, .line, .arrow, .rectangle, .ellipse, .highlighter, .text, .pixelate, .counter]
+    static let capture: [BrushTool] = [.pen, .line, .arrow, .rectangle, .ellipse, .highlighter, .text, .pixelate, .counter, .ruler]
 
-    var isShape: Bool { [.line, .arrow, .rectangle, .ellipse, .pixelate].contains(self) }
+    var isShape: Bool { [.line, .arrow, .rectangle, .ellipse, .pixelate, .ruler].contains(self) }
 }
 
 enum BrushPalette {
@@ -219,6 +223,8 @@ final class BrushDocument {
 /// Turns strokes into paths and paints them.
 enum BrushRenderer {
     static let fadeDuration: TimeInterval = 0.6
+    /// How far a ruler's guide runs past its ends (the selection's clip stops it).
+    static let rulerReach: CGFloat = 10_000
 
     /// Smooth path through the points: quadratic curves between the midpoints.
     static func smoothPath(_ pts: [CGPoint]) -> NSBezierPath {
@@ -247,7 +253,7 @@ enum BrushRenderer {
         switch s.tool {
         case .pen, .highlighter, .laser, .eraser:
             return smoothPath(s.points)
-        case .line:
+        case .line, .ruler:
             let p = NSBezierPath(); p.move(to: a); p.line(to: b); return p
         case .arrow:
             let p = NSBezierPath(); p.move(to: a); p.line(to: b)
@@ -286,6 +292,13 @@ enum BrushRenderer {
     /// Area a stroke paints, glow and arrow head included.
     static func bounds(_ s: BrushStroke) -> CGRect {
         if s.tool == .text { return textRect(s).insetBy(dx: -8, dy: -8) }
+        if s.tool == .ruler, let a = s.points.first, let b = s.points.last {
+            // The guide and the length label.
+            let length = hypot(b.x - a.x, b.y - a.y)
+            guard length > 0 else { return CGRect(origin: a, size: .zero).insetBy(dx: -48, dy: -48) }
+            let dx = (b.x - a.x) / length * rulerReach, dy = (b.y - a.y) / length * rulerReach
+            return rect(CGPoint(x: a.x - dx, y: a.y - dy), CGPoint(x: b.x + dx, y: b.y + dy)).insetBy(dx: -48, dy: -48)
+        }
         let pad = s.width * 4 + 24
         return path(for: s).bounds.insetBy(dx: -pad, dy: -pad)
     }

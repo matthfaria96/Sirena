@@ -17,6 +17,8 @@ struct CaptureToolsBar: View {
         ZStack(alignment: .top) {
             VStack(spacing: 2) {
                 ForEach(BrushTool.capture) { tool in
+                    // The ruler measures rather than marks: a group of its own.
+                    if tool == .ruler { CaptureBarDivider(vertical: false) }
                     CaptureBarButton(hint: "\(tool.title)  \(tool.key.uppercased())", selected: session.tool == tool,
                                      session: session) {
                         session.selectTool(tool)

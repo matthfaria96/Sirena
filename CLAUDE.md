@@ -113,7 +113,8 @@ keyboards) opens a frozen selection overlay (`Sirena/Modules/ScreenCapture/`): `
 freezes every display with ScreenCaptureKit, `CaptureSession` owns the selection, marks and keys,
 `CaptureOverlay`/`CaptureToolbars` draw it, `CaptureRecorder` records an area, display or window
 (SCStream + SCRecordingOutput, `screencapture -v` as fallback). Marks reuse Desenhar's
-`BrushDocument`/`BrushRenderer` (`BrushTool.capture`). No event tap.
+`BrushDocument`/`BrushRenderer` (`BrushTool.capture`); the ruler (`CaptureRuler`, capture only)
+snaps straight, ends on pixel centers and carries a dashed guide across the selection. No event tap.
 - When the shortcut is one of macOS's screenshot keys, `syncMacShortcut` claims only the matching
   symbolic hotkey through `SwitcherSystemShortcutTakeover` (source `screenCapture`) while Sirena
   runs. `restoreAll` happens once, in `ModuleManager.terminate`; a module's own `terminate` only
