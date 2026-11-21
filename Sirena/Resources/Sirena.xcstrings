@@ -16691,6 +16691,666 @@
           }
         }
       }
+    },
+    "Arrows, text, steps, pixelate…": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setas, texto, passos, pixelar…"
+          }
+        }
+      }
+    },
+    "Click to open the setting, then capture again.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clique para abrir o ajuste e depois capture de novo."
+          }
+        }
+      }
+    },
+    "Close  Esc": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fechar  Esc"
+          }
+        }
+      }
+    },
+    "Color  C": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cor  C"
+          }
+        }
+      }
+    },
+    "Color · Thickness": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cor · Espessura"
+          }
+        }
+      }
+    },
+    "Copy  ⌘C": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar  ⌘C"
+          }
+        }
+      }
+    },
+    "Copy and Save": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar e salvar"
+          }
+        }
+      }
+    },
+    "Copy when saving": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar ao salvar"
+          }
+        }
+      }
+    },
+    "Copy · Save · Record": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar · Salvar · Gravar"
+          }
+        }
+      }
+    },
+    "Copy, save or record": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copie, salve ou grave"
+          }
+        }
+      }
+    },
+    "Couldn't save the screenshot": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não deu para salvar a captura"
+          }
+        }
+      }
+    },
+    "Couldn't start recording": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não deu para começar a gravação"
+          }
+        }
+      }
+    },
+    "Discard": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descartar"
+          }
+        }
+      }
+    },
+    "Discard the recording": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descartar a gravação"
+          }
+        }
+      }
+    },
+    "Drag an area, or click a window or the desktop": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arraste uma área, ou clique numa janela ou na mesa"
+          }
+        }
+      }
+    },
+    "During a Capture": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Durante a captura"
+          }
+        }
+      }
+    },
+    "F13 — Print Screen only": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "F13 — só o Print Screen"
+          }
+        }
+      }
+    },
+    "Freezes the screen, menus and all": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Congela a tela, com menus e tudo"
+          }
+        }
+      }
+    },
+    "Freezes the screen: drag an area or click a window, mark it up, then copy, save or record it.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Congela a tela: arraste uma área ou clique numa janela, faça marcações e copie, salve ou grave."
+          }
+        }
+      }
+    },
+    "From the bar under the selection": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pela barra embaixo da seleção"
+          }
+        }
+      }
+    },
+    "Highlights the window under the pointer; a click on the desktop takes the whole screen.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Destaca a janela sob o ponteiro; um clique na mesa pega a tela inteira."
+          }
+        }
+      }
+    },
+    "Include the pointer": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Incluir o ponteiro"
+          }
+        }
+      }
+    },
+    "Inspired by Lightshot, written for Sirena": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inspirado no Lightshot, escrito para o Sirena"
+          }
+        }
+      }
+    },
+    "Logitech keyboards: the screenshot key sends a macOS screenshot shortcut. If it doesn't open this capture, set the same shortcut here as in Logi Options+.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teclados Logitech: a tecla de captura manda um atalho de captura do macOS. Se ela não abrir esta captura, use aqui o mesmo atalho configurado no Logi Options+."
+          }
+        }
+      }
+    },
+    "Loupe while selecting": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lupa ao selecionar"
+          }
+        }
+      }
+    },
+    "Mark up": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marque"
+          }
+        }
+      }
+    },
+    "Move the selection": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mover a seleção"
+          }
+        }
+      }
+    },
+    "Needed to freeze the screen and to record it.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Necessária para congelar e gravar a tela."
+          }
+        }
+      }
+    },
+    "Numbered Steps": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passos numerados"
+          }
+        }
+      }
+    },
+    "One key freezes the screen: drag an area or click a window, mark it up, then copy, save or record it.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uma tecla congela a tela: arraste uma área ou clique numa janela, faça marcações e copie, salve ou grave."
+          }
+        }
+      }
+    },
+    "Open in Preview or QuickTime after saving": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir no Pré-Visualização ou QuickTime depois de salvar"
+          }
+        }
+      }
+    },
+    "PC keyboards: the Print Screen key reaches the Mac as F13.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teclados de PC: a tecla Print Screen chega ao Mac como F13."
+          }
+        }
+      }
+    },
+    "Pick windows with a click": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pegar janelas com um clique"
+          }
+        }
+      }
+    },
+    "Pixelate": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pixelar"
+          }
+        }
+      }
+    },
+    "Print Screen too": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Print Screen também"
+          }
+        }
+      }
+    },
+    "Ready — %@ to capture": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pronto — %@ para capturar"
+          }
+        }
+      }
+    },
+    "Record the Mac's sound": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gravar o som do Mac"
+          }
+        }
+      }
+    },
+    "Record this area  ⌘R": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gravar esta área  ⌘R"
+          }
+        }
+      }
+    },
+    "Record this window  ⌘R": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gravar esta janela  ⌘R"
+          }
+        }
+      }
+    },
+    "Recording discarded": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gravação descartada"
+          }
+        }
+      }
+    },
+    "Recording failed": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A gravação falhou"
+          }
+        }
+      }
+    },
+    "Return and double click": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Return e duplo clique"
+          }
+        }
+      }
+    },
+    "Return or double click": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Return ou duplo clique"
+          }
+        }
+      }
+    },
+    "Save": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salvar"
+          }
+        }
+      }
+    },
+    "Save  ⌘S": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salvar  ⌘S"
+          }
+        }
+      }
+    },
+    "Saving also puts the screenshot (or the recording) on the clipboard.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ao salvar, a captura (ou a gravação) também vai para a área de transferência."
+          }
+        }
+      }
+    },
+    "Screen Capture freezes the screen to select from it.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A Captura de Tela congela a tela para você selecionar."
+          }
+        }
+      }
+    },
+    "Screen Recording needed": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Falta a permissão de Gravação de Tela"
+          }
+        }
+      }
+    },
+    "Screenshot copied": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Captura copiada"
+          }
+        }
+      }
+    },
+    "Screenshot saved": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Captura salva"
+          }
+        }
+      }
+    },
+    "Screenshot saved and copied": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Captura salva e copiada"
+          }
+        }
+      }
+    },
+    "Select": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selecione"
+          }
+        }
+      }
+    },
+    "Select an area or a window, mark it up, then copy, save or record it.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selecione uma área ou janela, faça marcações e copie, salve ou grave."
+          }
+        }
+      }
+    },
+    "Select an area or click a window, then the red button on the bar. A window is followed even when it moves or is covered. Stop from the button under the area, the shortcut again or Capture in the ⚡ menu.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selecione uma área ou clique numa janela e depois no botão vermelho da barra. Uma janela é seguida mesmo se ela se mover ou ficar coberta. Pare pelo botão embaixo da área, pelo atalho de novo ou pelo Capturar no menu ⚡."
+          }
+        }
+      }
+    },
+    "Shortcuts that work well for capturing; macOS's own ones are handed back when you pick another.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atalhos bons para capturar; os do próprio macOS voltam para ele quando você escolhe outro."
+          }
+        }
+      }
+    },
+    "Squares and straight lines": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quadrados e retas"
+          }
+        }
+      }
+    },
+    "Suggestions": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sugestões"
+          }
+        }
+      }
+    },
+    "The window or display to record is no longer there.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A janela ou tela a gravar não está mais lá."
+          }
+        }
+      }
+    },
+    "Thickness  [ ]": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Espessura  [ ]"
+          }
+        }
+      }
+    },
+    "Undo  ⌘Z": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desfazer  ⌘Z"
+          }
+        }
+      }
+    },
+    "Undo · Redo": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desfazer · Refazer"
+          }
+        }
+      }
+    },
+    "Where it was when you pressed the shortcut.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Onde ele estava quando você apertou o atalho."
+          }
+        }
+      }
+    },
+    "While Sirena is open, %@ opens this capture instead of macOS's. macOS gets it back when you pick another shortcut or quit Sirena.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Com o Sirena aberto, o %@ abre esta captura no lugar da do macOS. O macOS o recebe de volta quando você escolhe outro atalho ou fecha o Sirena."
+          }
+        }
+      }
+    },
+    "⇧⌘2 — free in macOS": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⇧⌘2 — livre no macOS"
+          }
+        }
+      }
+    },
+    "⇧⌘4 — in place of macOS's area screenshot": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⇧⌘4 — no lugar da captura de área do macOS"
+          }
+        }
+      }
+    },
+    "⇧⌘5 — in place of macOS's Screenshot toolbar": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⇧⌘5 — no lugar da barra de Captura de Tela do macOS"
+          }
+        }
+      }
     }
   }
 }

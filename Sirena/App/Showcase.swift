@@ -7,7 +7,7 @@
 /// - SIRENA_OPEN_PAGE=<module id|general|about|home> (and SIRENA_OPEN_TAB) picks the page;
 ///   mac-settings still opens General (pick its tab with SIRENA_OPEN_TAB=permissions|system).
 /// - SIRENA_SHOW_PANEL=1 shows the menu bar panel in a popover instead of the window;
-///   SIRENA_PANEL_INLINE=clipboard|pomodoro|screenCapture opens one of its inline panels.
+///   SIRENA_PANEL_INLINE=clipboard|pomodoro opens one of its inline panels.
 /// - SIRENA_SHOWCASE_SCREEN=left puts everything on the leftmost display.
 
 import AppKit

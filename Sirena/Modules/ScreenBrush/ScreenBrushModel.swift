@@ -7,6 +7,8 @@ import AppKit
 
 enum BrushTool: String, CaseIterable, Identifiable {
     case pen, highlighter, laser, line, arrow, rectangle, ellipse, text, eraser
+    /// Screen capture only: hides what is under a rectangle, and numbered steps.
+    case pixelate, counter
 
     var id: String { rawValue }
 
@@ -21,6 +23,8 @@ enum BrushTool: String, CaseIterable, Identifiable {
         case .ellipse: return L("Ellipse")
         case .text: return L("Text")
         case .eraser: return L("Eraser")
+        case .pixelate: return L("Pixelate")
+        case .counter: return L("Numbered Steps")
         }
     }
 
@@ -35,6 +39,8 @@ enum BrushTool: String, CaseIterable, Identifiable {
         case .ellipse: return "circle"
         case .text: return "textformat"
         case .eraser: return "eraser"
+        case .pixelate: return "checkerboard.rectangle"
+        case .counter: return "1.circle"
         }
     }
 
@@ -50,13 +56,18 @@ enum BrushTool: String, CaseIterable, Identifiable {
         case .ellipse: return "o"
         case .text: return "t"
         case .eraser: return "e"
+        case .pixelate: return "b"
+        case .counter: return "n"
         }
     }
 
     /// The tools offered (the laser pen and the plain line were left out on request).
     static let available: [BrushTool] = [.pen, .highlighter, .arrow, .rectangle, .ellipse, .text, .eraser]
 
-    var isShape: Bool { [.line, .arrow, .rectangle, .ellipse].contains(self) }
+    /// The marks of a screen capture, in the order of its toolbar.
+    static let capture: [BrushTool] = [.pen, .line, .arrow, .rectangle, .ellipse, .highlighter, .text, .pixelate, .counter]
+
+    var isShape: Bool { [.line, .arrow, .rectangle, .ellipse, .pixelate].contains(self) }
 }
 
 enum BrushPalette {
@@ -81,6 +92,8 @@ struct BrushStroke: Identifiable {
     var filled = false
 
     var fontSize: CGFloat { 12 + width * 3 }
+    /// Radius of a numbered step's disc.
+    var counterRadius: CGFloat { 10 + width * 1.5 }
 }
 
 /// What changed in the document, so the overlays repaint only what they must.
@@ -251,6 +264,11 @@ enum BrushRenderer {
             return NSBezierPath(ovalIn: rect(a, b))
         case .text:
             return NSBezierPath(rect: textRect(s))
+        case .pixelate:
+            return NSBezierPath(rect: rect(a, b))
+        case .counter:
+            let r = s.counterRadius
+            return NSBezierPath(ovalIn: CGRect(x: a.x - r, y: a.y - r, width: r * 2, height: r * 2))
         }
     }
 
@@ -308,8 +326,19 @@ enum BrushRenderer {
             return
         }
 
+        if s.tool == .counter {
+            drawCounter(s, offset: offset)
+            return
+        }
+
         let path = self.path(for: s)
         path.transform(using: transform)
+        if s.tool == .pixelate {
+            // The pixels come from the captured image (CaptureMarksView); without one, a veil.
+            NSColor.gray.withAlphaComponent(0.6).setFill()
+            path.fill()
+            return
+        }
         path.lineCapStyle = .round
         path.lineJoinStyle = .round
         switch s.tool {
@@ -334,4 +363,35 @@ enum BrushRenderer {
         }
         path.stroke()
     }
+
+    /// A numbered step: a disc in the stroke's color with its number in the middle.
+    private static func drawCounter(_ s: BrushStroke, offset: CGPoint) {
+        guard let p = s.points.first else { return }
+        let r = s.counterRadius
+        let disc = CGRect(x: p.x - offset.x - r, y: p.y - offset.y - r, width: r * 2, height: r * 2)
+        let shadow = NSShadow()
+        shadow.shadowBlurRadius = 3
+        shadow.shadowOffset = NSSize(width: 0, height: -1)
+        shadow.shadowColor = NSColor.black.withAlphaComponent(0.3)
+        NSGraphicsContext.saveGraphicsState()
+        shadow.set()
+        s.color.setFill()
+        NSBezierPath(ovalIn: disc).fill()
+        NSGraphicsContext.restoreGraphicsState()
+        NSColor.white.withAlphaComponent(0.9).setStroke()
+        let rim = NSBezierPath(ovalIn: disc.insetBy(dx: 1, dy: 1))
+        rim.lineWidth = 1.5
+        rim.stroke()
+        // Dark digits on light discs (yellow, white), white on the rest.
+        let rgb = s.color.usingColorSpace(.sRGB) ?? s.color
+        let light = 0.299 * rgb.redComponent + 0.587 * rgb.greenComponent + 0.114 * rgb.blueComponent > 0.7
+        let attributes: [NSAttributedString.Key: Any] = [
+            .font: NSFont.monospacedDigitSystemFont(ofSize: r * 1.1, weight: .bold),
+            .foregroundColor: light ? NSColor.black : NSColor.white
+        ]
+        let size = (s.text as NSString).size(withAttributes: attributes)
+        (s.text as NSString).draw(at: CGPoint(x: disc.midX - size.width / 2, y: disc.midY - size.height / 2),
+                                  withAttributes: attributes)
+    }
 }
+

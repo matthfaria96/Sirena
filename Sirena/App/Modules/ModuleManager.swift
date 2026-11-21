@@ -153,6 +153,8 @@ final class ModuleManager {
         if running.contains(.pomodoro) { PomodoroController.shared.terminate() }
         if running.contains(.colorPicker) { ColorPickerController.shared.terminate() }
         if running.contains(.screenBrush) { ScreenBrushController.shared.terminate() }
+        // Every macOS shortcut a feature took over (⌘ Tab, ⇧⌘4…) goes back on quit.
+        SwitcherSystemShortcutTakeover.restoreAll()
     }
 
     /// Quits and reopens Sirena.

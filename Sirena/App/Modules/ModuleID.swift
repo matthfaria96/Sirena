@@ -65,7 +65,7 @@ enum ModuleID: String, CaseIterable, Identifiable {
         case .textCapture: return L("Select any part of the screen and copy its text, QR codes and barcodes, even from images and videos.")
         case .tweaks: return L("Small improvements for the Finder.")
         case .shelf: return L("Start dragging anything and a shelf appears at the screen edge: drop it there, move on, and drag it back out where it needs to go.")
-        case .screenCapture: return L("A custom shortcut to Apple's Screenshot app: take an area or the whole screen, or record either, starting right in the mode you pick.")
+        case .screenCapture: return L("One key freezes the screen: drag an area or click a window, mark it up, then copy, save or record it.")
         case .pomodoro: return L("A focus timer: work in sessions, take short and long breaks, and keep track of your day.")
         case .colorPicker: return L("Pick any color on the screen and keep a library of colors in every format.")
         case .screenBrush: return L("Draw, highlight and point on top of everything on the screen, for presentations and calls.")
@@ -154,7 +154,8 @@ enum ModuleID: String, CaseIterable, Identifiable {
         // Yoink is closed source: Shelf is written from scratch after its feature list.
         case .shelf: return ("Yoink", L("Inspired by Yoink, written for Sirena"), L("Original"), "https://eternalstorms.at/yoink/mac/")
         // Flow, Pastel and ScreenBrush are closed source: written from scratch after their feature lists.
-        case .screenCapture: return ("Screenshot", L("Built on macOS's Screenshot tool"), L("Original"), "https://support.apple.com/102646")
+        // Lightshot is closed source: Screen Capture is written from scratch after its way of working.
+        case .screenCapture: return ("Lightshot", L("Inspired by Lightshot, written for Sirena"), L("Original"), "https://app.prntscr.com")
         case .pomodoro: return ("Flow", L("Inspired by Flow, written for Sirena"), L("Original"), "https://flowapp.info")
         case .colorPicker: return ("Pastel", L("Inspired by Pastel, written for Sirena"), L("Original"), "https://pastelapp.io")
         case .screenBrush: return ("ScreenBrush", L("Inspired by ScreenBrush, written for Sirena"), L("Original"), "https://imagestudiopro.com")

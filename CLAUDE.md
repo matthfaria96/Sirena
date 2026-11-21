@@ -106,6 +106,19 @@ The Dock lock (`DockLocker`) is started only through `DockLockService`, never by
 App-to-display rules use AX observers on their own thread, no tap; their geometry is tested by
 `scripts/test-app-screen-placement.sh`. A resolution change always reverts by itself unless kept.
 
+## Captura de Tela
+
+One shortcut (⇧⌘4 by default, `screenCaptureShortcut_capture`) plus F13 (Print Screen on PC
+keyboards) opens a frozen selection overlay (`Sirena/Modules/ScreenCapture/`): `CaptureSnapshot`
+freezes every display with ScreenCaptureKit, `CaptureSession` owns the selection, marks and keys,
+`CaptureOverlay`/`CaptureToolbars` draw it, `CaptureRecorder` records an area, display or window
+(SCStream + SCRecordingOutput, `screencapture -v` as fallback). Marks reuse Desenhar's
+`BrushDocument`/`BrushRenderer` (`BrushTool.capture`). No event tap.
+- When the shortcut is one of macOS's screenshot keys, `syncMacShortcut` claims only the matching
+  symbolic hotkey through `SwitcherSystemShortcutTakeover` (source `screenCapture`) while Sirena
+  runs. `restoreAll` happens once, in `ModuleManager.terminate`; a module's own `terminate` only
+  calls `setWanted([], for:)`, or it would hand back another module's keys.
+
 ## Showcase mode (site screenshots)
 
 `SIRENA_SHOWCASE=1` (`Sirena/App/Showcase.swift`) is for the witchmymac.com screenshots. Nothing
@@ -114,7 +127,7 @@ bar icon or onboarding, and no permission is asked. Pages show permissions as gr
 clipboard history gets fictional entries (`ClipboardKit/ShowcaseHistory.swift`, only into an
 empty store). `SIRENA_OPEN_PAGE=<module id|general|about|home>` (+ `SIRENA_OPEN_TAB`) picks the
 page; `SIRENA_SHOW_PANEL=1` shows the menu bar panel in a popover instead, with
-`SIRENA_PANEL_INLINE=clipboard|pomodoro|screenCapture` for an inline panel;
+`SIRENA_PANEL_INLINE=clipboard|pomodoro` for an inline panel;
 `SIRENA_SHOWCASE_SCREEN=left` uses the leftmost display. Run a renamed copy (bundle id
 `com.matheusfaria.Sirena.showcase`, no `PlugIns/`, no `NSServices`/`CFBundleURLTypes`/
 `UTExportedTypeDeclarations`/`SUFeedURL`, ad hoc signed) with `CFFIXED_USER_HOME=<temp home>` and

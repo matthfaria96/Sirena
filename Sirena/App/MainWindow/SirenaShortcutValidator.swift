@@ -25,6 +25,11 @@ final class SirenaShortcutValidator: MASShortcutValidator {
             explanation?.pointee = String(format: L("Sirena already uses this shortcut for “%@”."), owner) as NSString
             return true
         }
+        // Screen Capture takes macOS's own screenshot keys over (⇧⌘4 by default).
+        if ownKey == ScreenCaptureController.shortcutKey, let shortcut,
+           ScreenCaptureController.isMacScreenshotShortcut(shortcut) {
+            return false
+        }
         return super.isShortcutAlreadyTaken(bySystem: shortcut, explanation: explanation)
     }
 

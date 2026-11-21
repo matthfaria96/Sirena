@@ -62,8 +62,9 @@ final class WindowSwitcherController {
         SwitcherAppSwitcher.shared.syncWithPreferences()
         SwitcherAppSwitcher.shared.suspend()
         SwitcherWindowUseTracker.shared.syncWithFeatures()
+        // Only the switcher's own keys: Screen Capture may hold ⇧⌘4 while Sirena keeps
+        // running. Quitting gives every key back (ModuleManager.terminate).
         SwitcherSystemShortcutTakeover.setWanted([], for: SwitcherSystemShortcutTakeover.switcherSource)
-        SwitcherSystemShortcutTakeover.restoreAll()
     }
 
     /// Re-applies the stored preferences (shortcut, take-over, layout…).

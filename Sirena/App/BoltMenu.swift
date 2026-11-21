@@ -54,7 +54,7 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
         case .clipboard: return L("Everything you copied, ready to paste again.")
         case .pinWindow: return L("Keeps a window on top of all the others.")
         case .textCapture: return L("Copies the text from any part of the screen.")
-        case .screenCapture: return L("A custom shortcut to Apple's Screenshot app: an area, the whole screen or a recording, in one click.")
+        case .screenCapture: return L("Select an area or a window, mark it up, then copy, save or record it.")
         case .pomodoro: return L("A focus timer: work in sessions and take short and long breaks on their own.")
         case .colorPicker: return L("Picks any color on the screen and copies it in the format you use, with history and palettes.")
         case .screenBrush: return L("Draw, highlight and point on top of the screen, for presentations and calls.")
@@ -89,7 +89,7 @@ enum BoltMenuItem: String, CaseIterable, Identifiable {
         case .clipboard: return L("Opens the list of everything you copied, to paste it again.")
         case .pinWindow: return L("Choose a window to keep floating above all the others.")
         case .textCapture: return L("Select an area of the screen and copy the text in it, even from images and videos.")
-        case .screenCapture: return L("Screenshot of an area or the whole screen, or a recording of either, with macOS's own tool.")
+        case .screenCapture: return L("Freezes the screen: drag an area or click a window, mark it up, then copy, save or record it.")
         case .pomodoro: return L("Starts or pauses a focus session; breaks follow on their own.")
         case .colorPicker: return L("Opens a magnifier to pick a color from anywhere on the screen and copies it.")
         case .screenBrush: return L("Turns the screen into a canvas to draw, highlight and point. Esc to leave.")
@@ -265,7 +265,6 @@ struct BoltMenuView: View {
     /// Inline panels under the shortcut row (camera peek and the last copies).
     @State private var showsPeek = false
     @State private var showsHistory = false
-    @State private var showsCapture = false
     @State private var showsFocus = false
     @State private var manager = ModuleManager.shared
 
@@ -310,13 +309,6 @@ struct BoltMenuView: View {
                     InlineFocusPanel {
                         close()
                         ModuleManager.shared.openPage(.module(.pomodoro))
-                    }
-                    .transition(.opacity.combined(with: .move(edge: .top)))
-                }
-                if showsCapture {
-                    InlineCapturePanel { action in
-                        close()
-                        ScreenCaptureController.shared.run(action)
                     }
                     .transition(.opacity.combined(with: .move(edge: .top)))
                 }
@@ -371,7 +363,6 @@ struct BoltMenuView: View {
         }
         .animation(.snappy(duration: 0.28), value: showsPeek)
         .animation(.snappy(duration: 0.28), value: showsHistory)
-        .animation(.snappy(duration: 0.28), value: showsCapture)
         .animation(.snappy(duration: 0.28), value: showsFocus)
         .onAppear {
             if let item = settings.openInline {
@@ -385,19 +376,20 @@ struct BoltMenuView: View {
         switch item {
         case .mirror: return showsPeek
         case .clipboard: return showsHistory
-        case .screenCapture: return showsCapture || ScreenCaptureController.shared.isRecording
+        case .screenCapture: return ScreenCaptureController.shared.isRecording
         case .pomodoro: return showsFocus
         default: return false
         }
     }
 
-    /// Histórico, Capturar and Espiar unroll inside the menu; the others run and close it.
+    /// Histórico, Foco and Espiar unroll inside the menu; the others run and close it
+    /// (Capturar too: the selection starts once the menu is gone, or a recording stops).
     private func tap(_ item: BoltMenuItem) {
         if item == .screenCapture, ScreenCaptureController.shared.isRecording {
             ScreenCaptureController.shared.stopRecording()
             return
         }
-        guard [.mirror, .clipboard, .screenCapture, .pomodoro].contains(item) else {
+        guard [.mirror, .clipboard, .pomodoro].contains(item) else {
             close()
             item.perform()
             return
@@ -406,7 +398,6 @@ struct BoltMenuView: View {
             let open = !isInlineOpen(item)
             showsPeek = item == .mirror && open
             showsHistory = item == .clipboard && open
-            showsCapture = item == .screenCapture && open
             showsFocus = item == .pomodoro && open
         }
         if isInlineOpen(item) { NotificationCenter.default.post(name: .sirenaMixerCollapse, object: nil) }
@@ -496,50 +487,6 @@ private struct InlineFocusPanel: View {
         }
         .padding(12)
         .menuCard()
-    }
-}
-
-/// Capturar inside the menu: the four ways to start macOS's Screenshot tool.
-private struct InlineCapturePanel: View {
-    let run: (ScreenCaptureAction) -> Void
-
-    var body: some View {
-        LazyVGrid(columns: [GridItem(.flexible(), spacing: 6), GridItem(.flexible(), spacing: 6)], spacing: 6) {
-            ForEach(ScreenCaptureAction.allCases) { action in
-                CaptureOption(action: action) { run(action) }
-            }
-        }
-        .padding(8)
-        .menuCard()
-    }
-
-    private struct CaptureOption: View {
-        let action: ScreenCaptureAction
-        let run: () -> Void
-        @State private var isHovering = false
-
-        var body: some View {
-            Button(action: run) {
-                HStack(spacing: 8) {
-                    Image(systemName: action.symbol)
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(action.isRecording ? Color.red : Color.primary)
-                        .frame(width: 20)
-                    Text(action.title)
-                        .font(.callout)
-                        .lineLimit(1)
-                    Spacer(minLength: 0)
-                }
-                .padding(.horizontal, 10)
-                .frame(height: 34)
-                .background(isHovering ? AnyShapeStyle(.tertiary) : AnyShapeStyle(.quaternary.opacity(0.5)),
-                            in: RoundedRectangle(cornerRadius: 9, style: .continuous))
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(PressableStyle())
-            .onHover { hovering in withAnimation(.snappy(duration: 0.15)) { isHovering = hovering } }
-            .help(action.detail)
-        }
     }
 }
 

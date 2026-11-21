@@ -86,23 +86,6 @@ final class TweaksSettings {
     }
 }
 
-/// macOS's screenshot preferences (`com.apple.screencapture`), shared by ⇧⌘3/4/5 and
-/// the Screenshot app.
-enum ScreenshotPreferences {
-    private static let domain = "com.apple.screencapture" as CFString
-
-    static var showsCursor: Bool {
-        get {
-            CFPreferencesAppSynchronize(domain)
-            return CFPreferencesCopyAppValue("showsCursor" as CFString, domain) as? Bool ?? false
-        }
-        set {
-            CFPreferencesSetAppValue("showsCursor" as CFString, newValue as CFBoolean, domain)
-            CFPreferencesAppSynchronize(domain)
-        }
-    }
-}
-
 /// Sirena's Finder extension (SirenaFinder.appex, inside the app): the system keeps it
 /// on or off through PlugInKit, like the switch in System Settings › Login Items & Extensions.
 enum FinderCopyPathExtension {

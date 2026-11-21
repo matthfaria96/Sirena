@@ -1,23 +1,18 @@
 /// ScreenCapturePage.swift
+///
+/// Captura de Tela on one page: how it works, its one shortcut, what Return does, where
+/// files go, the recordings and the keys inside a capture.
 
+import Carbon.HIToolbox
 import SwiftUI
 
 struct ScreenCapturePage: View {
     var body: some View {
         ModulePage(module: .screenCapture, tabs: [
-            PageTab("general", L("General")) { ScreenCaptureSettingsView() },
-            PageTab("shortcuts", L("Shortcuts")) { ScreenCaptureShortcutsView() }
+            PageTab("general", L("General")) { ScreenCaptureSettingsView() }
         ]) {
-            Menu {
-                ForEach(ScreenCaptureAction.allCases) { action in
-                    Button { ScreenCaptureController.shared.run(action) } label: {
-                        Label(action.title, systemImage: action.symbol)
-                    }
-                }
-            } label: {
+            Button { ScreenCaptureController.shared.quickAction() } label: {
                 Label(L("Capture"), systemImage: "camera.fill")
-            } primaryAction: {
-                ScreenCaptureController.shared.run(.area)
             }
         }
     }
@@ -25,40 +20,89 @@ struct ScreenCapturePage: View {
 
 private struct ScreenCaptureSettingsView: View {
     @State private var controller = ScreenCaptureController.shared
+    @State private var recordingObserver = ShortcutRecordingObserver()
+    @State private var hasScreenRecording = Showcase.screenRecordingShown()
+    /// Re-read when the stored shortcut changes (the recorder writes it straight to the defaults).
+    @State private var shortcutText = ScreenCaptureController.shortcutText
 
     var body: some View {
         Form {
             Section {
-                // Two per row, small: the same actions live in the ⚡ menu, this is a shortcut.
-                Grid(horizontalSpacing: 10, verticalSpacing: 10) {
-                    ForEach(Array(stride(from: 0, to: ScreenCaptureAction.allCases.count, by: 2)), id: \.self) { index in
-                        GridRow {
-                            ForEach(ScreenCaptureAction.allCases[index..<min(index + 2, ScreenCaptureAction.allCases.count)]) { action in
-                                ActionTile(action: action, enabled: controller.isRunning) { controller.run(action) }
+                HowItWorks(shortcut: shortcutText ?? (controller.printScreen ? "F13" : "—"))
+                    .listRowInsets(EdgeInsets(top: 10, leading: 10, bottom: 10, trailing: 10))
+                if !hasScreenRecording {
+                    LabeledContent {
+                        Button(L("Allow…")) {
+                            if !CGRequestScreenCaptureAccess(),
+                               let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture") {
+                                NSWorkspace.shared.open(url)
                             }
+                        }
+                    } label: {
+                        Label {
+                            Text(L("Screen Recording"))
+                            Text(L("Needed to freeze the screen and to record it."))
+                        } icon: {
+                            Image(systemName: "rectangle.dashed.badge.record").foregroundStyle(.orange)
                         }
                     }
                 }
-                .padding(.vertical, 2)
-            } header: {
-                Text(L("Capture"))
-            } footer: {
-                Text(L("Uses macOS's own Screenshot tool, starting directly in the mode you pick."))
             }
 
             Section {
-                Toggle(isOn: $controller.copiesScreenshots) {
-                    Text(L("Copy screenshots to the clipboard"))
-                    Text(L("Besides saving the file."))
+                HStack {
+                    Text(L("Capture"))
+                    Spacer(minLength: 12)
+                    Menu {
+                        Button(L("⇧⌘4 — in place of macOS's area screenshot")) { set(kVK_ANSI_4, [.shift, .command]) }
+                        Button(L("⇧⌘5 — in place of macOS's Screenshot toolbar")) { set(kVK_ANSI_5, [.shift, .command]) }
+                        Button(L("⇧⌘2 — free in macOS")) { set(kVK_ANSI_2, [.shift, .command]) }
+                        Button(L("F13 — Print Screen only")) { set(kVK_F13, []) }
+                    } label: {
+                        Text(L("Suggestions"))
+                    }
+                    .menuStyle(.borderlessButton)
+                    .fixedSize()
+                    .help(L("Shortcuts that work well for capturing; macOS's own ones are handed back when you pick another."))
+                    MASShortcutViewRepresentable(defaultsKey: ScreenCaptureController.shortcutKey,
+                                                 validator: SirenaShortcutValidator(ownKey: ScreenCaptureController.shortcutKey),
+                                                 recordingObserver: recordingObserver)
+                        .frame(width: 160, height: 22)
+                        .fixedSize()
                 }
-                Toggle(isOn: Binding(get: { controller.showsCursor }, set: { on in
-                    controller.showsCursor = on
-                    ScreenshotPreferences.showsCursor = on
-                })) {
-                    Text(L("Include the pointer in screenshots"))
-                    Text(L("Full-screen ones, from here, the ⚡ menu and macOS's ⇧⌘3, ⇧⌘4 and ⇧⌘5."))
+                Toggle(isOn: $controller.printScreen) {
+                    Text(L("Print Screen too"))
+                    Text(L("PC keyboards: the Print Screen key reaches the Mac as F13."))
                 }
-                Toggle(L("Open in Preview or QuickTime afterwards"), isOn: $controller.opensAfterCapture)
+            } header: {
+                Text(L("Shortcut"))
+            } footer: {
+                VStack(alignment: .leading, spacing: 4) {
+                    if controller.holdsMacShortcut, let shortcutText {
+                        Text(String(format: L("While Sirena is open, %@ opens this capture instead of macOS's. macOS gets it back when you pick another shortcut or quit Sirena."), shortcutText))
+                    }
+                    Text(L("Logitech keyboards: the screenshot key sends a macOS screenshot shortcut. If it doesn't open this capture, set the same shortcut here as in Logi Options+."))
+                }
+            }
+
+            Section {
+                Picker(L("Return and double click"), selection: $controller.primaryAction) {
+                    ForEach(CapturePrimaryAction.allCases) { Text($0.title).tag($0) }
+                }
+                Toggle(isOn: $controller.copiesWhenSaving) {
+                    Text(L("Copy when saving"))
+                    Text(L("Saving also puts the screenshot (or the recording) on the clipboard."))
+                }
+                Toggle(isOn: $controller.detectsWindows) {
+                    Text(L("Pick windows with a click"))
+                    Text(L("Highlights the window under the pointer; a click on the desktop takes the whole screen."))
+                }
+                Toggle(L("Loupe while selecting"), isOn: $controller.showsLoupe)
+                Toggle(isOn: $controller.includesPointer) {
+                    Text(L("Include the pointer"))
+                    Text(L("Where it was when you pressed the shortcut."))
+                }
+                Toggle(L("Open in Preview or QuickTime after saving"), isOn: $controller.opensAfterCapture)
                 LabeledContent(L("Saved to")) {
                     HStack(spacing: 8) {
                         Picker(L("Saved to"), selection: $controller.destination) {
@@ -79,68 +123,78 @@ private struct ScreenCaptureSettingsView: View {
                     Text(L("Record the microphone"))
                     Text(L("Uses the default input."))
                 }
+                Toggle(L("Record the Mac's sound"), isOn: $controller.recordsSystemAudio)
             } header: {
                 Text(L("Recordings"))
             } footer: {
-                Text(L("Stop a recording from the red button at the top of the screen, or the Capture button in the ⚡ menu."))
+                Text(L("Select an area or click a window, then the red button on the bar. A window is followed even when it moves or is covered. Stop from the button under the area, the shortcut again or Capture in the ⚡ menu."))
             }
-        }
-        .formStyle(.grouped)
-    }
-}
 
-/// One capture mode: icon, name and a short line, the whole tile is the button.
-private struct ActionTile: View {
-    let action: ScreenCaptureAction
-    let enabled: Bool
-    let run: () -> Void
-    @State private var isHovering = false
-
-    var body: some View {
-        Button(action: run) {
-            HStack(spacing: 10) {
-                Image(systemName: action.symbol)
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(ModuleID.screenCapture.tint)
-                    .frame(width: 22)
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(action.title)
-                        .font(.callout.weight(.medium))
-                        .lineLimit(1)
-                    Text(action.detail)
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(2)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                Spacer(minLength: 0)
-            }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 8)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-            .background(.quaternary.opacity(isHovering ? 0.9 : 0.5), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .disabled(!enabled)
-        .onHover { isHovering = $0 }
-        .help(action.detail)
-    }
-}
-
-private struct ScreenCaptureShortcutsView: View {
-    @State private var recordingObserver = ShortcutRecordingObserver()
-
-    var body: some View {
-        Form {
             Section {
-                ForEach(ScreenCaptureAction.allCases) { action in
-                    ShortcutRow(title: action.title, defaultsKey: action.shortcutKey, recordingObserver: recordingObserver)
-                }
-            } footer: {
-                Text(L("Optional: macOS keeps ⇧⌘3, ⇧⌘4 and ⇧⌘5."))
+                keyRow(L("Copy · Save · Record"), "⌘C  ⌘S  ⌘R")
+                keyRow(L("Return or double click"), controller.primaryAction.title)
+                keyRow(L("Tools"), "1–9 · P L A R O H T B N")
+                keyRow(L("Color · Thickness"), "C · [  ]")
+                keyRow(L("Undo · Redo"), "⌘Z  ⇧⌘Z")
+                keyRow(L("Move the selection"), "← ↑ → ↓ · ⇧ 10 pt")
+                keyRow(L("Whole screen"), "⌘A")
+                keyRow(L("Squares and straight lines"), "⇧")
+                keyRow(L("Close"), "Esc")
+            } header: {
+                Text(L("During a Capture"))
             }
         }
         .formStyle(.grouped)
+        .onReceive(NotificationCenter.default.publisher(for: NSWindow.didBecomeKeyNotification)) { _ in
+            hasScreenRecording = Showcase.screenRecordingShown()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UserDefaults.didChangeNotification).receive(on: RunLoop.main)) { _ in
+            let text = ScreenCaptureController.shortcutText
+            if text != shortcutText { shortcutText = text }
+        }
+    }
+
+    private func set(_ keyCode: Int, _ modifiers: NSEvent.ModifierFlags) {
+        ScreenCaptureController.setShortcut(keyCode: keyCode, modifiers: modifiers)
+    }
+
+    private func keyRow(_ title: String, _ keys: String) -> some View {
+        LabeledContent(title) {
+            Text(keys).font(.body.monospaced()).foregroundStyle(.secondary)
+        }
+    }
+}
+
+/// Three steps, side by side: the key, the selection, what to do with it.
+private struct HowItWorks: View {
+    let shortcut: String
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 10) {
+            step(symbol: "keyboard", title: shortcut, detail: L("Freezes the screen, menus and all"))
+            step(symbol: "rectangle.dashed", title: L("Select"), detail: L("Drag an area, or click a window or the desktop"))
+            step(symbol: "pencil.tip.crop.circle", title: L("Mark up"), detail: L("Arrows, text, steps, pixelate…"))
+            step(symbol: "doc.on.doc", title: L("Copy, save or record"), detail: L("From the bar under the selection"))
+        }
+    }
+
+    private func step(symbol: String, title: String, detail: String) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Image(systemName: symbol)
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(ModuleID.screenCapture.tint)
+                .frame(height: 18)
+            Text(title)
+                .font(.callout.weight(.semibold))
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+            Text(detail)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .topLeading)
+        .padding(10)
+        .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 9, style: .continuous))
     }
 }
