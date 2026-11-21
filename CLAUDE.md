@@ -114,7 +114,16 @@ freezes every display with ScreenCaptureKit, `CaptureSession` owns the selection
 `CaptureOverlay`/`CaptureToolbars` draw it, `CaptureRecorder` records an area, display or window
 (SCStream + SCRecordingOutput, `screencapture -v` as fallback). Marks reuse Desenhar's
 `BrushDocument`/`BrushRenderer` (`BrushTool.capture`); the ruler (`CaptureRuler`, capture only)
-snaps straight, ends on pixel centers and carries a dashed guide across the selection. No event tap.
+snaps straight, ends on pixel centers, measures in the screen's pixels, has its own magenta (not
+the palette's) and carries a dashed guide across the selection. No event tap.
+- The bars sit beside the selection; when a column of tools fits on neither side (a whole display,
+  a maximized window) they become one row, centered low on what is visible of it (above the Dock).
+  Their clicks must stay theirs: the Dock interceptors leave Sirena's screen-saver-level overlays
+  alone (`.planning/codebase/WINDOW-AND-DOCK.md` §3).
+- A saved screenshot or recording shows `CaptureSavedCard` in the corner of the display it came
+  from (preview, folder, Show in Finder / Open; 8 s, longer under the pointer). A copy only gets
+  the small toast. The log (category `ScreenCapture`) records picks, tools and how a capture
+  ended, to tell why a button didn't answer.
 - When the shortcut is one of macOS's screenshot keys, `syncMacShortcut` claims only the matching
   symbolic hotkey through `SwitcherSystemShortcutTakeover` (source `screenCapture`) while Sirena
   runs. Logitech's camera key (F8 without fn on the MX Mechanical Mini) sends ⇧⌘4: the first

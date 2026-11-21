@@ -813,6 +813,26 @@ final class DockObserver {
     static let dockProximityBand: CGFloat = 220
     private static let dockItemHoverSlop: CGFloat = 8
 
+    /// Whether one of this app's windows at the screen-saver level or above (Screen Capture's
+    /// overlay, a drawing canvas) is under `point`: those cover the Dock, and a click or a
+    /// scroll there is theirs, never the Dock's. Window server only (no Accessibility).
+    static func ownOverlayCovers(_ point: CGPoint) -> Bool {
+        let own = getpid()
+        let floor = Int(CGWindowLevelForKey(.screenSaverWindow))
+        guard let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID)
+            as? [[String: Any]] else { return false }
+        // Front to back: past the screen-saver levels, nothing of ours can be on top.
+        for info in windows {
+            guard let layer = info[kCGWindowLayer as String] as? Int else { continue }
+            if layer < floor { return false }
+            guard (info[kCGWindowOwnerPID as String] as? pid_t) == own,
+                  let bounds = info[kCGWindowBounds as String] as? NSDictionary,
+                  let frame = CGRect(dictionaryRepresentation: bounds), frame.contains(point) else { continue }
+            return true
+        }
+        return false
+    }
+
     func isPointNearDock(_ point: CGPoint, band: CGFloat = DockObserver.dockProximityBand) -> Bool {
         let position = DockUtils.getDockPosition()
         var displayCount: UInt32 = 0
@@ -894,7 +914,8 @@ final class DockObserver {
                 return nil
             }
 
-            guard Defaults[.enableDockScrollGesture], !Defaults[.enableWindowGestures], isPointNearDock(event.location) else {
+            guard Defaults[.enableDockScrollGesture], !Defaults[.enableWindowGestures], isPointNearDock(event.location),
+                  !Self.ownOverlayCovers(event.location) else {
                 return Unmanaged.passUnretained(event)
             }
 
@@ -908,7 +929,7 @@ final class DockObserver {
             return Unmanaged.passUnretained(event)
         }
 
-        guard isPointNearDock(event.location) else {
+        guard isPointNearDock(event.location), !Self.ownOverlayCovers(event.location) else {
             return Unmanaged.passUnretained(event)
         }
 

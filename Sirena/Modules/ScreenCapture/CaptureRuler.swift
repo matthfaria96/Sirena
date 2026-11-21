@@ -1,13 +1,17 @@
 /// CaptureRuler.swift
 ///
 /// The capture's ruler, for checking a layout: always straight (across, down or at 45°),
-/// its ends on pixel centers, drawn one device pixel thin with a tick every 10 pt. A dashed
-/// guide carries it on across the whole selection, so what should line up with it shows at a
-/// glance, and a small label gives its length in points.
+/// its ends on pixel centers, drawn one device pixel thin in a color of its own (magenta, like
+/// a design tool's guides, whatever the marks' color) with a tick every 10 screen pixels. A
+/// dashed guide carries it on across the whole selection, so what should line up with it shows
+/// at a glance, and a small label gives its length in the screen's pixels.
 
 import AppKit
 
 enum CaptureRuler {
+    /// Its own color, apart from the palette: a measure never reads as a mark.
+    static let color = NSColor(srgbRed: 1, green: 0.17, blue: 0.75, alpha: 1)
+
     /// The end of a ruler started at `a` (already on a pixel center) with the pointer at `b`:
     /// the nearest of the eight straight directions, a whole number of pixels long.
     static func end(from a: CGPoint, toward b: CGPoint, scale: CGFloat) -> CGPoint {
@@ -28,8 +32,9 @@ enum CaptureRuler {
     }
 
     /// Paints a ruler into the current graphics context. `offset` turns global points into
-    /// the context's; `selection` (global) is where its label must stay.
-    static func draw(_ s: BrushStroke, offset: CGPoint, selection: CGRect) {
+    /// the context's; `selection` (global) is where its label must stay; `scale` is the
+    /// display's pixels per point, for the ticks and the length.
+    static func draw(_ s: BrushStroke, offset: CGPoint, selection: CGRect, scale: CGFloat) {
         guard let ga = s.points.first, let gb = s.points.last else { return }
         let a = CGPoint(x: ga.x - offset.x, y: ga.y - offset.y)
         let b = CGPoint(x: gb.x - offset.x, y: gb.y - offset.y)
@@ -67,12 +72,15 @@ enum CaptureRuler {
             ruler.move(to: at(end, -6))
             ruler.line(to: at(end, 6))
         }
-        var t: CGFloat = 10
-        while t < length - 0.5 {
-            let major = Int((t / 10).rounded()) % 5 == 0
+        // A tick every 10 pixels, a longer one every 50 (on the ruler's own axis: a diagonal
+        // counts the pixels it crosses across, as its label does).
+        let step = 10 / max(scale, 1) * (abs(u.x) > 0.01 && abs(u.y) > 0.01 ? 2.squareRoot() : 1)
+        var index = 1
+        while CGFloat(index) * step < length - 0.25 {
+            let t = CGFloat(index) * step
             ruler.move(to: at(t))
-            ruler.line(to: at(t, major ? 5 : 3))
-            t += 10
+            ruler.line(to: at(t, index % 5 == 0 ? 5 : 3))
+            index += 1
         }
         ruler.lineWidth = hairline
         ruler.lineCapStyle = .butt
@@ -80,20 +88,16 @@ enum CaptureRuler {
         ruler.stroke()
         NSGraphicsContext.restoreGraphicsState()
 
-        drawLabel(text(for: ga, gb, length: length), middle: at(length / 2), normal: n,
+        drawLabel(text(for: ga, gb, length: length, scale: scale), middle: at(length / 2), normal: n,
                   within: selection.offsetBy(dx: -offset.x, dy: -offset.y))
     }
 
-    /// "240 pt" across or down, "170 × 170 pt" at 45°.
-    private static func text(for a: CGPoint, _ b: CGPoint, length: CGFloat) -> String {
-        let dx = abs(b.x - a.x), dy = abs(b.y - a.y)
-        if dx < 0.01 || dy < 0.01 { return "\(number(length)) pt" }
-        return "\(number(dx)) × \(number(dy)) pt"
-    }
-
-    private static func number(_ v: CGFloat) -> String {
-        let rounded = (v * 10).rounded() / 10
-        return rounded == rounded.rounded() ? String(Int(rounded)) : String(format: "%.1f", Double(rounded))
+    /// "240 px" across or down, "170 × 170 px" at 45°: the screen's own pixels (the ends sit
+    /// on pixel centers, so these are whole numbers).
+    private static func text(for a: CGPoint, _ b: CGPoint, length: CGFloat, scale: CGFloat) -> String {
+        let dx = abs(b.x - a.x) * scale, dy = abs(b.y - a.y) * scale
+        if dx < 0.01 || dy < 0.01 { return "\(Int((length * scale).rounded())) px" }
+        return "\(Int(dx.rounded())) × \(Int(dy.rounded())) px"
     }
 
     /// A small dark capsule beside the ruler's middle, on the ticks' side (the other side, or

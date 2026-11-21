@@ -7,6 +7,7 @@
 
 import AppKit
 import Carbon.HIToolbox
+import os
 
 @MainActor
 @Observable
@@ -42,6 +43,9 @@ final class CaptureSession {
 
     /// Stroke widths offered by the thickness button.
     static let widths: [Double] = [2, 4, 8]
+    /// What a capture did with each click (where it landed, the tool picked), to tell later
+    /// why a button didn't answer: `log show --predicate 'category == "ScreenCapture"'`.
+    static let log = os.Logger(subsystem: "com.matheusfaria.Sirena", category: "ScreenCapture")
 
     @ObservationIgnored let frames: [CaptureFrame]
     @ObservationIgnored let windows: [CaptureWindow]
@@ -125,7 +129,10 @@ final class CaptureSession {
         // Another app came forward (⌘Tab, a click through): the frozen screen is stale.
         observers.append(center.addObserver(forName: NSApplication.didResignActiveNotification,
                                             object: nil, queue: .main) { [weak self] _ in
-            MainActor.assumeIsolated { self?.finish(.cancel) }
+            MainActor.assumeIsolated {
+                Self.log.notice("Capture closed: another app came forward")
+                self?.finish(.cancel)
+            }
         })
     }
 
@@ -146,6 +153,7 @@ final class CaptureSession {
     /// Ends the capture. Copy, save and record need a selection.
     func finish(_ outcome: Outcome) {
         guard !finished else { return }
+        Self.log.notice("Capture finish: \(String(describing: outcome), privacy: .public)")
         // A text still being typed belongs to the capture.
         overlays.forEach { $0.overlay.commitText() }
         if outcome != .cancel, selection == nil {
@@ -243,11 +251,13 @@ final class CaptureSession {
                 }
                 return
             }
-            // Outside: a fresh selection, unless that would throw marks away.
+            // Outside: a fresh selection, unless that would throw marks away. What is under
+            // the pointer is picked again, so a click there takes it at once.
             guard document.isEmpty else { return }
             self.selection = nil
             pickedWindow = nil
             tool = nil
+            updateHover(at: p)
         }
         drag = .pressing(p)
         refresh()
@@ -318,6 +328,7 @@ final class CaptureSession {
                 pickedWindow = hoverWindow
                 self.hover = nil
                 hoverWindow = nil
+                Self.log.notice("Capture picked \(self.pickedWindow == nil ? "the whole display" : "a window", privacy: .public) \(String(describing: self.selection ?? .null), privacy: .public)")
             }
         case .selecting?:
             if let s = selection, s.width < 4 || s.height < 4 {
@@ -410,7 +421,7 @@ final class CaptureSession {
             document.commit(BrushStroke(tool: .counter, color: color, width: width, points: [p], text: "\(number)"))
         case .ruler:
             let start = CaptureRuler.pixelCenter(p, scale: scale(at: p))
-            document.current = BrushStroke(tool: .ruler, color: color, width: width, points: [start])
+            document.current = BrushStroke(tool: .ruler, color: CaptureRuler.color, width: width, points: [start])
             drag = .drawing
         default:
             document.current = BrushStroke(tool: tool, color: color, width: width, points: [p])
@@ -493,7 +504,8 @@ final class CaptureSession {
                 context.draw(image, in: rect.offsetBy(dx: -offset.x, dy: -offset.y))
                 context.restoreGState()
             } else if stroke.tool == .ruler {
-                CaptureRuler.draw(stroke, offset: offset, selection: selection ?? .infinite)
+                CaptureRuler.draw(stroke, offset: offset, selection: selection ?? .infinite,
+                                  scale: stroke.points.first.map { scale(at: $0) } ?? 1)
             } else {
                 BrushRenderer.draw(stroke, offset: offset, laserDelay: .infinity)
             }
@@ -505,6 +517,7 @@ final class CaptureSession {
     func selectTool(_ tool: BrushTool?) {
         overlays.forEach { $0.overlay.commitText() }
         self.tool = self.tool == tool ? nil : tool
+        Self.log.notice("Capture tool: \(self.tool?.rawValue ?? "none", privacy: .public)")
         showsPalette = false
         refresh()
         updateCursor()

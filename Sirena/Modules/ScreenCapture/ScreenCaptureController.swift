@@ -108,6 +108,8 @@ final class ScreenCaptureController {
     @ObservationIgnored private var recorder: CaptureRecorder?
     @ObservationIgnored private var fallbackRecorder: Process?
     @ObservationIgnored private var discardsRecording = false
+    /// The display being recorded: the saved card shows there.
+    @ObservationIgnored private var recordingDisplay: CGDirectDisplayID?
     @ObservationIgnored private let stopPanel = RecordingStopPanel()
     @ObservationIgnored private let framePanel = RecordingFramePanel()
     @ObservationIgnored private var printScreenBound = false
@@ -334,13 +336,13 @@ final class ScreenCaptureController {
             break
         case .copy:
             guard let image = result.image else { return NSSound.beep() }
-            deliver(image, size: result.selection.size, copy: true, save: false)
+            deliver(image, size: result.selection.size, copy: true, save: false, display: result.displayID)
         case .save:
             guard let image = result.image else { return NSSound.beep() }
-            deliver(image, size: result.selection.size, copy: copiesWhenSaving, save: true)
+            deliver(image, size: result.selection.size, copy: copiesWhenSaving, save: true, display: result.displayID)
         case .copyAndSave:
             guard let image = result.image else { return NSSound.beep() }
-            deliver(image, size: result.selection.size, copy: true, save: true)
+            deliver(image, size: result.selection.size, copy: true, save: true, display: result.displayID)
         case .record:
             let target: CaptureRecordingTarget
             if let window = result.window {
@@ -360,7 +362,7 @@ final class ScreenCaptureController {
         "/System/Library/Components/CoreAudio.component/Contents/SharedSupport/SystemSounds/system/Screen Capture.aif",
         byReference: true) ?? NSSound(named: "Tink")
 
-    private func deliver(_ image: CGImage, size: CGSize, copy: Bool, save: Bool) {
+    private func deliver(_ image: CGImage, size: CGSize, copy: Bool, save: Bool, display: CGDirectDisplayID) {
         let rep = NSBitmapImageRep(cgImage: image)
         // Points, not pixels: a Retina capture pastes and opens at its real size (144 dpi).
         rep.size = size
@@ -389,15 +391,13 @@ final class ScreenCaptureController {
         }
         Self.shutter?.play()
         if let url = savedURL {
-            CaptureToast.shared.show(title: copy ? L("Screenshot saved and copied") : L("Screenshot saved"),
-                                     detail: url.lastPathComponent, symbol: "camera.fill",
-                                     note: String(format: L("In %@ · click to show in Finder"), Self.folderName(of: url)),
-                                     duration: 5) {
-                NSWorkspace.shared.activateFileViewerSelecting([url])
-            }
+            // Where it went, on the display it came from.
+            CaptureSavedCard.shared.show(url, title: copy ? L("Screenshot saved and copied") : L("Screenshot saved"),
+                                         folder: Self.folderName(of: url), image: image, on: display)
             if opensAfterCapture { NSWorkspace.shared.open(url) }
         } else {
-            CaptureToast.shared.show(title: L("Screenshot copied"), detail: dimensions, symbol: "doc.on.doc")
+            CaptureToast.shared.show(title: L("Screenshot copied"), detail: dimensions, symbol: "doc.on.doc",
+                                     near: Self.cgFrame(of: display))
         }
     }
 
@@ -409,6 +409,7 @@ final class ScreenCaptureController {
         recorder.onFinish = { [weak self] error in self?.recordingFinished(url: url, error: error) }
         self.recorder = recorder
         discardsRecording = false
+        recordingDisplay = displayID
         let options = CaptureRecorder.Options(clicks: showsClicks, microphone: recordsMicrophone, systemAudio: recordsSystemAudio)
         let screen = NSScreen.screens.first { $0.displayID == displayID }
         Task { @MainActor in
@@ -500,11 +501,7 @@ final class ScreenCaptureController {
             pasteboard.clearContents()
             pasteboard.writeObjects([url as NSURL])
         }
-        CaptureToast.shared.show(title: L("Recording saved"), detail: url.lastPathComponent, symbol: "record.circle",
-                                 note: String(format: L("In %@ · click to show in Finder"), Self.folderName(of: url)),
-                                 duration: 6) {
-            NSWorkspace.shared.activateFileViewerSelecting([url])
-        }
+        CaptureSavedCard.shared.show(url, title: L("Recording saved"), folder: Self.folderName(of: url), on: recordingDisplay)
         if opensAfterCapture { NSWorkspace.shared.open(url) }
     }
 
@@ -527,6 +524,12 @@ final class ScreenCaptureController {
             copy += 1
         }
         return url
+    }
+
+    /// A display's frame in window-server coordinates (top-left origin), for the toast.
+    private static func cgFrame(of display: CGDirectDisplayID) -> CGRect? {
+        let bounds = CGDisplayBounds(display)
+        return bounds.isEmpty ? nil : bounds
     }
 
     /// "Pictures › Screenshots" / "Desktop" for the folders on the page, else the path (~/…).

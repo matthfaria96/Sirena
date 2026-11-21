@@ -120,6 +120,14 @@ see CLAUDE.md). Names as they appear in the `AccessibilityGuard` log:
 The drag of a window (any snapping, snap layouts) is seen only through `SnappingManager.handle`
 (mouse down/dragged/up and Esc). Snap layouts hook into it; they add no monitor of their own.
 
+Sirena's whole-screen overlays at the screen-saver level and above (Captura de Tela, Desenhar)
+cover the Dock, and a click or scroll on them is theirs: `Tweaks` stops at such a window of its
+own when it looks for the Dock under the pointer (it looks through Sirena's other windows, the
+Dock preview panel), and `DockObserver` lets the event through when
+`DockObserver.ownOverlayCovers` finds one (window server only, checked only near the Dock).
+Without that a capture's buttons over the Dock became Dock clicks. The Dock keeps a window over
+the whole main display at its own level, so "under the Dock's window" is no test for that.
+
 ## 4. Minimize modes and Dock clicks
 
 `SirenaMinimize` (`DockKit/Utilities/Window Management/MinimizeHidesApp.swift`):

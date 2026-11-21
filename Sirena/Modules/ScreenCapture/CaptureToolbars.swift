@@ -2,23 +2,29 @@
 ///
 /// The two bars around a capture's selection, as in Lightshot: the marks on its side
 /// (tools, color, thickness, undo) and what to do with it underneath (record, copy, save,
-/// close). Neutral glass, icons only; the name of the button under the pointer shows in a
-/// small label next to the actions.
+/// close). When the selection fills the display the tools lie in a row beside the actions,
+/// centered low on the screen. Neutral glass, icons only; the name of the button under the
+/// pointer shows in a small label next to the actions.
 
 import SwiftUI
 
 struct CaptureToolsBar: View {
     let session: CaptureSession
+    /// A row (beside the actions, under a selection that fills the display) instead of a column.
+    var horizontal = false
     @State private var controller = ScreenCaptureController.shared
 
     private var color: Color { Color(nsColor: BrushPalette.color(controller.colorIndex)) }
+    private var stack: AnyLayout { horizontal ? AnyLayout(HStackLayout(spacing: 2)) : AnyLayout(VStackLayout(spacing: 2)) }
+    /// Dividers run across the bar.
+    private var divider: CaptureBarDivider { CaptureBarDivider(vertical: horizontal) }
 
     var body: some View {
-        ZStack(alignment: .top) {
-            VStack(spacing: 2) {
+        ZStack(alignment: horizontal ? .leading : .top) {
+            stack {
                 ForEach(BrushTool.capture) { tool in
                     // The ruler measures rather than marks: a group of its own.
-                    if tool == .ruler { CaptureBarDivider(vertical: false) }
+                    if tool == .ruler { divider }
                     CaptureBarButton(hint: "\(tool.title)  \(tool.key.uppercased())", selected: session.tool == tool,
                                      session: session) {
                         session.selectTool(tool)
@@ -26,7 +32,7 @@ struct CaptureToolsBar: View {
                         Image(systemName: tool.symbol)
                     }
                 }
-                CaptureBarDivider(vertical: false)
+                divider
                 CaptureBarButton(hint: L("Color  C"), selected: session.showsPalette, session: session) {
                     session.showsPalette.toggle()
                 } label: {
@@ -44,7 +50,7 @@ struct CaptureToolsBar: View {
                         .fill(.primary)
                         .frame(width: [4, 7, 11][min(index, 2)], height: [4, 7, 11][min(index, 2)])
                 }
-                CaptureBarDivider(vertical: false)
+                divider
                 CaptureBarButton(hint: L("Undo  ⌘Z"), enabled: session.document.canUndo, session: session) {
                     session.undo()
                 } label: {
@@ -54,7 +60,7 @@ struct CaptureToolsBar: View {
             .opacity(session.showsPalette ? 0 : 1)
 
             if session.showsPalette {
-                VStack(spacing: 4) {
+                (horizontal ? AnyLayout(HStackLayout(spacing: 4)) : AnyLayout(VStackLayout(spacing: 4))) {
                     ForEach(BrushPalette.colors.indices, id: \.self) { index in
                         Button { session.chooseColor(index) } label: {
                             Circle()
@@ -69,7 +75,7 @@ struct CaptureToolsBar: View {
                         .buttonStyle(PressableStyle())
                     }
                 }
-                .padding(.top, 2)
+                .padding(horizontal ? .leading : .top, 2)
             }
         }
         .padding(4)

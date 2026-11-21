@@ -43,6 +43,9 @@ final class CaptureOverlayView: NSView, NSTextFieldDelegate {
     private let loupe: CaptureLoupeView
     private lazy var tools: NSHostingView<CaptureToolsBar> = makeHost(CaptureToolsBar(session: session))
     private lazy var actions: NSHostingView<CaptureActionsBar> = makeHost(CaptureActionsBar(session: session))
+    /// The tools lie in one row with the actions, centered low on the selection, when the
+    /// selection leaves no room beside it (a whole display, a maximized window).
+    private var barsInRow = false
     private var textField: NSTextField?
     private var textOrigin: CGPoint = .zero
     private var textStyle: (color: NSColor, width: CGFloat) = (.systemRed, 4)
@@ -132,29 +135,63 @@ final class CaptureOverlayView: NSView, NSTextFieldDelegate {
             return
         }
         let margin: CGFloat = 8, gap: CGFloat = 8
+        // Beside the selection when a column of tools fits on its right or left; otherwise
+        // (a whole display, a maximized window) one row, centered low on the selection.
+        let column = barsInRow ? CGSize(width: tools.fittingSize.height, height: tools.fittingSize.width) : tools.fittingSize
+        let fitsBeside = selection.maxX + gap + column.width <= bounds.maxX - margin
+            || selection.minX - gap - column.width >= margin
+        setBarsInRow(!fitsBeside)
         let t = tools.fittingSize, a = actions.fittingSize
-        // Actions under the selection's right end; above it, then inside, when there is no room.
-        var ay = selection.minY - gap - a.height
-        if ay < margin {
-            ay = selection.maxY + gap
-            if ay + a.height > bounds.maxY - margin { ay = selection.minY + gap }
+        if barsInRow {
+            layoutRow(selection, tools: t, actions: a, margin: margin, gap: gap)
+        } else {
+            // Actions under the selection's right end; above it, then inside, when there is no room.
+            var ay = selection.minY - gap - a.height
+            if ay < margin {
+                ay = selection.maxY + gap
+                if ay + a.height > bounds.maxY - margin { ay = selection.minY + gap }
+            }
+            let ax = min(max(selection.maxX - a.width, margin), bounds.maxX - margin - a.width)
+            // Tools beside the selection's right edge, bottom-aligned; on the left otherwise.
+            var tx = selection.maxX + gap
+            if tx + t.width > bounds.maxX - margin { tx = selection.minX - gap - t.width }
+            var ty = min(max(selection.minY, margin), bounds.maxY - margin - t.height)
+            let actionsRect = CGRect(x: ax, y: ay, width: a.width, height: a.height)
+            if CGRect(x: tx, y: ty, width: t.width, height: t.height).intersects(actionsRect.insetBy(dx: -4, dy: -4)) {
+                ty = min(actionsRect.maxY + gap, bounds.maxY - margin - t.height)
+            }
+            tools.frame = CGRect(x: tx.rounded(), y: ty.rounded(), width: t.width, height: t.height)
+            actions.frame = actionsRect.integral
         }
-        let ax = min(max(selection.maxX - a.width, margin), bounds.maxX - margin - a.width)
-        // Tools beside the selection's right edge, bottom-aligned; on the left, then inside.
-        var tx = selection.maxX + gap
-        if tx + t.width > bounds.maxX - margin {
-            tx = selection.minX - gap - t.width
-            if tx < margin { tx = selection.maxX - margin - t.width }
-        }
-        var ty = min(max(selection.minY, margin), bounds.maxY - margin - t.height)
-        let actionsRect = CGRect(x: ax, y: ay, width: a.width, height: a.height)
-        if CGRect(x: tx, y: ty, width: t.width, height: t.height).intersects(actionsRect.insetBy(dx: -4, dy: -4)) {
-            ty = min(actionsRect.maxY + gap, bounds.maxY - margin - t.height)
-        }
-        tools.frame = CGRect(x: tx.rounded(), y: ty.rounded(), width: t.width, height: t.height)
-        actions.frame = actionsRect.integral
         tools.isHidden = false
         actions.isHidden = false
+    }
+
+    /// Tools and actions side by side, centered on the selection, a little above the bottom
+    /// of what can be seen of it (above the Dock when the selection is the whole display).
+    /// Too narrow for one row: the actions go centered above the tools.
+    private func layoutRow(_ selection: CGRect, tools t: CGSize, actions a: CGSize, margin: CGFloat, gap: CGFloat) {
+        let visible = local(NSScreen.screens.first { $0.displayID == capture.displayID }?.visibleFrame ?? capture.frame)
+        let area = selection.intersection(visible).isEmpty ? selection : selection.intersection(visible)
+        let floor = max(area.minY + 28, margin)
+        let width = t.width + gap + a.width
+        func clampX(_ x: CGFloat, _ w: CGFloat) -> CGFloat { min(max(x, margin), bounds.maxX - margin - w) }
+        if width <= area.width - 2 * margin {
+            let x = clampX(area.midX - width / 2, width)
+            let height = max(t.height, a.height)
+            tools.frame = CGRect(x: x, y: floor + (height - t.height) / 2, width: t.width, height: t.height).integral
+            actions.frame = CGRect(x: x + t.width + gap, y: floor + (height - a.height) / 2, width: a.width, height: a.height).integral
+        } else {
+            tools.frame = CGRect(x: clampX(area.midX - t.width / 2, t.width), y: floor, width: t.width, height: t.height).integral
+            actions.frame = CGRect(x: clampX(area.midX - a.width / 2, a.width), y: floor + t.height + gap,
+                                   width: a.width, height: a.height).integral
+        }
+    }
+
+    private func setBarsInRow(_ row: Bool) {
+        guard row != barsInRow else { return }
+        barsInRow = row
+        tools.rootView = CaptureToolsBar(session: session, horizontal: row)
     }
 
     func refreshHint() {
@@ -164,6 +201,13 @@ final class CaptureOverlayView: NSView, NSTextFieldDelegate {
         }
         let scale = window?.backingScaleFactor ?? 2
         let size = CaptureDecorView.pillSize(hint)
+        if barsInRow {
+            // Above the row, centered on it.
+            let row = tools.frame.union(actions.frame)
+            let x = min(max(row.midX - size.width / 2, 8), bounds.maxX - 8 - size.width)
+            decor.updateHint(hint, at: CGPoint(x: x, y: row.maxY + 8), scale: scale)
+            return
+        }
         let bar = actions.frame
         // Beside the actions, on the side with room.
         var x = bar.minX - 8 - size.width
@@ -210,9 +254,16 @@ final class CaptureOverlayView: NSView, NSTextFieldDelegate {
     }
 
     override func mouseDown(with event: NSEvent) {
+        let p = global(event)
+        // A press on a bar is the bar's: one that falls through to here must not move or
+        // mark the selection under it.
+        if isOverToolbar(p) {
+            CaptureSession.log.notice("Capture: a press on a toolbar reached the overlay (key \(self.window?.isKeyWindow == true, privacy: .public), active \(NSApp.isActive, privacy: .public))")
+            return
+        }
         window?.makeKey()
         window?.makeFirstResponder(self)
-        session.mouseDown(at: global(event), clickCount: event.clickCount)
+        session.mouseDown(at: p, clickCount: event.clickCount)
     }
 
     override func mouseDragged(with event: NSEvent) {

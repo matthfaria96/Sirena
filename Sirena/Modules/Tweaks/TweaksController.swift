@@ -439,8 +439,13 @@ final class TweaksEngine: @unchecked Sendable {
             // Front-most window under the pointer decides. Sirena's own windows are looked
             // through: the Dock preview panel overlaps the top of the icon it belongs to (its
             // transparent margin), and the click still reaches the Dock. Whether it really is
-            // a Dock icon is checked next, through Accessibility.
-            guard pid != ownPID else { continue }
+            // a Dock icon is checked next, through Accessibility. Not Sirena's whole-screen
+            // overlays at the screen-saver level and above (Screen Capture, a drawing canvas):
+            // they cover the Dock, and a click there is theirs (a capture's buttons over it).
+            if pid == ownPID {
+                if layer >= Int(CGWindowLevelForKey(.screenSaverWindow)) { return nil }
+                continue
+            }
             if owner == "Dock" && layer == Int(CGWindowLevelForKey(.dockWindow)) {
                 return WindowHit(pid: pid, layer: layer, frame: frame, isDock: true)
             }
