@@ -12,6 +12,7 @@
 import AppKit
 import Carbon.HIToolbox
 import MASShortcut
+import os
 import ScreenCaptureKit
 
 /// What Return and a double click do with the selection.
@@ -69,8 +70,10 @@ final class ScreenCaptureController {
     static let printScreenShortcut = MASShortcut(keyCode: kVK_F13, modifierFlags: [])
     /// macOS's own screenshot keys (System Settings › Keyboard › Screenshots): ⇧⌘3, ⌃⇧⌘3,
     /// ⇧⌘4, ⌃⇧⌘4 and ⇧⌘5. Only these are ever taken over, and only the one the shortcut uses.
+    /// Logitech keyboards' camera key (F8 without fn on the MX Mechanical Mini) sends ⇧⌘4.
     nonisolated static let macScreenshotHotKeys: Set<Int32> = [28, 29, 30, 31, 184]
     private static let takeoverSource = "screenCapture"
+    private static let log = os.Logger(subsystem: "com.matheusfaria.Sirena", category: "ScreenCapture")
 
     private(set) var isRunning = false
     /// While a recording runs: when it started.
@@ -142,6 +145,7 @@ final class ScreenCaptureController {
         self.openPage = openPage
         Self.migrateShortcutOnce()
         MASShortcutBinder.shared()?.bindShortcut(withDefaultsKey: Self.shortcutKey) { [weak self] in
+            Self.log.notice("Capture opened by its shortcut \(Self.shortcutText ?? "", privacy: .public)")
             self?.capture()
         }
         bindPrintScreen()
@@ -248,7 +252,10 @@ final class ScreenCaptureController {
         guard wanted != printScreenBound, let monitor = MASShortcutMonitor.shared() else { return }
         if wanted {
             printScreenBound = monitor.register(Self.printScreenShortcut, withAction: {
-                Task { @MainActor in ScreenCaptureController.shared.capture() }
+                Task { @MainActor in
+                    Self.log.notice("Capture opened by Print Screen (F13)")
+                    ScreenCaptureController.shared.capture()
+                }
             })
         } else {
             monitor.unregisterShortcut(Self.printScreenShortcut)

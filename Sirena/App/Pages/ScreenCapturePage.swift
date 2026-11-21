@@ -54,10 +54,16 @@ private struct ScreenCaptureSettingsView: View {
                     Text(L("Capture"))
                     Spacer(minLength: 12)
                     Menu {
-                        Button(L("⇧⌘4 — in place of macOS's area screenshot")) { set(kVK_ANSI_4, [.shift, .command]) }
-                        Button(L("⇧⌘5 — in place of macOS's Screenshot toolbar")) { set(kVK_ANSI_5, [.shift, .command]) }
-                        Button(L("⇧⌘2 — free in macOS")) { set(kVK_ANSI_2, [.shift, .command]) }
-                        Button(L("F13 — Print Screen only")) { set(kVK_F13, []) }
+                        // Logitech's camera key sends ⇧⌘4 (checked on the MX Mechanical Mini).
+                        Button { set(kVK_ANSI_4, [.shift, .command]) } label: {
+                            Label(L("Camera key or ⇧⌘4"), systemImage: "camera")
+                        }
+                        Button { set(kVK_F13, []) } label: {
+                            Label(L("Print Screen (F13)"), systemImage: "keyboard")
+                        }
+                        Divider()
+                        Button("⇧⌘5") { set(kVK_ANSI_5, [.shift, .command]) }
+                        Button("⇧⌘2") { set(kVK_ANSI_2, [.shift, .command]) }
                     } label: {
                         Text(L("Suggestions"))
                     }
@@ -81,7 +87,7 @@ private struct ScreenCaptureSettingsView: View {
                     if controller.holdsMacShortcut, let shortcutText {
                         Text(String(format: L("While Sirena is open, %@ opens this capture instead of macOS's. macOS gets it back when you pick another shortcut or quit Sirena."), shortcutText))
                     }
-                    Text(L("Logitech keyboards: the screenshot key sends a macOS screenshot shortcut. If it doesn't open this capture, set the same shortcut here as in Logi Options+."))
+                    Text(L("Logitech keyboards: the camera key sends ⇧⌘4."))
                 }
             }
 

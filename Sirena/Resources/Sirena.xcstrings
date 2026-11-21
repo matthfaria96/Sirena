@@ -16842,16 +16842,6 @@
         }
       }
     },
-    "F13 — Print Screen only": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "F13 — só o Print Screen"
-          }
-        }
-      }
-    },
     "Freezes the screen, menus and all": {
       "localizations": {
         "pt-BR": {
@@ -16908,16 +16898,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Inspirado no Lightshot, escrito para o Sirena"
-          }
-        }
-      }
-    },
-    "Logitech keyboards: the screenshot key sends a macOS screenshot shortcut. If it doesn't open this capture, set the same shortcut here as in Logi Options+.": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Teclados Logitech: a tecla de captura manda um atalho de captura do macOS. Se ela não abrir esta captura, use aqui o mesmo atalho configurado no Logi Options+."
           }
         }
       }
@@ -17312,36 +17292,6 @@
         }
       }
     },
-    "⇧⌘2 — free in macOS": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "⇧⌘2 — livre no macOS"
-          }
-        }
-      }
-    },
-    "⇧⌘4 — in place of macOS's area screenshot": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "⇧⌘4 — no lugar da captura de área do macOS"
-          }
-        }
-      }
-    },
-    "⇧⌘5 — in place of macOS's Screenshot toolbar": {
-      "localizations": {
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "⇧⌘5 — no lugar da barra de Captura de Tela do macOS"
-          }
-        }
-      }
-    },
     "Arrows, text, steps, ruler, pixelate…": {
       "localizations": {
         "pt-BR": {
@@ -17358,6 +17308,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "Régua"
+          }
+        }
+      }
+    },
+    "Camera key or ⇧⌘4": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tecla da câmera ou ⇧⌘4"
+          }
+        }
+      }
+    },
+    "Print Screen (F13)": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Print Screen (F13)"
+          }
+        }
+      }
+    },
+    "Logitech keyboards: the camera key sends ⇧⌘4.": {
+      "localizations": {
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teclados Logitech: a tecla da câmera envia ⇧⌘4."
           }
         }
       }

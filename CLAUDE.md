@@ -117,7 +117,8 @@ freezes every display with ScreenCaptureKit, `CaptureSession` owns the selection
 snaps straight, ends on pixel centers and carries a dashed guide across the selection. No event tap.
 - When the shortcut is one of macOS's screenshot keys, `syncMacShortcut` claims only the matching
   symbolic hotkey through `SwitcherSystemShortcutTakeover` (source `screenCapture`) while Sirena
-  runs. `restoreAll` happens once, in `ModuleManager.terminate`; a module's own `terminate` only
+  runs. Logitech's camera key (F8 without fn on the MX Mechanical Mini) sends ⇧⌘4: the first
+  suggestion on the page. The log (category `ScreenCapture`) names the key that opened each capture. `restoreAll` happens once, in `ModuleManager.terminate`; a module's own `terminate` only
   calls `setWanted([], for:)`, or it would hand back another module's keys.
 
 ## Showcase mode (site screenshots)
